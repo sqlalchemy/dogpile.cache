@@ -1,9 +1,10 @@
-import inspect
 
+from dogpile.cache.util import function_key_generator, PluginLoader
 
 _backend_loader = PluginLoader("dogpile.cache")
 register_backend = _backend_loader.register
 import backends
+
 
 class CacheRegion(object):
     """A front end to a particular cache backend."""
@@ -11,13 +12,27 @@ class CacheRegion(object):
     def __init__(self, name, 
             expiration_time=None,
             arguments=None,
-            function_key_generator=_function_key_generator
+            function_key_generator=function_key_generator
             key_mangler=None,
         ):
-        self.backend = _backend_loadeer.load(name)(arguents)
-        self.function_key_generator = function_key_genertor
+        """Construct a new :class:`.CacheRegion`.
+        
+        :param name: Cache backend name.
+        :param expiration_time: Expiration time, in seconds
+        :param arguments: Argument structure passed to the 
+         backend.  Is typically a dict.
+        :function_key_generator: Key generator used by
+         :meth:`.CacheRegion.cache_on_arguments`.
+        :key_mangler: Function which will be used on all incoming
+         keys before passing to the backend.  Defaults to ``None``.
+         A simple key mangler is the SHA1 mangler function
+         found at :meth:`.sha1_mangle_key`.
+         
+        """
+        self.backend = _backend_loader.load(name)(arguments)
+        self.function_key_generator = function_key_generator
         self.key_mangler = key_mangler
-        self.dogpile = Dogpile(expiration_time, init=True)
+        self.dogpile_registry = Dogpile.registry(expiration_time)
 
     def get(self, key):
         """Return a value from the cache, based on the given key.
@@ -29,6 +44,7 @@ class CacheRegion(object):
         between a cached value of ``None``. Note that the ``expiration_time``
         argument is **not** used here - this method is a direct line to the
         backend's behavior. 
+
         """
 
         if self.key_mangler:
@@ -44,51 +60,23 @@ class CacheRegion(object):
         expiration mechanism to determine when/how the creation function is called.
 
         """
-        dogpile = 
-        with dogpile.acquire(gen_cached, get_value) as value:
-            return value
-
-    def _dogpile_get_value(self):
-        value = 
-             with mc_pool.reserve() as mc:
-                value = mc.get(key)
-                if value is None:
-                    raise NeedRegenerationException()
-                return value
-
-    import pylibmc
-    mc_pool = pylibmc.ThreadMappedPool(pylibmc.Client("localhost"))
-
-    from dogpile import Dogpile, NeedRegenerationException
-
-    def cached(key, expiration_time):
-        """A decorator that will cache the return value of a function
-        in memcached given a key."""
+        if self.key_mangler:
+            key = self.key_mangler(key)
 
         def get_value():
-             with mc_pool.reserve() as mc:
-                value = mc.get(key)
-                if value is None:
-                    raise NeedRegenerationException()
-                return value
+            value = self.backend.get(key)
+            if value is NO_VALUE:
+                raise NeedRegenerationException()
+            return value.payload, value.metadata["creation_time"]
 
-        dogpile = Dogpile(expiration_time, init=True)
+        def gen_value():
+            value = CachedValue(creator(), {"creation_time":time.time()})
+            self.backend.put(key, value)
+            return value
 
-        def decorate(fn):
-            def gen_cached():
-                value = fn()
-                with mc_pool.reserve() as mc:
-                    mc.put(key, value)
-                return value
-
-            def invoke():
-                with dogpile.acquire(gen_cached, get_value) as value:
-                    return value
-            return invoke
-
-        return decorate
-
-
+        dogpile = self.dogpile_registry.get(key)
+        with dogpile.acquire(gen_value, value_and_created_fn=get_value) as value:
+            return value
 
     def put(self, key, value):
         """Place a new value in the cache under the given key."""
@@ -115,14 +103,45 @@ class CacheRegion(object):
         function using a key derived from the name of the function, its
         location within the application (i.e. source filename) as well as the
         arguments passed to the function.
+        
+        E.g.::
+        
+            @someregion.cache_on_arguments
+            def generate_something(x, y):
+                return somedatabase.query(x, y)
+                
+        The decorated function can then be called normally, where
+        data will be pulled from the cache region unless a new
+        value is needed::
+        
+            result = generate_something(5, 6)
+        
+        The function is also given an attribute ``invalidate``, which
+        provides for invalidation of the value.  Pass to ``invalidate()``
+        the same arguments you'd pass to the function itself to represent
+        a particular value::
+        
+            generate_something.invalidate(5, 6)
+        
+        The mechanism used to generate cache keys is controlled
+        by the ``function_key_generator`` function passed
+        to :class:`.CacheRegion`. It defaults to :func:`.function_key_generator`.    
 
-         The generation of the key from the function is the big controversial
-        thing that was a source of user issues with Beaker. Dogpile provides
-        the latest and greatest algorithm used by Beaker, but also allows you
-        to use whatever function you want, by specifying it to
-        ``make_region()`` using the ``function_key_generator`` argument. 
         """
+        key_generator = self.function_key_generator(fn)
+        def decorate(*arg, **kw):
+            key = key_generator(*arg, **kw)
+            def creator():
+                return fn(*arg, **kw)
+            return self.get_or_create(key, creator)
 
+        def invalidate(*arg, **kw):
+            key = key_generator(*arg, **kw)
+            self.delete(key)
+
+        decorate.invalidate = invalidate
+
+        return decorate
 
 make_region = CacheRegion
 

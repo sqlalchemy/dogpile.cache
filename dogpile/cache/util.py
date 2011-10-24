@@ -30,7 +30,7 @@ class PluginLoader(object):
         self.impls[name] = load
 
 
-def _function_key_generator(fn):
+def function_key_generator(fn):
     """Return a function that generates a string
     key, based on a given function as well as
     arguments to the returned function itself.
@@ -65,7 +65,7 @@ def _function_key_generator(fn):
         return  " ".join(map(unicode, deco_args + args))
     return generate_key
 
-def _sha1_mangle_key(key):
-    """Default key mangler"""
+def sha1_mangle_key(key):
+    """a SHA1 key mangler."""
 
     return sha1(key).hexdigest()
