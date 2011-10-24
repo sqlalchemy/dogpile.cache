@@ -1,13 +1,13 @@
 dogpile.cache
 =============
 
-Provides a simple caching pattern to use with the `dogpile <http://pypi.python.org/pypi/dogpile>`_. locking system,
-including rudimentary backends.  It effectively completes the replacement
-of Beaker as far as caching is concerned, providing an open-ended and simple
-pattern to configure caching.  New backends are very easy to create and use;
-users are encouraged to adapt the provided backends for their own needs, as 
-high volume caching requires lots of tweaks and adjustments specific to
-an application and its environment.
+Provides a simple caching pattern to use with the `dogpile <http://pypi.python.org/pypi/dogpile>`_
+ locking system, including rudimentary backends. It effectively completes the
+replacement of Beaker as far as caching is concerned, providing an open-ended
+and simple pattern to configure caching. New backends are very easy to create
+and use; users are encouraged to adapt the provided backends for their own
+needs, as high volume caching requires lots of tweaks and adjustments specific
+to an application and its environment.
 
 Usage
 -----
@@ -23,7 +23,7 @@ A dogpile.cache configuration consists of the following components:
   new values to be placed in the cache.
 
 The most common caching style in use these days is via memcached, so an example
-of this using the pylibmc backend looks like::
+of this using the `pylibmc <http://pypi.python.org/pypi/pylibmc>`_ backend looks like::
 
     from dogpile.cache import make_region
 
@@ -98,6 +98,30 @@ Our new backend would be usable in a region like this::
     region = make_region("dictionary")
 
     data = region.put("somekey", "somevalue")
+
+The values we receive for the backend here are instances of
+``CachedValue``.  This is a tuple subclass of length two, of the form::
+
+    (payload, metadata)
+
+Where "payload" is the thing being cached, and "metadata" is information
+we store in the cache regarding the created time, expiration time.  The
+tuple can be pickled assuming the payload is pickleable, or to get a serialized
+version of just the metadata, you can call the ``serialized_metadata`` accessor,
+which is then turned back into a ``CachedValue`` via the ``deserialize``
+method::
+
+    from dogpile.cache.backend import CachedValue
+
+    def get(self, key):
+        my_cached_value = my_cache.get(key)
+        serialized_metadata, payload = my_cached_value.split("|")
+        return CachedValue.deserialize(payload, serialized_metadata)
+
+    def put(self, key, value):
+        my_value_to_cache = value.serialized_metadata + "|" + repr(value.payload)
+        my_cache.put(key, my_value_to_cache)
+
 
 Region Arguments
 ----------------
