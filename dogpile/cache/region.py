@@ -1,10 +1,18 @@
-
+from dogpile import Dogpile, NeedRegenerationException
 from dogpile.cache.util import function_key_generator, PluginLoader
+from dogpile.cache.api import NO_VALUE, CachedValue
+import time
 
 _backend_loader = PluginLoader("dogpile.cache")
 register_backend = _backend_loader.register
 import backends
 
+value_version = 1
+"""An integer placed in the :class:`.CachedValue`
+so that new versions of dogpile.cache can detect cached
+values from a previous, backwards-incompatible version.
+
+"""
 
 class CacheRegion(object):
     """A front end to a particular cache backend."""
@@ -12,7 +20,7 @@ class CacheRegion(object):
     def __init__(self, name, 
             expiration_time=None,
             arguments=None,
-            function_key_generator=function_key_generator
+            function_key_generator=function_key_generator,
             key_mangler=None,
         ):
         """Construct a new :class:`.CacheRegion`.
@@ -24,14 +32,23 @@ class CacheRegion(object):
         :function_key_generator: Key generator used by
          :meth:`.CacheRegion.cache_on_arguments`.
         :key_mangler: Function which will be used on all incoming
-         keys before passing to the backend.  Defaults to ``None``.
-         A simple key mangler is the SHA1 mangler function
-         found at :meth:`.sha1_mangle_key`.
+         keys before passing to the backend.  Defaults to ``None``,
+         in which case the key mangling function recommended by
+         the cache backend will be used.    A typical mangler
+         is the SHA1 mangler found at found at :meth:`.sha1_mangle_key` 
+         which coerces keys into a SHA1
+         hash, so that the string length is fixed.  To
+         disable all key mangling, set to ``False``.
          
         """
         self.backend = _backend_loader.load(name)(arguments)
         self.function_key_generator = function_key_generator
-        self.key_mangler = key_mangler
+        if key_mangler:
+            self.key_mangler = key_mangler
+        elif key_mangler is False:
+            self.key_mangler = None
+        else:
+            self.key_mangler = backend.key_mangler
         self.dogpile_registry = Dogpile.registry(expiration_time)
 
     def get(self, key):
@@ -65,12 +82,18 @@ class CacheRegion(object):
 
         def get_value():
             value = self.backend.get(key)
-            if value is NO_VALUE:
+            if value is NO_VALUE or \
+                value.metadata['version'] != value_version:
                 raise NeedRegenerationException()
             return value.payload, value.metadata["creation_time"]
 
         def gen_value():
-            value = CachedValue(creator(), {"creation_time":time.time()})
+            value = CachedValue(
+                        creator(), 
+                        {
+                            "creation_time":time.time(), 
+                            "version":value_version
+                        })
             self.backend.put(key, value)
             return value
 

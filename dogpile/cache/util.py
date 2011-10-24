@@ -17,7 +17,7 @@ class PluginLoader(object):
                 self.impls[name] = impl.load
                 return impl.load()
             else:
-                raise exceptions.RuntimeException(
+                raise Exception(
                         "Can't load plugin %s %s" % 
                         (self.group, name))
 
@@ -51,9 +51,9 @@ def function_key_generator(fn):
     if kls:
         namespace = '%s.%s' % (kls.__module__, kls.__name__)
     else:
-        namespace = '%s|%s' % (inspect.getsourcefile(func), func.__name__)
+        namespace = '%s|%s' % (inspect.getsourcefile(fn), fn.__name__)
 
-    args = inspect.getargspec(func)
+    args = inspect.getargspec(fn)
     has_self = args[0] and args[0][0] in ('self', 'cls')
     def generate_key(*args, **kw):
         if kw:
@@ -62,10 +62,22 @@ def function_key_generator(fn):
                     "function does not accept keyword arguments.")
         if has_self:
             args = args[1:]
-        return  " ".join(map(unicode, deco_args + args))
+        return namespace + "|" + " ".join(map(unicode, args))
     return generate_key
 
 def sha1_mangle_key(key):
     """a SHA1 key mangler."""
 
     return sha1(key).hexdigest()
+
+def length_conditional_mangler(length, mangler):
+    """a key mangler that mangles if the length of the key is
+    past a certain threshold.
+    
+    """
+    def mangle(key):
+        if len(key) >= length:
+            return mangler(key)
+        else:
+            return key
+    return mangle

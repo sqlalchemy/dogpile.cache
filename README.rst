@@ -105,23 +105,10 @@ The values we receive for the backend here are instances of
     (payload, metadata)
 
 Where "payload" is the thing being cached, and "metadata" is information
-we store in the cache regarding the created time, expiration time.  The
-tuple can be pickled assuming the payload is pickleable, or to get a serialized
-version of just the metadata, you can call the ``serialized_metadata`` accessor,
-which is then turned back into a ``CachedValue`` via the ``deserialize``
-method::
-
-    from dogpile.cache.backend import CachedValue
-
-    def get(self, key):
-        my_cached_value = my_cache.get(key)
-        serialized_metadata, payload = my_cached_value.split("|")
-        return CachedValue.deserialize(payload, serialized_metadata)
-
-    def put(self, key, value):
-        my_value_to_cache = value.serialized_metadata + "|" + repr(value.payload)
-        my_cache.put(key, my_value_to_cache)
-
+we store in the cache - a dictionary which currently has just the "creation time"
+and a "version identifier" as key/values.  If the cache backend requires serialization, 
+pickle or similar can be used on the tuple - the "metadata" portion will always
+be a small and easily serializable Python structure.
 
 Region Arguments
 ----------------

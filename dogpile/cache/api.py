@@ -38,6 +38,12 @@ class CachedValue(tuple):
 class CacheBackend(object):
     """Base class for backend implementations."""
 
+    key_mangler = None
+    """Key mangling function.  
+    
+    May be None.
+    """
+
     def __init__(self, arguments):
         """Construct a new :class:`.CacheBackend`.
         
