@@ -113,7 +113,7 @@ be a small and easily serializable Python structure.
 Region Arguments
 ----------------
 
-The ``make_region()`` function accepts these arguments::
+The ``make_region()`` function accepts these arguments:
 
 ``name``
 
