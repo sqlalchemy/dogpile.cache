@@ -17,19 +17,16 @@ values from a previous, backwards-incompatible version.
 class CacheRegion(object):
     """A front end to a particular cache backend."""
 
-    def __init__(self, name, 
-            expiration_time=None,
-            arguments=None,
+    def __init__(self,
+            name=None, 
             function_key_generator=function_key_generator,
             key_mangler=None,
-        ):
+
+    ):
         """Construct a new :class:`.CacheRegion`.
         
-        :param name: Cache backend name.
-        :param expiration_time: Expiration time, in seconds
-        :param arguments: Argument structure passed to the 
-         backend.  Is typically a dict.
-        :function_key_generator: Key generator used by
+        :param name: Optional, name for the region.
+        :function_key_generator: Optional, key generator used by
          :meth:`.CacheRegion.cache_on_arguments`.
         :key_mangler: Function which will be used on all incoming
          keys before passing to the backend.  Defaults to ``None``,
@@ -39,17 +36,53 @@ class CacheRegion(object):
          which coerces keys into a SHA1
          hash, so that the string length is fixed.  To
          disable all key mangling, set to ``False``.
-         
+        
         """
-        self.backend = _backend_loader.load(name)(arguments)
         self.function_key_generator = function_key_generator
         if key_mangler:
             self.key_mangler = key_mangler
-        elif key_mangler is False:
-            self.key_mangler = None
         else:
-            self.key_mangler = backend.key_mangler
+            self.key_mangler = None
+
+    def configure(self, backend,
+            expiration_time=None,
+            arguments=None,
+            _config_argument_dict=None,
+            _config_prefix=None
+        ):
+        """Configure a :class:`.CacheRegion`
+        
+        The :class:`.CacheRegion` itself 
+        is returned..
+        
+        :param backend: Cache backend name
+        :param expiration_time: Expiration time, in seconds
+        :param arguments: Argument structure passed to the 
+         backend.  Is typically a dict.
+         
+        """
+        backend_cls = _backend_loader.load(backend)
+        if _config_argument_dict:
+            self.backend = backend_cls.from_config_dict(
+                _config_argument_dict,
+                _config_prefix
+            )
+        else:
+            self.backend = backend_cls(arguments)
         self.dogpile_registry = Dogpile.registry(expiration_time)
+        if self.key_mangler is None:
+            self.key_mangler = backend.key_mangler
+        return self
+
+    def configure_from_config(self, config_dict, prefix):
+        """Configure from a configuration dictionary 
+        and a prefix."""
+        return self.configure(
+            config_dict["%s.backend" % prefix],
+            expiration_time = config_dict.get("%s.expiration_time" % prefix, None),
+            _config_argument_dict=config_dict,
+            _config_prefix="%s.arguments" % prefix
+        )
 
     def get(self, key):
         """Return a value from the cache, based on the given key.

@@ -56,6 +56,17 @@ class CacheBackend(object):
         """
         raise NotImplementedError()
 
+    @classmethod
+    def from_config_dict(cls, config_dict, prefix):
+        prefix_len = len(prefix)
+        return cls(
+                dict(
+                    (key[prefix_len:], config_dict[key]) 
+                    for key in config_dict 
+                    if key.startwith(prefix)
+                )
+            )
+
     def get(self, key):
         """Retrieve a value from the cache.
         

@@ -27,7 +27,7 @@ of this using the `pylibmc <http://pypi.python.org/pypi/pylibmc>`_ backend looks
 
     from dogpile.cache import make_region
 
-    region = make_region(
+    region = make_region().configure(
         'dogpile.cache.pylibmc',
         expiration_time = 3600,
         arguments = {
@@ -41,8 +41,9 @@ of this using the `pylibmc <http://pypi.python.org/pypi/pylibmc>`_ backend looks
     def load_user_info(user_id):
         return some_database.lookup_user_by_id(user_id)
 
-Above, we create a ``CacheRegion`` using the ``make_region()`` function.  This 
-function accepts as arguments the name of the backend as the only required argument,
+Above, we create a ``CacheRegion`` using the ``make_region()`` function, then
+apply the backend configuration via the ``configure()`` method, which returns the 
+region.  The name of the backend is the only required argument,
 in this case ``dogpile.cache.pylibmc``.
 
 Subsequent arguments then include *expiration_time*, which is the expiration 
@@ -117,20 +118,9 @@ The ``make_region()`` function accepts these arguments:
 
 ``name``
 
-  Required.  This is the name of the ``CacheBackend`` to use, and
-  is resolved by loading the class from the ``dogpile.cache`` entrypoint.
-
-``expiration_time``
-
-  Optional.  The expiration time passed to the dogpile system.  The ``get_or_create()``
-  method as well as the ``cache_on_arguments()`` decorator (note:  **not** the
-  ``get()`` method) will call upon the value creation function after this
-  time period has passed since the last generation.
-
-``arguments``
-
-  Optional.  The structure here is passed directly to the constructor
-  of the ``CacheBackend`` in use, though is typically a dictionary.
+  Optional.  A string name for the region.  This isn't used internally
+  but can be accessed via the ``.name`` parameter, helpful
+  for configuring a region from a config file.
 
 ``function_key_generator``
 
@@ -156,6 +146,53 @@ The ``make_region()`` function accepts these arguments:
         function_key_generator = my_key_generator
 
     )
+
+``key_mangler``
+
+  Optional.  Function which will "mangle" the incoming keys.  If left
+  at ``None``, the backend may provide a default "mangler" function.
+  Set to ``False`` to unconditionally disable key mangling.
+
+One you have a ``CacheRegion``, the ``cache_on_arguments()`` method can
+be used to decorate functions, but the cache itself can't be used until
+``configure()`` is called.  That method accepts these arguments:
+
+``backend``
+  Required.  This is the name of the ``CacheBackend`` to use, and
+  is resolved by loading the class from the ``dogpile.cache`` entrypoint.
+
+``expiration_time``
+
+  Optional.  The expiration time passed to the dogpile system.  The ``get_or_create()``
+  method as well as the ``cache_on_arguments()`` decorator (note:  **not** the
+  ``get()`` method) will call upon the value creation function after this
+  time period has passed since the last generation.
+
+``arguments``
+
+  Optional.  The structure here is passed directly to the constructor
+  of the ``CacheBackend`` in use, though is typically a dictionary.
+
+Configure Region from a Configuration Dictionary
+------------------------------------------------
+
+Call ``configure_from_config()`` instead::
+
+    local_region = make_region()
+    memcached_region = make_region()
+
+    # regions are ready to use for function
+    # decorators, but not yet for actual caching
+
+    # later, when config is available
+    myconfig = {
+        "cache.local.backend":"dogpile.cache.dbm",
+        "cache.local.arguments.filename":"/path/to/dbmfile.dbm",
+        "cache.memcached.backend":"dogpile.cache.pylibmc",
+        "cache.memcached.arguments.url":"127.0.0.1, 10.0.0.1",
+    }
+    local_region.configure_from_config(myconfig, "cache.local.")
+    memcached_region.configure_from_config(myconfig, "cache.memcached.")
 
 Using a Region
 --------------
