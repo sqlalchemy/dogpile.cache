@@ -138,13 +138,13 @@ The ``make_region()`` function accepts these arguments:
 
 
     region = make_region(
+        function_key_generator = my_key_generator
+    ).configure(
         "dogpile.cache.dbm",
         expiration_time=300,
         arguments={
             "filename":"file.dbm"
-        },
-        function_key_generator = my_key_generator
-
+        }
     )
 
 ``key_mangler``

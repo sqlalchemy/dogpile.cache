@@ -1,5 +1,5 @@
 from dogpile import Dogpile, NeedRegenerationException
-from dogpile.cache.util import function_key_generator, PluginLoader
+from dogpile.cache.util import function_key_generator, PluginLoader, memoized_property
 from dogpile.cache.api import NO_VALUE, CachedValue
 import time
 
@@ -61,6 +61,11 @@ class CacheRegion(object):
          backend.  Is typically a dict.
          
         """
+        if "backend" in self.__dict__:
+            raise Exception(
+                    "This region is already "
+                    "configured with the %s backend" 
+                    % self.backend)
         backend_cls = _backend_loader.load(backend)
         if _config_argument_dict:
             self.backend = backend_cls.from_config_dict(
@@ -83,6 +88,10 @@ class CacheRegion(object):
             _config_argument_dict=config_dict,
             _config_prefix="%s.arguments" % prefix
         )
+
+    @memoized_property
+    def backend(self):
+        raise Exception("No backend is configured on this region.")
 
     def get(self, key):
         """Return a value from the cache, based on the given key.
