@@ -67,6 +67,28 @@ class CacheBackend(object):
                 )
             )
 
+    def get_mutex(self, key):
+        """Return an optional mutexing object for the given key.
+
+        This object need only provide an ``acquire()``
+        and ``release()`` method.
+        
+        May return ``None``, in which case the dogpile
+        lock will use a regular ``threading.Lock``
+        object to mutex concurrent threads for 
+        value creation.   The default implementation
+        returns ``None``.
+        
+        Different backends may want to provide various
+        kinds of "mutex" objects, such as those which
+        link to lock files, distributed mutexes,
+        memcached semaphores, timers, etc.  Whatever
+        kind of system is best suited for the scope
+        and behavior of the caching backend.
+        
+        """
+        return None
+
     def get(self, key):
         """Retrieve a value from the cache.
         

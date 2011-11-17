@@ -1,4 +1,6 @@
 from dogpile import Dogpile, NeedRegenerationException
+from dogpile.nameregistry import NameRegistry
+
 from dogpile.cache.util import function_key_generator, PluginLoader, memoized_property
 from dogpile.cache.api import NO_VALUE, CachedValue
 import time
@@ -20,7 +22,7 @@ class CacheRegion(object):
     def __init__(self,
             name=None, 
             function_key_generator=function_key_generator,
-            key_mangler=None,
+            key_mangler=None
 
     ):
         """Construct a new :class:`.CacheRegion`.
@@ -28,7 +30,7 @@ class CacheRegion(object):
         :param name: Optional, name for the region.
         :function_key_generator: Optional, key generator used by
          :meth:`.CacheRegion.cache_on_arguments`.
-        :key_mangler: Function which will be used on all incoming
+        :param key_mangler: Function which will be used on all incoming
          keys before passing to the backend.  Defaults to ``None``,
          in which case the key mangling function recommended by
          the cache backend will be used.    A typical mangler
@@ -36,7 +38,8 @@ class CacheRegion(object):
          which coerces keys into a SHA1
          hash, so that the string length is fixed.  To
          disable all key mangling, set to ``False``.
-        
+        :param lock_generator: Function which, given a cache key,
+         returns a mutexing object.
         """
         self.function_key_generator = function_key_generator
         if key_mangler:
@@ -74,10 +77,16 @@ class CacheRegion(object):
             )
         else:
             self.backend = backend_cls(arguments)
-        self.dogpile_registry = Dogpile.registry(expiration_time)
+        self.dogpile_registry = NameRegistry(self._create_dogpile)
         if self.key_mangler is None:
             self.key_mangler = backend.key_mangler
         return self
+
+    def _create_dogpile(self, identifier):
+        return Dogpile(
+                expiration_time, 
+                lock=self.backend.get_mutex(identifier)
+            )
 
     def configure_from_config(self, config_dict, prefix):
         """Configure from a configuration dictionary 
@@ -139,7 +148,7 @@ class CacheRegion(object):
             self.backend.put(key, value)
             return value
 
-        dogpile = self.dogpile_registry.get(key)
+        dogpile = self.dogpile_registry.get(key, lock=self.backend.get_mutex(key))
         with dogpile.acquire(gen_value, value_and_created_fn=get_value) as value:
             return value
 

@@ -32,7 +32,7 @@ setup(name='dogpile.cache',
       entry_points="""
       [mako.cache]
       dogpile = dogpile.cache.plugins.mako:MakoPlugin
-      """
+      """,
       zip_safe=False,
       install_requires=['dogpile>=0.1.0'],
       test_suite='nose.collector',
