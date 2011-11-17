@@ -1,5 +1,5 @@
 ==========================================
-Welcome to Dogpile.Cache's documentation!
+Welcome to dogpile.cache's documentation!
 ==========================================
 
 `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_ provides a simple 

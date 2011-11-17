@@ -266,7 +266,7 @@ and a region dictionary::
                     "dogpile.cache.dbm", 
                     expiration_time=360,
                     arguments={"filename":"file.dbm"}
-                )
+                ),
         "memcached":make_region(
                     "dogpile.cache.pylibmc", 
                     expiration_time=3600,

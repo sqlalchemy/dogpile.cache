@@ -1,4 +1,4 @@
-import sha1
+from hashlib import sha1
 import inspect
 
 class PluginLoader(object):

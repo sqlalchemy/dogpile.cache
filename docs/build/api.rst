@@ -2,22 +2,30 @@
 API
 ===
 
-Dogpile
-========
+Region
+======
 
-.. automodule:: dogpile.dogpile
+.. automodule:: dogpile.cache.region
     :members:
 
-NameRegistry
+Backend API
 =============
 
-.. automodule:: dogpile.nameregistry
+.. automodule:: dogpile.cache.api
     :members:
 
-Utilities
+Backends
 ==========
 
-.. automodule:: dogpile.readwrite_lock
+.. automodule:: dogpile.cache.backends.dbm
+    :members:
+
+.. automodule:: dogpile.cache.backends.memcached
     :members:
 
 
+Plugins
+========
+
+.. automodule:: dogpile.cache.plugins.mako_cache
+    :members:
