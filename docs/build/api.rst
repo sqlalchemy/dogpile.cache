@@ -8,6 +8,8 @@ Region
 .. automodule:: dogpile.cache.region
     :members:
 
+.. autofunction:: dogpile.cache.util.function_key_generator
+
 Backend API
 =============
 
