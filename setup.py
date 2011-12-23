@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 
 from setuptools import setup, find_packages
 
@@ -9,10 +10,14 @@ if sys.version_info >= (3, 0):
         use_2to3=True,
     )
 
+v = open(os.path.join(os.path.dirname(__file__), 'dogpile', 'cache', '__init__.py'))
+VERSION = re.compile(r".*__version__ = '(.*?)'", re.S).match(v.read()).group(1)
+v.close()
+
 readme = os.path.join(os.path.dirname(__file__), 'README.rst')
 
 setup(name='dogpile.cache',
-      version="0.1.0",
+      version=VERSION,
       description="A caching front-end based on the Dogpile lock.",
       long_description=file(readme).read(),
       classifiers=[
