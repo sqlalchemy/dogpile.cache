@@ -189,7 +189,7 @@ Mako Integration
 ================
 
 dogpile.cache includes a Mako plugin that replaces Beaker as the cache backend.
-Simply setup a Mako template lookup using the "dogpile.cache" cache implementation
+Setup a Mako template lookup using the "dogpile.cache" cache implementation
 and a region dictionary::
 
     from dogpile.cache import make_region
