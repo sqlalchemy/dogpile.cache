@@ -12,7 +12,7 @@ code is tracked here using `Mercurial <http://mercurial.selenic.com/>`_.
 
 Releases and project status are available on Pypi at http://pypi.python.org/pypi/dogpile.cache.
 
-The most recent published version of this documentation should be at http://readthedocs.org/docs/dogpile.cache/.
+The most recent published version of this documentation should be at http://readthedocs.org/docs/dogpilecache/.
 
 Installation
 ============
