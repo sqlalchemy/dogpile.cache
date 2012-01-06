@@ -115,14 +115,15 @@ class CacheRegion(object):
             )
         else:
             self.backend = backend_cls(arguments)
+        self.expiration_time = expiration_time
         self.dogpile_registry = NameRegistry(self._create_dogpile)
         if self.key_mangler is None:
-            self.key_mangler = backend.key_mangler
+            self.key_mangler = self.backend.key_mangler
         return self
 
     def _create_dogpile(self, identifier):
         return Dogpile(
-                expiration_time, 
+                self.expiration_time, 
                 lock=self.backend.get_mutex(identifier)
             )
 
@@ -197,25 +198,27 @@ class CacheRegion(object):
             return value.payload, value.metadata["creation_time"]
 
         def gen_value():
-            value = CachedValue(
-                        creator(), 
-                        {
-                            "creation_time":time.time(), 
-                            "version":value_version
-                        })
+            value = self._value(creator())
             self.backend.put(key, value)
             return value
 
-        dogpile = self.dogpile_registry.get(key, lock=self.backend.get_mutex(key))
+        dogpile = self.dogpile_registry.get(key)
         with dogpile.acquire(gen_value, value_and_created_fn=get_value) as value:
             return value
+
+    def _value(self, value):
+        """Return a :class:`.CachedValue` given a value."""
+        return CachedValue(value, {
+                            "creation_time":time.time(), 
+                            "version":value_version
+                        })
 
     def put(self, key, value):
         """Place a new value in the cache under the given key."""
 
         if self.key_mangler:
             key = self.key_mangler(key)
-        self.backend.put(key, CachedValue(value))
+        self.backend.put(key, self._value(value))
 
 
     def delete(self, key):

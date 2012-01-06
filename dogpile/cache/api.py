@@ -29,8 +29,8 @@ class CachedValue(tuple):
     the backend requires serialization.
     
     """
-    payload = operator.itemgetter(0)
-    metadata = operator.itemgetter(1)
+    payload = property(operator.itemgetter(0))
+    metadata = property(operator.itemgetter(1))
 
     def __new__(cls, payload, metadata):
         return tuple.__new__(cls, (payload, metadata))
@@ -41,7 +41,9 @@ class CacheBackend(object):
     key_mangler = None
     """Key mangling function.  
     
-    May be None.
+    May be None, or otherwise declared
+    as an ordinary instance method.
+
     """
 
     def __init__(self, arguments):
