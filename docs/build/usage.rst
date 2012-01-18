@@ -30,14 +30,14 @@ A dogpile.cache configuration consists of the following components:
   the "front end" used by applications.
 * A *backend*, which is an instance of :class:`.CacheBackend`, describing how values
   are stored and retrieved from a backend.  This interface specifies only
-  :meth:`~.CacheBackend.get`, :meth:`~.CacheBackend.put` and :meth:`~.CacheBackend.delete`.
+  :meth:`~.CacheBackend.get`, :meth:`~.CacheBackend.set` and :meth:`~.CacheBackend.delete`.
   The actual kind of :class:`.CacheBackend` in use for a particular :class:`.CacheRegion`
   is determined by the underlying Python API being used to talk to the cache, such
   as Pylibmc.  The :class:`.CacheBackend` is instantiated behind the scenes and 
   not directly accessed by applications under normal circumstances.
 * Value generation functions.   These are user-defined functions that generate
   new values to be placed in the cache.   While dogpile.cache offers the usual
-  "put" approach of placing data into the cache, the usual mode of usage is to only instruct
+  "set" approach of placing data into the cache, the usual mode of usage is to only instruct
   it to "get" a value, passing it a *creation function* which will be used to 
   generate a new value if and only if one is needed.   This "get-or-create" pattern
   is the entire key to the "Dogpile" system, which coordinates a single value creation 
@@ -116,7 +116,7 @@ the following methods:
 .. automethod:: dogpile.cache.region.CacheRegion.get_or_create
     :noindex:
 
-.. automethod:: dogpile.cache.region.CacheRegion.put
+.. automethod:: dogpile.cache.region.CacheRegion.set
     :noindex:
 
 .. automethod:: dogpile.cache.region.CacheRegion.delete
@@ -144,7 +144,7 @@ For example, to create a backend called ``DictionaryBackend``, we subclass
         def get(self, key):
             return self.cache.get(key, NO_VALUE)
 
-        def put(self, key, value):
+        def set(self, key, value):
             self.cache[key] = value
 
         def delete(self, key):
@@ -172,7 +172,7 @@ Our new backend would be usable in a region like this::
 
     region = make_region("dictionary")
 
-    data = region.put("somekey", "somevalue")
+    data = region.set("somekey", "somevalue")
 
 The values we receive for the backend here are instances of
 ``CachedValue``.  This is a tuple subclass of length two, of the form::

@@ -24,7 +24,7 @@ class MockBackend(CacheBackend):
             return self._cache[key]
         except KeyError:
             return NO_VALUE
-    def put(self, key, value):
+    def set(self, key, value):
         self._cache[key] = value
     def delete(self, key):
         self._cache.pop(key, None)
@@ -55,7 +55,7 @@ class RegionTest(TestCase):
     def test_key_mangler_impl(self):
         reg = self._region(init_args={"key_mangler":key_mangler})
 
-        reg.put("some key", "some value")
+        reg.set("some key", "some value")
         eq_(list(reg.backend._cache), ["HI!some key"])
         eq_(reg.get("some key"), "some value")
         eq_(reg.get_or_create("some key", lambda: "some new value"), "some value")
@@ -70,12 +70,12 @@ class RegionTest(TestCase):
             getattr, reg, "backend"
         )
 
-    def test_put_get_value(self):
+    def test_set_get_value(self):
         reg = self._region()
-        reg.put("some key", "some value")
+        reg.set("some key", "some value")
         eq_(reg.get("some key"), "some value")
 
-    def test_put_get_nothing(self):
+    def test_set_get_nothing(self):
         reg = self._region()
         eq_(reg.get("some key"), NO_VALUE)
 
@@ -87,7 +87,7 @@ class RegionTest(TestCase):
 
     def test_remove(self):
         reg = self._region()
-        reg.put("some key", "some value")
+        reg.set("some key", "some value")
         reg.delete("some key")
         reg.delete("some key")
         eq_(reg.get("some key"), NO_VALUE)

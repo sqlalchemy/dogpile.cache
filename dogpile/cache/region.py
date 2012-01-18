@@ -199,7 +199,7 @@ class CacheRegion(object):
 
         def gen_value():
             value = self._value(creator())
-            self.backend.put(key, value)
+            self.backend.set(key, value)
             return value
 
         dogpile = self.dogpile_registry.get(key)
@@ -213,12 +213,12 @@ class CacheRegion(object):
                             "version":value_version
                         })
 
-    def put(self, key, value):
+    def set(self, key, value):
         """Place a new value in the cache under the given key."""
 
         if self.key_mangler:
             key = self.key_mangler(key)
-        self.backend.put(key, self._value(value))
+        self.backend.set(key, self._value(value))
 
 
     def delete(self, key):

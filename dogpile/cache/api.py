@@ -101,8 +101,8 @@ class CacheBackend(object):
         """
         raise NotImplementedError()
 
-    def put(self, key, value):
-        """Put a value in the cache.
+    def set(self, key, value):
+        """Set a value in the cache.
         
         The key will be whatever was passed
         to the registry, processed by the
