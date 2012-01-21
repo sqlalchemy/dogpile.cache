@@ -190,7 +190,8 @@ be a small and easily serializable Python structure.
 Mako Integration
 ================
 
-dogpile.cache includes a Mako plugin that replaces Beaker as the cache backend.
+dogpile.cache includes a `Mako <http://www.makotemplates.org>`_ plugin that replaces `Beaker <http://beaker.groovie.org>`_ 
+as the cache backend.
 Setup a Mako template lookup using the "dogpile.cache" cache implementation
 and a region dictionary::
 
