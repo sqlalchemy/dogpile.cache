@@ -213,7 +213,9 @@ and a region dictionary::
     mako_lookup = TemplateLookup(
         directories=["/myapp/templates"],
         cache_impl="dogpile.cache",
-        cache_regions=my_regions
+        cache_args={
+            'regions':my_regions
+        }
     )
 
 To use the above configuration in a template, use the ``cached=True`` argument on any
