@@ -185,6 +185,8 @@ and a "version identifier" as key/values.  If the cache backend requires seriali
 pickle or similar can be used on the tuple - the "metadata" portion will always
 be a small and easily serializable Python structure.
 
+.. _mako_plugin:
+
 Mako Integration
 ================
 
