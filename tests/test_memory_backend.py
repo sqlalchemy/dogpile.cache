@@ -7,7 +7,7 @@ import itertools
 
 class MemoryBackendTest(TestCase):
 
-    def _region(self, init_args={}, config_args={}, backend="memory"):
+    def _region(self, init_args={}, config_args={}, backend="dogpile.cache.memory"):
         reg = CacheRegion(**init_args)
         reg.configure(backend, **config_args)
         return reg
