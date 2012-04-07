@@ -164,7 +164,7 @@ class LocalThreadTest(TestCase):
             t.start()
         for t in threads:
             t.join()
-        eq_(canary, [i + 2 for i in xrange(count)])
-        eq_(MockClient.number_of_clients, 1)
+        eq_(canary, [i + 1 for i in xrange(count)])
+        eq_(MockClient.number_of_clients, 0)
 
 

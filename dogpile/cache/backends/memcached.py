@@ -106,14 +106,6 @@ class GenericMemcachedBackend(CacheBackend):
         self.memcached_expire_time = arguments.get(
                                         'memcached_expire_time', 0)
 
-        backend = self
-        class ClientPool(util.threading.local):
-            def __init__(self):
-                self.memcached = backend._create_client()
-
-        self._clients = ClientPool()
-
-
     def _imports(self):
         """client library imports go here."""
         raise NotImplementedError()
@@ -121,6 +113,15 @@ class GenericMemcachedBackend(CacheBackend):
     def _create_client(self):
         """Creation of a Client instance goes here."""
         raise NotImplementedError()
+
+    @util.memoized_property
+    def _clients(self):
+        backend = self
+        class ClientPool(util.threading.local):
+            def __init__(self):
+                self.memcached = backend._create_client()
+
+        return ClientPool()
 
     @property
     def client(self):
