@@ -11,6 +11,9 @@ from dogpile.cache import util
 import random
 import time
 
+__all__ = 'GenericMemcachedBackend', 'MemcachedBackend', \
+    'PylibmcBackend', 'BMemcachedBackend', 'MemcachedLock'
+
 class MemcachedLock(object):
     """Simple distributed lock using memcached.
 
