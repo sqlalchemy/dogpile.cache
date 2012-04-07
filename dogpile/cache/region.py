@@ -1,7 +1,8 @@
 from dogpile import Dogpile, NeedRegenerationException
 from dogpile.nameregistry import NameRegistry
 
-from dogpile.cache.util import function_key_generator, PluginLoader, memoized_property
+from dogpile.cache.util import function_key_generator, PluginLoader, \
+    memoized_property
 from dogpile.cache.api import NO_VALUE, CachedValue
 import time
 
@@ -93,13 +94,13 @@ class CacheRegion(object):
         :param expiration_time:   Optional.  The expiration time passed 
          to the dogpile system.  The :meth:`.CacheRegion.get_or_create`
          method as well as the :meth:`.CacheRegion.cache_on_arguments` 
-         decorator (though note:  **not** the :meth:`.CacheRegion.get` method)
-         will call upon the value creation function after this
+         decorator (though note:  **not** the :meth:`.CacheRegion.get` 
+         method) will call upon the value creation function after this
          time period has passed since the last generation.
 
-        :param arguments:   Optional.  The structure here is passed directly 
-         to the constructor of the :class:`.CacheBackend` in use, though 
-         is typically a dictionary.
+        :param arguments:   Optional.  The structure here is passed 
+         directly to the constructor of the :class:`.CacheBackend` 
+         in use, though is typically a dictionary.
          
         """
         if "backend" in self.__dict__:
@@ -147,12 +148,14 @@ class CacheRegion(object):
                 "cache.memcached.arguments.url":"127.0.0.1, 10.0.0.1",
             }
             local_region.configure_from_config(myconfig, "cache.local.")
-            memcached_region.configure_from_config(myconfig, "cache.memcached.")
+            memcached_region.configure_from_config(myconfig, 
+                                                "cache.memcached.")
 
         """
         return self.configure(
             config_dict["%s.backend" % prefix],
-            expiration_time = config_dict.get("%s.expiration_time" % prefix, None),
+            expiration_time = config_dict.get(
+                                "%s.expiration_time" % prefix, None),
             _config_argument_dict=config_dict,
             _config_prefix="%s.arguments" % prefix
         )
@@ -164,12 +167,14 @@ class CacheRegion(object):
     def get(self, key):
         """Return a value from the cache, based on the given key.
 
-        While it's typical the key is a string, it's passed through to the
-        underlying backend so can be of any type recognized by the backend. If
-        the value is not present, returns the token ``NO_VALUE``. ``NO_VALUE``
-        evaluates to False, but is separate from ``None`` to distinguish
-        between a cached value of ``None``. Note that the ``expiration_time``
-        argument is **not** used here - this method is a direct line to the
+        While it's typical the key is a string, it's 
+        passed through to the underlying backend so can be 
+        of any type recognized by the backend. If
+        the value is not present, returns the token 
+        ``NO_VALUE``. ``NO_VALUE`` evaluates to False, but is 
+        separate from ``None`` to distinguish between a cached value 
+        of ``None``. Note that the ``expiration_time`` argument is 
+        **not** used here - this method is a direct line to the
         backend's behavior. 
 
         """
@@ -180,11 +185,13 @@ class CacheRegion(object):
         return value.payload
 
     def get_or_create(self, key, creator):
-        """Similar to ``get``, will use the given "creation" function to create a new
+        """Similar to ``get``, will use the given "creation" 
+        function to create a new
         value if the value does not exist.
 
         This will use the underlying dogpile/
-        expiration mechanism to determine when/how the creation function is called.
+        expiration mechanism to determine when/how 
+        the creation function is called.
 
         """
         if self.key_mangler:
@@ -200,10 +207,11 @@ class CacheRegion(object):
         def gen_value():
             value = self._value(creator())
             self.backend.set(key, value)
-            return value
+            return value.payload, value.metadata["creation_time"]
 
         dogpile = self.dogpile_registry.get(key)
-        with dogpile.acquire(gen_value, value_and_created_fn=get_value) as value:
+        with dogpile.acquire(gen_value, 
+                    value_and_created_fn=get_value) as value:
             return value
 
     def _value(self, value):
@@ -234,9 +242,10 @@ class CacheRegion(object):
         self.backend.delete(key)
 
     def cache_on_arguments(self, fn):
-        """A function decorator that will cache the return value of the
-        function using a key derived from the name of the function, its
-        location within the application (i.e. source filename) as well as the
+        """A function decorator that will cache the return 
+        value of the function using a key derived from the 
+        name of the function, its location within the 
+        application (i.e. source filename) as well as the
         arguments passed to the function.
         
         E.g.::
@@ -259,11 +268,13 @@ class CacheRegion(object):
             generate_something.invalidate(5, 6)
 
         The generation of the key from the function is the big 
-        controversial thing that was a source of user issues with Beaker.  Dogpile
-        provides the latest and greatest algorithm used by Beaker, but also
-        allows you to use whatever function you want, by specifying it
-        to using the ``function_key_generator`` argument to :func:`.make_region`
-        and/or :class:`.CacheRegion`.  If defaults to :func:`.function_key_generator`.
+        controversial thing that was a source of user issues with 
+        Beaker. Dogpile provides the latest and greatest algorithm 
+        used by Beaker, but also allows you to use whatever function 
+        you want, by specifying it to using the ``function_key_generator`` 
+        argument to :func:`.make_region` and/or
+        :class:`.CacheRegion`. If defaults to 
+        :func:`.function_key_generator`.
 
         """
         key_generator = self.function_key_generator(fn)

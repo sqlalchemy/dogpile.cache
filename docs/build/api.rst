@@ -27,8 +27,8 @@ Memory Backend
 .. automodule:: dogpile.cache.backends.memory
     :members:
 
-Pylibmc Backend
----------------
+Memcached Backends
+------------------
 
 .. automodule:: dogpile.cache.backends.memcached
     :members:

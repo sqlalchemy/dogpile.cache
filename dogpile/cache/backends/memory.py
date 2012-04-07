@@ -1,6 +1,6 @@
 """Provides a simple dictionary-based backend."""
 
-from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
+from dogpile.cache.api import CacheBackend, NO_VALUE
 
 class MemoryBackend(CacheBackend):
     """A backend that uses a plain dictionary.

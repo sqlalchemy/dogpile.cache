@@ -1,10 +1,10 @@
-from tests._fixtures import _GenericBackendTest
+from tests._fixtures import _GenericBackendTest, _GenericMutexTest
 from tests import eq_
 from unittest import TestCase
 from threading import Thread
 import time
 
-class PyLibMCBackendTest(_GenericBackendTest):
+class PylibmcTest(_GenericBackendTest):
     backend = "dogpile.cache.pylibmc"
 
     region_args = {
@@ -13,6 +13,29 @@ class PyLibMCBackendTest(_GenericBackendTest):
     config_args = {
         "arguments":{
             "url":"127.0.0.1:11211"
+        }
+    }
+
+class PylibmcDistributedTest(_GenericBackendTest):
+    backend = "dogpile.cache.pylibmc"
+
+    region_args = {
+        "key_mangler":lambda x: x.replace(" ", "_")
+    }
+    config_args = {
+        "arguments":{
+            "url":"127.0.0.1:11211",
+            "distributed_lock":True
+        }
+    }
+
+class PylibmcDistributedMutexTest(_GenericMutexTest):
+    backend = "dogpile.cache.pylibmc"
+
+    config_args = {
+        "arguments":{
+            "url":"127.0.0.1:11211",
+            "distributed_lock":True
         }
     }
 
