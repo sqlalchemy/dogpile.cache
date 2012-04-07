@@ -103,3 +103,16 @@ class RegionTest(TestCase):
         eq_(reg.get_or_create("some key", creator), "some value 2")
         eq_(reg.get("some key"), "some value 2")
 
+    def test_expire_override(self):
+        reg = self._region(config_args={"expiration_time":5})
+        counter = itertools.count(1)
+        def creator():
+            return "some value %d" % next(counter)
+        eq_(reg.get_or_create("some key", creator, expiration_time=1), 
+                    "some value 1")
+        time.sleep(1)
+        eq_(reg.get("some key"), "some value 1")
+        eq_(reg.get_or_create("some key", creator, expiration_time=1), 
+                    "some value 2")
+        eq_(reg.get("some key"), "some value 2")
+

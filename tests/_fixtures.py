@@ -39,13 +39,13 @@ class _GenericBackendFixture(object):
         self._backend_inst = backend_cls(_config_args.get('arguments', {}))
         return self._backend_inst
 
+class _GenericBackendTest(_GenericBackendFixture, TestCase):
     def tearDown(self):
         if self._region_inst:
             self._region_inst.delete("some key")
         elif self._backend_inst:
             self._backend_inst.delete("some_key")
 
-class _GenericBackendTest(_GenericBackendFixture, TestCase):
     def test_backend_get_nothing(self):
         backend = self._backend()
         eq_(backend.get("some_key"), NO_VALUE)

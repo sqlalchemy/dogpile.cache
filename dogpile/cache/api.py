@@ -21,7 +21,7 @@ a  key not present."""
 class CachedValue(tuple):
     """Represent a value stored in the cache.
     
-    :class:.`CachedValue` is a two-tuple of
+    :class:`.CachedValue` is a two-tuple of
     ``(payload, metadata)``, where ``metadata``
     is dogpile.cache's tracking information (
     currently the creation time).  The metadata
@@ -30,7 +30,10 @@ class CachedValue(tuple):
     
     """
     payload = property(operator.itemgetter(0))
+    """Named accessor for the payload."""
+
     metadata = property(operator.itemgetter(1))
+    """Named accessor for the dogpile.cache metadata dictionary."""
 
     def __new__(cls, payload, metadata):
         return tuple.__new__(cls, (payload, metadata))

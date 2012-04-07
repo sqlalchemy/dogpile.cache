@@ -22,23 +22,14 @@ register new backends.
 Backends
 ==========
 
-Memory Backend
---------------
 .. automodule:: dogpile.cache.backends.memory
     :members:
-
-Memcached Backends
-------------------
 
 .. automodule:: dogpile.cache.backends.memcached
     :members:
 
-
 Plugins
 ========
-
-Mako Plugin
------------
 
 .. automodule:: dogpile.cache.plugins.mako_cache
     :members:

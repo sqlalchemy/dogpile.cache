@@ -59,14 +59,15 @@ dogpile.cache includes a Pylibmc backend.  A basic configuration looks like::
         }
     )
 
-    @region.cache_on_arguments
+    @region.cache_on_arguments()
     def load_user_info(user_id):
         return some_database.lookup_user_by_id(user_id)
 
 Above, we create a :class:`.CacheRegion` using the :func:`.make_region` function, then
 apply the backend configuration via the :meth:`.CacheRegion.configure` method, which returns the 
-region.  The name of the backend is the only required argument,
-in this case ``dogpile.cache.pylibmc``.
+region.  The name of the backend is the only argument required by :meth:`.CacheRegion.configure`
+itself, in this case ``dogpile.cache.pylibmc``.  However, in this specific case, the ``pylibmc`` 
+backend also requires that the URL of the memcached server be passed within the ``arguments`` dictionary.
 
 The configuration is separated into two sections.  Upon construction via :func:`.make_region`,
 the :class:`.CacheRegion` object is available, typically at module
@@ -185,44 +186,3 @@ and a "version identifier" as key/values.  If the cache backend requires seriali
 pickle or similar can be used on the tuple - the "metadata" portion will always
 be a small and easily serializable Python structure.
 
-.. _mako_plugin:
-
-Mako Integration
-================
-
-dogpile.cache includes a `Mako <http://www.makotemplates.org>`_ plugin that replaces `Beaker <http://beaker.groovie.org>`_ 
-as the cache backend.
-Setup a Mako template lookup using the "dogpile.cache" cache implementation
-and a region dictionary::
-
-    from dogpile.cache import make_region
-    from mako.lookup import TemplateLookup
-
-    my_regions = {
-        "local":make_region(
-                    "dogpile.cache.dbm", 
-                    expiration_time=360,
-                    arguments={"filename":"file.dbm"}
-                ),
-        "memcached":make_region(
-                    "dogpile.cache.pylibmc", 
-                    expiration_time=3600,
-                    arguments={"url":["127.0.0.1"]}
-                )
-    }
-
-    mako_lookup = TemplateLookup(
-        directories=["/myapp/templates"],
-        cache_impl="dogpile.cache",
-        cache_args={
-            'regions':my_regions
-        }
-    )
-
-To use the above configuration in a template, use the ``cached=True`` argument on any
-Mako tag which accepts it, in conjunction with the name of the desired region
-as the ``cache_region`` argument::
-
-    <%def name="mysection()" cached=True cache_region="memcached">
-        some content that's cached
-    </%def>

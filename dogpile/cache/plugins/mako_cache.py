@@ -1,6 +1,44 @@
-"""Implements dogpile caching for Mako templates.
+"""
+Mako Integration
+----------------
 
-See the section :ref:`mako_plugin` for examples.
+dogpile.cache includes a `Mako <http://www.makotemplates.org>`_ plugin that replaces `Beaker <http://beaker.groovie.org>`_ 
+as the cache backend.
+Setup a Mako template lookup using the "dogpile.cache" cache implementation
+and a region dictionary::
+
+    from dogpile.cache import make_region
+    from mako.lookup import TemplateLookup
+
+    my_regions = {
+        "local":make_region(
+                    "dogpile.cache.dbm", 
+                    expiration_time=360,
+                    arguments={"filename":"file.dbm"}
+                ),
+        "memcached":make_region(
+                    "dogpile.cache.pylibmc", 
+                    expiration_time=3600,
+                    arguments={"url":["127.0.0.1"]}
+                )
+    }
+
+    mako_lookup = TemplateLookup(
+        directories=["/myapp/templates"],
+        cache_impl="dogpile.cache",
+        cache_args={
+            'regions':my_regions
+        }
+    )
+
+To use the above configuration in a template, use the ``cached=True`` argument on any
+Mako tag which accepts it, in conjunction with the name of the desired region
+as the ``cache_region`` argument::
+
+    <%def name="mysection()" cached=True cache_region="memcached">
+        some content that's cached
+    </%def>
+
 
 """
 from mako.cache import CacheImpl

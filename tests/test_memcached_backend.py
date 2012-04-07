@@ -4,42 +4,72 @@ from unittest import TestCase
 from threading import Thread
 import time
 
-class PylibmcTest(_GenericBackendTest):
-    backend = "dogpile.cache.pylibmc"
-
+class _NonDistributedMemcachedTest(_GenericBackendTest):
     region_args = {
         "key_mangler":lambda x: x.replace(" ", "_")
     }
     config_args = {
         "arguments":{
-            "url":"127.0.0.1"
+            "url":"127.0.0.1:11211"
         }
     }
 
-class PylibmcDistributedTest(_GenericBackendTest):
-    backend = "dogpile.cache.pylibmc"
-
+class _DistributedMemcachedTest(_GenericBackendTest):
     region_args = {
         "key_mangler":lambda x: x.replace(" ", "_")
     }
     config_args = {
         "arguments":{
-            "url":"127.0.0.1",
+            "url":"127.0.0.1:11211",
             "distributed_lock":True
         }
     }
 
-class PylibmcDistributedMutexTest(_GenericMutexTest):
-    backend = "dogpile.cache.pylibmc"
-
+class _DistributedMemcachedMutexTest(_GenericMutexTest):
     config_args = {
         "arguments":{
-            "url":"127.0.0.1",
+            "url":"127.0.0.1:11211",
             "distributed_lock":True
         }
     }
 
+class PylibmcTest(_NonDistributedMemcachedTest):
+    backend = "dogpile.cache.pylibmc"
+
+class PylibmcDistributedTest(_DistributedMemcachedTest):
+    backend = "dogpile.cache.pylibmc"
+
+class PylibmcDistributedMutexTest(_DistributedMemcachedMutexTest):
+    backend = "dogpile.cache.pylibmc"
+
+class BMemcachedTest(_NonDistributedMemcachedTest):
+    backend = "dogpile.cache.bmemcached"
+
+class BMemcachedDistributedTest(_DistributedMemcachedTest):
+    backend = "dogpile.cache.bmemcached"
+
+class BMemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
+    backend = "dogpile.cache.bmemcached"
+
+class MemcachedTest(_NonDistributedMemcachedTest):
+    backend = "dogpile.cache.memcached"
+
+class MemcachedDistributedTest(_DistributedMemcachedTest):
+    backend = "dogpile.cache.memcached"
+
+class MemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
+    backend = "dogpile.cache.memcached"
+
+
+from dogpile.cache.backends.memcached import GenericMemcachedBackend
 from dogpile.cache.backends.memcached import PylibmcBackend
+class MockMemcachedBackend(GenericMemcachedBackend):
+    def _imports(self):
+        pass
+
+    def _create_client(self):
+        return MockClient(self.url)
+
 class MockPylibmcBackend(PylibmcBackend):
     def _imports(self):
         pass
@@ -105,7 +135,7 @@ class PylibmcArgsTest(TestCase):
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{}])
 
-class PylibmcThreadTest(TestCase):
+class LocalThreadTest(TestCase):
     def setUp(self):
         import gc
         gc.collect()
@@ -121,7 +151,7 @@ class PylibmcThreadTest(TestCase):
         self._test_client_cleanup(10)
 
     def _test_client_cleanup(self, count):
-        backend = MockPylibmcBackend(arguments={'url':'foo','binary':True})
+        backend = MockMemcachedBackend(arguments={'url':'foo'})
         canary = []
 
         def f():

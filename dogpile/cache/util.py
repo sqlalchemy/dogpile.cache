@@ -37,7 +37,7 @@ class PluginLoader(object):
         self.impls[name] = load
 
 
-def function_key_generator(fn):
+def function_key_generator(namespace, fn):
     """Return a function that generates a string
     key, based on a given function as well as
     arguments to the returned function itself.
@@ -50,15 +50,10 @@ def function_key_generator(fn):
     
     """
 
-    kls = None
-    if hasattr(fn, 'im_func'):
-        kls = fn.im_class
-        fn = fn.im_func
-
-    if kls:
-        namespace = '%s.%s' % (kls.__module__, kls.__name__)
+    if namespace is None:
+        namespace = '%s:%s' % (fn.__module__, fn.__name__)
     else:
-        namespace = '%s|%s' % (inspect.getsourcefile(fn), fn.__name__)
+        namespace = '%s:%s|%s' % (fn.__module__, fn.__name__, namespace)
 
     args = inspect.getargspec(fn)
     has_self = args[0] and args[0][0] in ('self', 'cls')

@@ -5,6 +5,7 @@ from dogpile.cache.util import function_key_generator, PluginLoader, \
     memoized_property
 from dogpile.cache.api import NO_VALUE, CachedValue
 import time
+from functools import wraps
 
 _backend_loader = PluginLoader("dogpile.cache")
 register_backend = _backend_loader.register
@@ -122,9 +123,11 @@ class CacheRegion(object):
             self.key_mangler = self.backend.key_mangler
         return self
 
-    def _create_dogpile(self, identifier):
+    def _create_dogpile(self, identifier, expiration_time):
+        if expiration_time is None:
+            expiration_time = self.expiration_time
         return Dogpile(
-                self.expiration_time, 
+                expiration_time, 
                 lock=self.backend.get_mutex(identifier)
             )
 
@@ -184,7 +187,7 @@ class CacheRegion(object):
         value = self.backend.get(key)
         return value.payload
 
-    def get_or_create(self, key, creator):
+    def get_or_create(self, key, creator, expiration_time=None):
         """Similar to ``get``, will use the given "creation" 
         function to create a new
         value if the value does not exist.
@@ -192,6 +195,12 @@ class CacheRegion(object):
         This will use the underlying dogpile/
         expiration mechanism to determine when/how 
         the creation function is called.
+
+        :param key: Key to retrieve
+        :param creator: function which creates a new value.
+        :expiration_time: optional expiration time which will overide
+         the expiration time already configured on this :class:`.CacheRegion`
+         if not None.   To set no expiration, use the value -1.
 
         """
         if self.key_mangler:
@@ -209,7 +218,7 @@ class CacheRegion(object):
             self.backend.set(key, value)
             return value.payload, value.metadata["creation_time"]
 
-        dogpile = self.dogpile_registry.get(key)
+        dogpile = self.dogpile_registry.get(key, expiration_time)
         with dogpile.acquire(gen_value, 
                     value_and_created_fn=get_value) as value:
             return value
@@ -241,16 +250,14 @@ class CacheRegion(object):
 
         self.backend.delete(key)
 
-    def cache_on_arguments(self, fn):
+    def cache_on_arguments(self, namespace=None, expiration_time=None):
         """A function decorator that will cache the return 
         value of the function using a key derived from the 
-        name of the function, its location within the 
-        application (i.e. source filename) as well as the
-        arguments passed to the function.
+        function itself and its arguments.
         
         E.g.::
         
-            @someregion.cache_on_arguments
+            @someregion.cache_on_arguments()
             def generate_something(x, y):
                 return somedatabase.query(x, y)
                 
@@ -267,30 +274,92 @@ class CacheRegion(object):
         
             generate_something.invalidate(5, 6)
 
-        The generation of the key from the function is the big 
-        controversial thing that was a source of user issues with 
-        Beaker. Dogpile provides the latest and greatest algorithm 
-        used by Beaker, but also allows you to use whatever function 
-        you want, by specifying it to using the ``function_key_generator`` 
-        argument to :func:`.make_region` and/or
+        The default key generation will use the name
+        of the function, the module name for the function,
+        the arguments passed, as well as an optional "namespace"
+        parameter in order to generate a cache key.
+        
+        Given a function ``one`` inside the module
+        ``myapp.tools``::
+        
+            @region.cache_on_arguments(namespace="foo")
+            def one(a, b):
+                return a + b
+
+        Above, calling ``one(3, 4)`` will produce a
+        cache key as follows::
+        
+            myapp.tools:one|foo|3, 4
+        
+        The key generator will ignore an initial argument
+        of ``self`` or ``cls``, making the decorator suitable
+        (with caveats) for use with instance or class methods.
+        Given the example::
+        
+            class MyClass(object):
+                @region.cache_on_arguments(namespace="foo")
+                def one(self, a, b):
+                    return a + b
+
+        The cache key above for ``MyClass().one(3, 4)`` will 
+        again produce the same cache key of ``myapp.tools:one|foo|3, 4`` -
+        the name ``self`` is skipped.
+        
+        The ``namespace`` parameter is optional, and is used
+        normally to disambiguate two functions of the same
+        name within the same module, as can occur when decorating
+        instance or class methods as below::
+            
+            class MyClass(object):
+                @region.cache_on_arguments(namespace='MC')
+                def somemethod(self, x, y):
+                    ""
+
+            class MyOtherClass(object):
+                @region.cache_on_arguments(namespace='MOC')
+                def somemethod(self, x, y):
+                    ""
+                    
+        Above, the ``namespace`` parameter disambiguates
+        between ``somemethod`` on ``MyClass`` and ``MyOtherClass``.
+        Python class declaration mechanics otherwise prevent
+        the decorator from having awareness of the ``MyClass``
+        and ``MyOtherClass`` names, as the function is received
+        by the decorator before it becomes an instance method.
+
+        The function key generation can be entirely replaced
+        on a per-region basis using the ``function_key_generator``
+        argument present on :func:`.make_region` and
         :class:`.CacheRegion`. If defaults to 
         :func:`.function_key_generator`.
 
+        :param namespace: optional string argument which will be
+         established as part of the cache key.   This may be needed
+         to disambiguate functions of the same name within the same
+         source file, such as those
+         associated with classes - note that the decorator itself 
+         can't see the parent class on a function as the class is
+         being declared.
+        :param expiration_time: if not None, will override the normal
+         expiration time.
         """
-        key_generator = self.function_key_generator(fn)
-        def decorate(*arg, **kw):
-            key = key_generator(*arg, **kw)
-            def creator():
-                return fn(*arg, **kw)
-            return self.get_or_create(key, creator)
+        def decorator(fn):
+            key_generator = self.function_key_generator(namespace, fn)
+            @wraps(fn)
+            def decorate(*arg, **kw):
+                key = key_generator(*arg, **kw)
+                def creator():
+                    return fn(*arg, **kw)
+                return self.get_or_create(key, creator, expiration_time)
 
-        def invalidate(*arg, **kw):
-            key = key_generator(*arg, **kw)
-            self.delete(key)
+            def invalidate(*arg, **kw):
+                key = key_generator(*arg, **kw)
+                self.delete(key)
 
-        decorate.invalidate = invalidate
+            decorate.invalidate = invalidate
 
-        return decorate
+            return decorate
+        return decorator
 
 def make_region(*arg, **kw):
     """Instantiate a new :class:`.CacheRegion`.

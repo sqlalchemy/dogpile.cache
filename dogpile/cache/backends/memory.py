@@ -1,4 +1,10 @@
-"""Provides a simple dictionary-based backend."""
+"""
+Memory Backend
+--------------
+
+Provides a simple dictionary-based backend.
+
+"""
 
 from dogpile.cache.api import CacheBackend, NO_VALUE
 
