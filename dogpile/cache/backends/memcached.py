@@ -40,7 +40,8 @@ class PylibmcBackend(CacheBackend):
     `pylibmc <http://sendapatch.se/projects/pylibmc/index.html>`_ 
     memcached client.
     
-    E.g.::
+    A configuration illustrating several of the optional
+    arguments described in the pylibmc documentation::
     
         from dogpile.cache import make_region
 
@@ -58,7 +59,8 @@ class PylibmcBackend(CacheBackend):
     dictionary include:
     
     :param url: the string URL to connect to.  Can be a single
-     string or a list of strings.
+     string or a list of strings.  This is the only argument
+     that's required.
     :param distributed_lock: boolean, when True, will use a
      memcached-lock as the dogpile lock (see :class:`.MemcachedLock`).   
      Use this when multiple

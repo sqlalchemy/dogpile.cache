@@ -42,3 +42,15 @@ Mako Plugin
 
 .. automodule:: dogpile.cache.plugins.mako_cache
     :members:
+
+Utilities
+=========
+
+.. currentmodule:: dogpile.cache.util
+
+.. autofunction:: function_key_generator
+
+.. autofunction:: sha1_mangle_key
+
+.. autofunction:: length_conditional_mangler
+

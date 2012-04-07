@@ -12,7 +12,7 @@ class PylibmcTest(_GenericBackendTest):
     }
     config_args = {
         "arguments":{
-            "url":"127.0.0.1:11211"
+            "url":"127.0.0.1"
         }
     }
 
@@ -24,7 +24,7 @@ class PylibmcDistributedTest(_GenericBackendTest):
     }
     config_args = {
         "arguments":{
-            "url":"127.0.0.1:11211",
+            "url":"127.0.0.1",
             "distributed_lock":True
         }
     }
@@ -34,7 +34,7 @@ class PylibmcDistributedMutexTest(_GenericMutexTest):
 
     config_args = {
         "arguments":{
-            "url":"127.0.0.1:11211",
+            "url":"127.0.0.1",
             "distributed_lock":True
         }
     }

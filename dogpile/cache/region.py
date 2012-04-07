@@ -54,7 +54,7 @@ class CacheRegion(object):
      keys before passing to the backend.  Defaults to ``None``,
      in which case the key mangling function recommended by
      the cache backend will be used.    A typical mangler
-     is the SHA1 mangler found at found at :meth:`.sha1_mangle_key` 
+     is the SHA1 mangler found at :func:`.sha1_mangle_key` 
      which coerces keys into a SHA1
      hash, so that the string length is fixed.  To
      disable all key mangling, set to ``False``.

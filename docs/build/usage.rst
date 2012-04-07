@@ -56,8 +56,6 @@ dogpile.cache includes a Pylibmc backend.  A basic configuration looks like::
         expiration_time = 3600,
         arguments = {
             'url':["127.0.0.1"],
-            'binary':True,
-            'behaviors':{"tcp_nodelay": True,"ketama":True}
         }
     )
 
