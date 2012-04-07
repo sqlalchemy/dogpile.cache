@@ -13,14 +13,22 @@ Region
 Backend API
 =============
 
+See the section :ref:`creating_backends` for details on how to
+register new backends.
+
 .. automodule:: dogpile.cache.api
     :members:
 
 Backends
 ==========
 
-.. automodule:: dogpile.cache.backends.dbm
+Memory Backend
+--------------
+.. automodule:: dogpile.cache.backends.memory
     :members:
+
+Pylibmc Backend
+---------------
 
 .. automodule:: dogpile.cache.backends.memcached
     :members:
@@ -28,6 +36,9 @@ Backends
 
 Plugins
 ========
+
+Mako Plugin
+-----------
 
 .. automodule:: dogpile.cache.plugins.mako_cache
     :members:

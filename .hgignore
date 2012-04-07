@@ -10,3 +10,4 @@ syntax:regexp
 \.coverage
 \.DS_Store
 test.cfg
+.venv

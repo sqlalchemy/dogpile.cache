@@ -125,8 +125,10 @@ the following methods:
 .. automethod:: dogpile.cache.region.CacheRegion.cache_on_arguments
     :noindex:
 
-Backends
-========
+.. _creating_backends:
+
+Creating Backends
+=================
 
 Backends are located using the setuptools entrypoint system.  To make life easier
 for writers of ad-hoc backends, a helper function is included which registers any

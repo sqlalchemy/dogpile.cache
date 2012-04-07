@@ -114,7 +114,7 @@ class CacheRegion(object):
                 _config_prefix
             )
         else:
-            self.backend = backend_cls(arguments)
+            self.backend = backend_cls(arguments or {})
         self.expiration_time = expiration_time
         self.dogpile_registry = NameRegistry(self._create_dogpile)
         if self.key_mangler is None:

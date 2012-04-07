@@ -1,6 +1,13 @@
 from hashlib import sha1
 import inspect
 
+try:
+    import threading
+    import thread
+except ImportError:
+    import dummy_threading as threading
+    import dummy_thread as thread
+
 class PluginLoader(object):
     def __init__(self, group):
         self.group = group
@@ -94,3 +101,12 @@ class memoized_property(object):
             return self
         obj.__dict__[self.__name__] = result = self.fget(obj)
         return result
+
+def to_list(x, default=None):
+    """Coerce to a list."""
+    if x is None:
+        return default
+    if not isinstance(x, (list, tuple)):
+        return [x]
+    else:
+        return x

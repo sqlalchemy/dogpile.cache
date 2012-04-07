@@ -1,6 +1,13 @@
+"""Implements dogpile caching for Mako templates.
+
+See the section :ref:`mako_plugin` for examples.
+
+"""
 from mako.cache import CacheImpl
 
 class MakoPlugin(CacheImpl):
+    """A Mako ``CacheImpl`` which talks to dogpile.cache."""
+
     def __init__(self, cache):
         super(MakoPlugin, self).__init__(cache)
         try:

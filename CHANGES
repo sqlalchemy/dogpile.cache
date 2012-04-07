@@ -1,0 +1,5 @@
+0.1.0
+=====
+Initial release.
+
+Includes a pylibmc backend and a plain dictionary backend.

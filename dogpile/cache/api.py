@@ -35,6 +35,9 @@ class CachedValue(tuple):
     def __new__(cls, payload, metadata):
         return tuple.__new__(cls, (payload, metadata))
 
+    def __reduce__(self):
+        return CachedValue, (self.payload, self.metadata)
+
 class CacheBackend(object):
     """Base class for backend implementations."""
 
