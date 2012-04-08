@@ -209,14 +209,14 @@ class CacheRegion(object):
         def get_value():
             value = self.backend.get(key)
             if value is NO_VALUE or \
-                value.metadata['version'] != value_version:
+                value.metadata['v'] != value_version:
                 raise NeedRegenerationException()
-            return value.payload, value.metadata["creation_time"]
+            return value.payload, value.metadata["ct"]
 
         def gen_value():
             value = self._value(creator())
             self.backend.set(key, value)
-            return value.payload, value.metadata["creation_time"]
+            return value.payload, value.metadata["ct"]
 
         dogpile = self.dogpile_registry.get(key, expiration_time)
         with dogpile.acquire(gen_value, 
@@ -226,8 +226,8 @@ class CacheRegion(object):
     def _value(self, value):
         """Return a :class:`.CachedValue` given a value."""
         return CachedValue(value, {
-                            "creation_time":time.time(), 
-                            "version":value_version
+                            "ct":time.time(), 
+                            "v":value_version
                         })
 
     def set(self, key, value):
