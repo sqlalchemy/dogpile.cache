@@ -2,9 +2,6 @@
 Usage Guide
 ============
 
-.. note:: dogpile.cache is **not released or completed** at this time.   Development
-   is currently in progress and the current code is not yet functional.
-
 Overview
 ========
 
