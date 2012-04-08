@@ -9,5 +9,3 @@ and use; users are encouraged to adapt the provided backends for their own
 needs, as high volume caching requires lots of tweaks and adjustments specific
 to an application and its environment.
 
-.. note:: dogpile.cache is **not released or completed** at this time.   Development
-   is currently in progress and the current code is not yet functional.
