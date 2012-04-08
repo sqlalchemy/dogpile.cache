@@ -198,7 +198,7 @@ class CacheRegion(object):
 
         :param key: Key to retrieve
         :param creator: function which creates a new value.
-        :expiration_time: optional expiration time which will overide
+        :param expiration_time: optional expiration time which will overide
          the expiration time already configured on this :class:`.CacheRegion`
          if not None.   To set no expiration, use the value -1.
 
