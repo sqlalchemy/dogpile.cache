@@ -13,9 +13,14 @@ class _GenericBackendFixture(object):
     def setup_class(cls):
         try:
             backend_cls = _backend_loader.load(cls.backend)
-            backend_cls(cls.config_args.get('arguments', {}))
+            backend = backend_cls(cls.config_args.get('arguments', {}))
         except ImportError:
             raise SkipTest("Backend %s not installed" % cls.backend)
+        cls._check_backend_available(backend)
+
+    @classmethod
+    def _check_backend_available(cls, backend):
+        pass
 
     region_args = {}
     config_args = {}

@@ -3,8 +3,21 @@ from tests import eq_
 from unittest import TestCase
 from threading import Thread
 import time
+from nose import SkipTest
 
-class _NonDistributedMemcachedTest(_GenericBackendTest):
+class _TestMemcachedConn(object):
+    @classmethod
+    def _check_backend_available(cls, backend):
+        try:
+            client = backend._create_client()
+            client.set("x", "y")
+            assert client.get("x") == "y"
+        except:
+            raise SkipTest(
+                "memcached is not running or "
+                "otherwise not functioning correctly")
+
+class _NonDistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     region_args = {
         "key_mangler":lambda x: x.replace(" ", "_")
     }
@@ -14,7 +27,7 @@ class _NonDistributedMemcachedTest(_GenericBackendTest):
         }
     }
 
-class _DistributedMemcachedTest(_GenericBackendTest):
+class _DistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     region_args = {
         "key_mangler":lambda x: x.replace(" ", "_")
     }
@@ -25,7 +38,7 @@ class _DistributedMemcachedTest(_GenericBackendTest):
         }
     }
 
-class _DistributedMemcachedMutexTest(_GenericMutexTest):
+class _DistributedMemcachedMutexTest(_TestMemcachedConn, _GenericMutexTest):
     config_args = {
         "arguments":{
             "url":"127.0.0.1:11211",

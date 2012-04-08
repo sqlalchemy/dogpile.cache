@@ -1,5 +1,6 @@
 from hashlib import sha1
 import inspect
+import sys
 
 try:
     import threading
@@ -7,6 +8,14 @@ try:
 except ImportError:
     import dummy_threading as threading
     import dummy_thread as thread
+
+py3k = getattr(sys, 'py3kwarning', False) or sys.version_info >= (3, 0)
+jython = sys.platform.startswith('java')
+
+if py3k or jython:
+    import pickle
+else:
+    import cPickle as pickle
 
 class PluginLoader(object):
     def __init__(self, group):

@@ -28,6 +28,9 @@ Backends
 .. automodule:: dogpile.cache.backends.memcached
     :members:
 
+.. automodule:: dogpile.cache.backends.file
+    :members:
+
 Plugins
 ========
 
