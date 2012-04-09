@@ -46,7 +46,7 @@ generates a region using ``make_region()``, which can then be used at the
 module level to decorate functions, or used directly in code with a traditional
 get/set interface.   Configuration of the backend is applied to the region
 using ``configure()`` or ``configure_from_config()``, allowing deferred 
-config-file based configuration to occur after modules have been imported.
+config-file based configuration to occur after modules have been imported::
 
     from dogpile.cache import make_region
 
