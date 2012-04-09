@@ -1,11 +1,77 @@
 dogpile.cache
 =============
 
-Provides a simple caching pattern to use with the `dogpile <http://pypi.python.org/pypi/dogpile>`_
-locking system, including rudimentary backends. It effectively completes the
-replacement of Beaker as far as caching is concerned, providing an open-ended
-and simple pattern to configure caching. New backends are very easy to create
-and use; users are encouraged to adapt the provided backends for their own
-needs, as high volume caching requires lots of tweaks and adjustments specific
-to an application and its environment.
+A caching API built around the concept of a "dogpile lock", which allows
+continued access to an expiring data value while a single thread generates a
+new value.
+
+dogpile.cache builds on the `dogpile <http://pypi.python.org/pypi/dogpile>`_
+locking system, which implements the idea of "allow one creator to write while
+others read" in the abstract.   Overall, dogpile.cache is intended as a
+replacement to the `Beaker <http://beaker.groovie.org>`_ caching system, the internals
+of which are written by the same author.   All the ideas of Beaker which "work"
+are re-implemented in dogpile.cache in a more efficient and succinct manner,
+and all the cruft (Beaker's internals were first written in 2005) relegated 
+to the trash heap.
+
+Features
+--------
+
+* A succinct API which encourages up-front configuration of pre-defined
+  "regions", each one defining a set of caching characteristics including
+  storage backend, configuration options, and default expiration time.
+* The dogpile lock, first developed as the core engine behind the Beaker
+  caching system, here vastly improved and tested.   Some key performance
+  issues that were intrinsic to Beaker's architecture, particularly that
+  values would frequently be "double-fetched" from the cache, have been fixed.
+* Backends implement their own version of a "distributed" lock, where the
+  "distribution" matches the backend's storage system.  For example, the
+  memcached backends allow all clients to coordinate creation of values
+  using memcached itself.   The dbm file backend instead uses a lockfile
+  alongside the dbm file.  New backends, such as a Redis-based backend,
+  can then provide their own locking mechanism appropriate to the storage
+  engine.
+* Backends included in the first release include three memcached backends
+  (python-memcached, pylibmc, bmemcached), a backend based on Python's
+  anydbm, and a plain dictionary backend.
+* Space for third party plugins, including the first which provides the
+  dogpile.cache engine to Mako templates.
+
+Synopsis
+--------
+
+dogpile.cache features a single public usage object known as the `CacheRegion`.
+This object then refers to a particular `CacheBackend`.   Typical usage 
+generates a region using ``make_region()``, which can then be used at the
+module level to decorate functions, or used directly in code with a traditional
+get/set interface.   Configuration of the backend is applied to the region
+using ``configure()`` or ``configure_from_config()``, allowing deferred 
+config-file based configuration to occur after modules have been imported.
+
+    from dogpile.cache import make_region
+
+    region = make_region().configure(
+        'dogpile.cache.pylibmc',
+        expiration_time = 3600,
+        arguments = {
+            'url':["127.0.0.1"],
+            'binary':True,
+            'behaviors':{"tcp_nodelay": True,"ketama":True}
+        }
+    )
+
+    @region.cache_on_arguments()
+    def load_user_info(user_id):
+        return some_database.lookup_user_by_id(user_id)
+
+
+Documentation
+-------------
+
+See dogpile.cache's full documentation at 
+`dogpile.cache documentation <http://dogpilecache.readthedocs.org>`_.
+
+
+
+
 
