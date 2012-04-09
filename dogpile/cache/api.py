@@ -90,9 +90,20 @@ class CacheBackend(object):
         Different backends may want to provide various
         kinds of "mutex" objects, such as those which
         link to lock files, distributed mutexes,
-        memcached semaphores, timers, etc.  Whatever
+        memcached semaphores, etc.  Whatever
         kind of system is best suited for the scope
         and behavior of the caching backend.
+        
+        A mutex that takes the key into account will
+        allow multiple regenerate operations across
+        keys to proceed simultaneously, while a mutex
+        that does not will serialize regenerate operations
+        to just one at a time across all keys in the region.
+        The latter approach, or a variant that involves
+        a modulus of the given key's hash value, 
+        can be used as a means of throttling the total
+        number of value recreation operations that may
+        proceed at one time.
         
         """
         return None

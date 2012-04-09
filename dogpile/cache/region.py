@@ -34,10 +34,10 @@ class CacheRegion(object):
      return a new function that generates the key based on 
      the given arguments.  Such as::
 
-        def my_key_generator(fn):
-            namespace = fn.__name__
+        def my_key_generator(namespace, fn):
+            fname = fn.__name__
             def generate_key(*arg):
-                return namespace + "_".join(str(s) for s in arg)
+                return namespace + "_" + fname + "_".join(str(s) for s in arg)
             return generate_key
 
 
@@ -50,6 +50,25 @@ class CacheRegion(object):
                 "filename":"file.dbm"
             }
         )
+     
+     The ``namespace`` is that passed to 
+     :meth:`.CacheRegion.cache_on_arguments`.  It's not consulted
+     outside this function, so in fact can be of any form.
+     For example, it can be passed as a tuple, used to specify 
+     arguments to pluck from \**kw::
+     
+        def my_key_generator(namespace, fn):
+            def generate_key(*arg, **kw):
+                return ":".join(
+                        [kw[k] for k in namespace] + 
+                        [str(x) for x in arg]
+                    )
+        
+     Where the decorator might be used as::
+     
+        @my_region.cache_on_arguments(namespace=('x', 'y'))
+        def my_function(a, b, **kw):
+            return my_data()
 
     :param key_mangler: Function which will be used on all incoming
      keys before passing to the backend.  Defaults to ``None``,
@@ -59,8 +78,6 @@ class CacheRegion(object):
      which coerces keys into a SHA1
      hash, so that the string length is fixed.  To
      disable all key mangling, set to ``False``.
-    :param lock_generator: Function which, given a cache key,
-     returns a mutexing object.
     
     """
 

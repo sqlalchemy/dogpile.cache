@@ -13,12 +13,7 @@ suitable for caching, particularly Memcached which is first and foremost designe
 caching.   
 
 With a caching system in mind, dogpile.cache provides an interface to a particular Python API
-targeted at that system.  In this document, we'll illustrate Memcached usage 
-using the `pylibmc <http://pypi.python.org/pypi/pylibmc>`_ backend, which is a high performing 
-Python library for Memcached.  It can be compared to the `python-memcached <http://pypi.python.org/pypi/python-memcached>`_
-client, which is also an excellent product.  Pylibmc is written against Memcached's native API
-so is markedly faster, though might be considered to have rougher edges.   The API is actually a bit 
-more verbose to allow for correct multithreaded usage.
+targeted at that system.  
 
 A dogpile.cache configuration consists of the following components:
 
@@ -59,6 +54,16 @@ dogpile.cache includes a Pylibmc backend.  A basic configuration looks like::
     @region.cache_on_arguments()
     def load_user_info(user_id):
         return some_database.lookup_user_by_id(user_id)
+
+.. sidebar:: pylibmc
+
+    In this section, we're illustrating Memcached usage 
+    using the `pylibmc <http://pypi.python.org/pypi/pylibmc>`_ backend, which is a high performing 
+    Python library for Memcached.  It can be compared to the `python-memcached <http://pypi.python.org/pypi/python-memcached>`_
+    client, which is also an excellent product.  Pylibmc is written against Memcached's native API
+    so is markedly faster, though might be considered to have rougher edges.   The API is actually a bit 
+    more verbose to allow for correct multithreaded usage.
+
 
 Above, we create a :class:`.CacheRegion` using the :func:`.make_region` function, then
 apply the backend configuration via the :meth:`.CacheRegion.configure` method, which returns the 
