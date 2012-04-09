@@ -20,28 +20,41 @@ Features
 * A succinct API which encourages up-front configuration of pre-defined
   "regions", each one defining a set of caching characteristics including
   storage backend, configuration options, and default expiration time.
+* A standard get/set/delete API as well as a function decorator API is
+  provided.
+* The mechanics of key generation are fully customizable.   The function
+  decorator API features a pluggable "key generator" to customize how 
+  cache keys are made to correspond to function calls, and an optional
+  "key mangler" feature provides for pluggable mangling of keys 
+  (such as encoding, SHA-1 hashing) as desired for each region.
 * The dogpile lock, first developed as the core engine behind the Beaker
-  caching system, here vastly improved and tested.   Some key performance
+  caching system, here vastly simplified, improved, and better tested.   
+  Some key performance
   issues that were intrinsic to Beaker's architecture, particularly that
   values would frequently be "double-fetched" from the cache, have been fixed.
 * Backends implement their own version of a "distributed" lock, where the
   "distribution" matches the backend's storage system.  For example, the
   memcached backends allow all clients to coordinate creation of values
-  using memcached itself.   The dbm file backend instead uses a lockfile
+  using memcached itself.   The dbm file backend uses a lockfile
   alongside the dbm file.  New backends, such as a Redis-based backend,
-  can then provide their own locking mechanism appropriate to the storage
+  can provide their own locking mechanism appropriate to the storage
   engine.
+* Writing new backends or hacking on the existing backends is intended to be
+  routine - all that's needed are basic get/set/delete methods. A distributed
+  lock tailored towards the backend is an optional addition, else dogpile uses
+  a regular thread mutex. New backends can be registered with dogpile.cache
+  directly or made available via setuptools entry points.
 * Backends included in the first release include three memcached backends
   (python-memcached, pylibmc, bmemcached), a backend based on Python's
-  anydbm, and a plain dictionary backend.
+  anydbm, and a plain dictionary backend.  
 * Space for third party plugins, including the first which provides the
   dogpile.cache engine to Mako templates.
 
 Synopsis
 --------
 
-dogpile.cache features a single public usage object known as the `CacheRegion`.
-This object then refers to a particular `CacheBackend`.   Typical usage 
+dogpile.cache features a single public usage object known as the ``CacheRegion``.
+This object then refers to a particular ``CacheBackend``.   Typical usage 
 generates a region using ``make_region()``, which can then be used at the
 module level to decorate functions, or used directly in code with a traditional
 get/set interface.   Configuration of the backend is applied to the region
