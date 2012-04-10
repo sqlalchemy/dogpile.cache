@@ -71,7 +71,7 @@ class CacheBackend(object):
                 dict(
                     (key[prefix_len:], config_dict[key]) 
                     for key in config_dict 
-                    if key.startwith(prefix)
+                    if key.startswith(prefix)
                 )
             )
 

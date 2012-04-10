@@ -173,11 +173,11 @@ class CacheRegion(object):
 
         """
         return self.configure(
-            config_dict["%s.backend" % prefix],
+            config_dict["%sbackend" % prefix],
             expiration_time = config_dict.get(
-                                "%s.expiration_time" % prefix, None),
+                                "%sexpiration_time" % prefix, None),
             _config_argument_dict=config_dict,
-            _config_prefix="%s.arguments" % prefix
+            _config_prefix="%sarguments." % prefix
         )
 
     @memoized_property

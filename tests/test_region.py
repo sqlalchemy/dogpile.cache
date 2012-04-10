@@ -1,6 +1,6 @@
 from unittest import TestCase
 from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
-from dogpile.cache import register_backend, CacheRegion
+from dogpile.cache import make_region, register_backend, CacheRegion
 from tests import eq_, assert_raises_message
 import time
 import itertools
@@ -39,6 +39,18 @@ class RegionTest(TestCase):
         reg = CacheRegion(**init_args)
         reg.configure(backend, **config_args)
         return reg
+
+    def test_instance_from_dict(self):
+        my_conf = { 
+            'cache.example.backend': 'mock',
+            'cache.example.expiration_time': 600,
+            'cache.example.arguments.url': '127.0.0.1'
+            } 
+        my_region = make_region()
+        my_region.configure_from_config(my_conf, 'cache.example.')
+        eq_(my_region.expiration_time, 600)
+        assert isinstance(my_region.backend, MockBackend) is True
+        eq_(my_region.backend.arguments, {'url': '127.0.0.1'})
 
     def test_key_mangler_argument(self):
         reg = self._region(init_args={"key_mangler":key_mangler})
