@@ -1,3 +1,9 @@
+0.1.1
+=====
+- Fixed the configure_from_config() method of region
+  and backend which wasn't working.  Courtesy
+  Christian Klinger.
+
 0.1.0
 =====
 Initial release.
