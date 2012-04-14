@@ -1,3 +1,9 @@
+0.2.0
+=====
+
+- Based on dogpile.core now, to get the package
+  namespace thing worked out.
+
 0.1.1
 =====
 - Fixed the configure_from_config() method of region
