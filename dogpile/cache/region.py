@@ -1,5 +1,5 @@
-from dogpile import Dogpile, NeedRegenerationException
-from dogpile.nameregistry import NameRegistry
+from dogpile.core import Dogpile, NeedRegenerationException
+from dogpile.core.nameregistry import NameRegistry
 
 from dogpile.cache.util import function_key_generator, PluginLoader, \
     memoized_property

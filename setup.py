@@ -19,7 +19,7 @@ readme = os.path.join(os.path.dirname(__file__), 'README.rst')
 setup(name='dogpile.cache',
       version=VERSION,
       description="A caching front-end based on the Dogpile lock.",
-      long_description=file(readme).read(),
+      long_description=open(readme).read(),
       classifiers=[
       'Development Status :: 3 - Alpha',
       'Intended Audience :: Developers',
@@ -39,7 +39,7 @@ setup(name='dogpile.cache',
       dogpile = dogpile.cache.plugins.mako:MakoPlugin
       """,
       zip_safe=False,
-      install_requires=['dogpile>=0.2.1'],
+      install_requires=['dogpile.core>=0.3.0'],
       test_suite='nose.collector',
       tests_require=['nose'],
       **extra

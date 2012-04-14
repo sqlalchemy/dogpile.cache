@@ -12,7 +12,7 @@ code is tracked here using `Mercurial <http://mercurial.selenic.com/>`_.
 
 Releases and project status are available on Pypi at http://pypi.python.org/pypi/dogpile.cache.
 
-The most recent published version of this documentation should be at http://readthedocs.org/docs/dogpilecache/.
+The most recent published version of this documentation should be at http://dogpilecache.readthedocs.org.
 
 Installation
 ============
@@ -39,9 +39,9 @@ Bugs
 Bugs and feature enhancements to dogpile.cache should be reported on the `Bitbucket
 issue tracker
 <https://bitbucket.org/zzzeek/dogpile.cache/issues?status=new&status=open>`_.   If you're not sure 
-that a particular issue is specific to either dogpile.cache or `Dogpile <https://bitbucket.org/zzzeek/dogpile>`_, posting to the dogpile.cache
+that a particular issue is specific to either dogpile.cache or `dogpile.core <https://bitbucket.org/zzzeek/dogpile.core>`_, posting to the dogpile.cache
 tracker is likely the better place to post first.
 
 * `dogpile.cache issue tracker <https://bitbucket.org/zzzeek/dogpile.cache/issues?status=new&status=open>`_ (post here if unsure)
-* `dogpile issue tracker <https://bitbucket.org/zzzeek/dogpile/issues?status=new&status=open>`_
+* `dogpile.core issue tracker <https://bitbucket.org/zzzeek/dogpile.core/issues?status=new&status=open>`_
 
