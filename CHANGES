@@ -1,3 +1,9 @@
+0.2.1
+=====
+- move tests into tests/cache namespace
+- py3k compatibility is in-place now, no
+  2to3 needed.
+
 0.2.0
 =====
 
