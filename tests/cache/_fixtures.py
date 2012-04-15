@@ -1,7 +1,7 @@
 from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
 from dogpile.cache import register_backend, CacheRegion, util
 from dogpile.cache.region import _backend_loader
-from tests import eq_, assert_raises_message
+from . import eq_, assert_raises_message
 import itertools
 import time
 from nose import SkipTest
@@ -100,11 +100,11 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
                 lock.release()
             return "some value"
         def f():
-            for x in xrange(5):
+            for x in range(5):
                 reg.get_or_create("some key", creator)
                 time.sleep(.5)
 
-        threads = [Thread(target=f) for i in xrange(5)]
+        threads = [Thread(target=f) for i in range(5)]
         for t in threads:
             t.start()
         for t in threads:
@@ -151,10 +151,10 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
         lock = Lock()
         canary = []
         def f():
-            for x in xrange(5):
+            for x in range(5):
                 mutex = backend.get_mutex("foo")
                 mutex.acquire()
-                for y in xrange(5):
+                for y in range(5):
                     ack = lock.acquire(False)
                     canary.append(ack)
                     time.sleep(.002)
@@ -163,7 +163,7 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
                 mutex.release()
                 time.sleep(.02)
 
-        threads = [Thread(target=f) for i in xrange(5)]
+        threads = [Thread(target=f) for i in range(5)]
         for t in threads:
             t.start()
         for t in threads:

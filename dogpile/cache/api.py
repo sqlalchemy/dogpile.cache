@@ -1,4 +1,5 @@
 import operator
+from . import util
 
 class NoValue(object):
     """Describe a missing cache value.
@@ -11,8 +12,12 @@ class NoValue(object):
     def payload(self):
         return self
 
-    def __nonzero__(self):
-        return False
+    if util.py3k:
+        def __bool__(self):
+            return False
+    else:
+        def __nonzero__(self):
+            return False
 
 NO_VALUE = NoValue()
 """Value returned from ``get()`` that describes 

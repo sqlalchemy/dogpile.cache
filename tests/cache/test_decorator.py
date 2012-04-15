@@ -1,5 +1,5 @@
-from tests._fixtures import _GenericBackendFixture
-from tests import eq_
+from ._fixtures import _GenericBackendFixture
+from . import eq_
 from unittest import TestCase
 import time
 from dogpile.cache import util
@@ -71,8 +71,8 @@ class KeyGenerationTest(TestCase):
             pass
         gen = canary[0]
 
-        eq_(gen(1, 2), "tests.test_decorator:one|1 2")
-        eq_(gen(None, 5), "tests.test_decorator:one|None 5")
+        eq_(gen(1, 2), "tests.cache.test_decorator:one|1 2")
+        eq_(gen(None, 5), "tests.cache.test_decorator:one|None 5")
 
     def test_keygen_fn_namespace(self):
         decorate, canary = self._keygen_decorator("mynamespace")
@@ -82,7 +82,7 @@ class KeyGenerationTest(TestCase):
             pass
         gen = canary[0]
 
-        eq_(gen(1, 2), "tests.test_decorator:one|mynamespace|1 2")
-        eq_(gen(None, 5), "tests.test_decorator:one|mynamespace|None 5")
+        eq_(gen(1, 2), "tests.cache.test_decorator:one|mynamespace|1 2")
+        eq_(gen(None, 5), "tests.cache.test_decorator:one|mynamespace|None 5")
 
 

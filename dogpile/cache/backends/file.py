@@ -96,8 +96,11 @@ class DBMBackend(CacheBackend):
                                 dir_, filename)
 
         # TODO: make this configurable
-        import anydbm
-        self.dbmmodule = anydbm
+        if util.py3k:
+            import dbm
+        else:
+            import anydbm as dbm
+        self.dbmmodule = dbm
         self._init_dbm_file()
 
     def _init_lock(self, argument, suffix, basedir, basefile):
@@ -164,7 +167,10 @@ class DBMBackend(CacheBackend):
 
     def delete(self, key):
         with self._dbm_file('w') as dbm:
-            dbm.pop(key, None)
+            try:
+                del dbm[key]
+            except KeyError:
+                pass
 
 class FileLock(object):
     """Use lockfiles to coordinate read/write access to a file."""

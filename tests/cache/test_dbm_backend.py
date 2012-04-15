@@ -1,5 +1,5 @@
-from tests._fixtures import _GenericBackendTest, _GenericMutexTest
-from tests import eq_
+from ._fixtures import _GenericBackendTest, _GenericMutexTest
+from . import eq_
 from unittest import TestCase
 from threading import Thread
 import time

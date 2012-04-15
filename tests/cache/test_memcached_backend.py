@@ -1,5 +1,5 @@
-from tests._fixtures import _GenericBackendTest, _GenericMutexTest
-from tests import eq_
+from ._fixtures import _GenericBackendTest, _GenericMutexTest
+from . import eq_
 from unittest import TestCase
 from threading import Thread
 import time
@@ -172,12 +172,12 @@ class LocalThreadTest(TestCase):
             canary.append(MockClient.number_of_clients)
             time.sleep(.05)
 
-        threads = [Thread(target=f) for i in xrange(count)]
+        threads = [Thread(target=f) for i in range(count)]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
-        eq_(canary, [i + 1 for i in xrange(count)])
+        eq_(canary, [i + 1 for i in range(count)])
         eq_(MockClient.number_of_clients, 0)
 
 

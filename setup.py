@@ -4,12 +4,6 @@ import re
 
 from setuptools import setup, find_packages
 
-extra = {}
-if sys.version_info >= (3, 0):
-    extra.update(
-        use_2to3=True,
-    )
-
 v = open(os.path.join(os.path.dirname(__file__), 'dogpile', 'cache', '__init__.py'))
 VERSION = re.compile(r".*__version__ = '(.*?)'", re.S).match(v.read()).group(1)
 v.close()
@@ -42,5 +36,4 @@ setup(name='dogpile.cache',
       install_requires=['dogpile.core>=0.3.0'],
       test_suite='nose.collector',
       tests_require=['nose'],
-      **extra
 )

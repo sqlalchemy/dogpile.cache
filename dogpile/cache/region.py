@@ -1,15 +1,15 @@
 from dogpile.core import Dogpile, NeedRegenerationException
 from dogpile.core.nameregistry import NameRegistry
 
-from dogpile.cache.util import function_key_generator, PluginLoader, \
+from .util import function_key_generator, PluginLoader, \
     memoized_property
-from dogpile.cache.api import NO_VALUE, CachedValue
+from .api import NO_VALUE, CachedValue
 import time
 from functools import wraps
 
 _backend_loader = PluginLoader("dogpile.cache")
 register_backend = _backend_loader.register
-import backends
+from . import backends
 
 value_version = 1
 """An integer placed in the :class:`.CachedValue`

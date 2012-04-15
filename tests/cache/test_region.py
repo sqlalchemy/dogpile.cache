@@ -1,7 +1,7 @@
 from unittest import TestCase
 from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
 from dogpile.cache import make_region, register_backend, CacheRegion
-from tests import eq_, assert_raises_message
+from . import eq_, assert_raises_message
 import time
 import itertools
 
