@@ -5,3 +5,4 @@ register_backend("dogpile.cache.pylibmc", "dogpile.cache.backends.memcached", "P
 register_backend("dogpile.cache.bmemcached", "dogpile.cache.backends.memcached", "BMemcachedBackend")
 register_backend("dogpile.cache.memcached", "dogpile.cache.backends.memcached", "MemcachedBackend")
 register_backend("dogpile.cache.memory", "dogpile.cache.backends.memory", "MemoryBackend")
+register_backend("dogpile.cache.redis", "dogpile.cache.backends.redis", "RedisBackend")
