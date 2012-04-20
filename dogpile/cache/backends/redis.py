@@ -2,7 +2,7 @@
 Redis Backends
 ------------------
 
-Provides backends for talking to `redis <redis.io>`_.
+Provides backends for talking to `redis <http://redis.io>`_.
 
 """
 
