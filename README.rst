@@ -5,7 +5,7 @@ A caching API built around the concept of a "dogpile lock", which allows
 continued access to an expiring data value while a single thread generates a
 new value.
 
-dogpile.cache builds on the `dogpile <http://pypi.python.org/pypi/dogpile>`_
+dogpile.cache builds on the `dogpile.core <http://pypi.python.org/pypi/dogpile.core>`_
 locking system, which implements the idea of "allow one creator to write while
 others read" in the abstract.   Overall, dogpile.cache is intended as a
 replacement to the `Beaker <http://beaker.groovie.org>`_ caching system, the internals
