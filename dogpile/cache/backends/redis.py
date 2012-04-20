@@ -2,7 +2,7 @@
 Redis Backends
 ------------------
 
-Provides backends for talking to `redis <http://redis.io>`_.
+Provides backends for talking to `Redis <http://redis.io>`_.
 
 """
 
@@ -12,8 +12,11 @@ from dogpile.cache.util import pickle
 import random
 import time
 
+__all__ = 'RedisBackend', 'RedisLock'
+
 class RedisBackend(CacheBackend):
-    """A `Redis <http://redis.io/>`_ backend.
+    """A `Redis <http://redis.io/>`_ backend, using the 
+    `redis-py <http://pypi.python.org/pypi/redis/>`_ backend.
 
     Example configuration::
 
@@ -26,6 +29,7 @@ class RedisBackend(CacheBackend):
                 'port': 6379,
                 'db': 0,
                 'redis_expiration_time': 60*60*2,   # 2 hours
+                'distributed_lock':True
                 }
         )
 
@@ -38,8 +42,16 @@ class RedisBackend(CacheBackend):
     :param db: integer, default is ``0``.
 
     :param redis_expiration_time: integer, number of seconds after setting
-    a value that Redis should expire it.  This should be larger than dogpile's
-    cache expiration.  By default no expiration is set.
+     a value that Redis should expire it.  This should be larger than dogpile's
+     cache expiration.  By default no expiration is set.
+
+    :param distributed_lock: boolean, when True, will use a
+     redis-lock as the dogpile lock (see :class:`.RedisLock`).
+     Use this when multiple
+     processes will be talking to the same redis instance.
+     When left at False, dogpile will coordinate on a regular
+     threading mutex.
+
     """
 
     def __init__(self, arguments):
@@ -83,6 +95,12 @@ class RedisBackend(CacheBackend):
         self.client.delete(key)
 
 class RedisLock(object):
+    """Simple distributed lock using Redis.
+
+    This is an adaptation of the memcached lock featured at
+    http://amix.dk/blog/post/19386
+
+    """
     def __init__(self, client_fn, key):
         self.client_fn = client_fn
         self.key = "_lock" + key

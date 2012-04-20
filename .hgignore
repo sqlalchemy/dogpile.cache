@@ -11,3 +11,8 @@ syntax:regexp
 \.DS_Store
 test.cfg
 .venv
+^docs/.*\.(html|inv|js)
+^docs/_static
+^docs/_sources
+^docs/.buildinfo
+.rej$

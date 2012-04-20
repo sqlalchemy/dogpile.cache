@@ -173,7 +173,12 @@ class DBMBackend(CacheBackend):
                 pass
 
 class FileLock(object):
-    """Use lockfiles to coordinate read/write access to a file."""
+    """Use lockfiles to coordinate read/write access to a file.
+    
+    Only works on Unix systems, using 
+    `fcntl.flock() <http://docs.python.org/library/fcntl.html>`_.
+    
+    """
 
     def __init__(self, filename):
         self._filedescriptor = util.threading.local()
