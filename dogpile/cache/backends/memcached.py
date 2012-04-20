@@ -2,7 +2,7 @@
 Memcached Backends
 ------------------
 
-Provides backends for talking to memcached.
+Provides backends for talking to `memcached <memcached.org>`_.
 
 """
 

@@ -44,11 +44,12 @@ Features
   lock tailored towards the backend is an optional addition, else dogpile uses
   a regular thread mutex. New backends can be registered with dogpile.cache
   directly or made available via setuptools entry points.
-* Backends included in the first release include three memcached backends
-  (python-memcached, pylibmc, bmemcached), a backend based on Python's
+* Included backends feature three memcached backends (python-memcached, pylibmc, 
+  bmemcached), a Redis backend, a backend based on Python's
   anydbm, and a plain dictionary backend.  
 * Space for third party plugins, including the first which provides the
   dogpile.cache engine to Mako templates.
+* Python 3 compatible in place - no 2to3 required.
 
 Synopsis
 --------
