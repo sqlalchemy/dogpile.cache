@@ -1,3 +1,7 @@
+0.2.2
+=====
+- add Redis backend, courtesy Ollie Rutherfurd
+
 0.2.1
 =====
 - move tests into tests/cache namespace
