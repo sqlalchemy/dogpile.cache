@@ -148,6 +148,20 @@ class PylibmcArgsTest(TestCase):
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{}])
 
+class MemcachedArgstest(TestCase):
+    def test_set_time(self):
+        backend = MockMemcachedBackend(arguments={'url':"foo", 
+                                "memcached_expire_time":20})
+        backend.set("foo", "bar")
+        eq_(backend._clients.memcached.canary, [{"time":20}])
+
+    def test_set_min_compress_len(self):
+        backend = MockMemcachedBackend(arguments={'url':"foo", 
+                                "min_compress_len":20})
+        backend.set("foo", "bar")
+        eq_(backend._clients.memcached.canary, [{"min_compress_len":20}])
+    
+
 class LocalThreadTest(TestCase):
     def setUp(self):
         import gc
