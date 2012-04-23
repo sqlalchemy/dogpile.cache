@@ -157,7 +157,24 @@ class GenericMemcachedBackend(CacheBackend):
     def delete(self, key):
         self.client.delete(key)
 
-class PylibmcBackend(GenericMemcachedBackend):
+class MemcacheArgs(object):
+    """Mixin which provides support for the 'time' argument to set(), 
+    'min_compress_len' to other methods.
+    
+    """
+    def __init__(self, arguments):
+        self.min_compress_len = arguments.get('min_compress_len', 0)
+
+        self.set_arguments = {}
+        if "memcached_expire_time" in arguments:
+            self.set_arguments["time"] = \
+                            arguments["memcached_expire_time"]
+        if "min_compress_len" in arguments:
+            self.set_arguments["min_compress_len"] = \
+                            arguments["min_compress_len"]
+        super(MemcacheArgs, self).__init__(arguments)
+
+class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
     """A backend for the 
     `pylibmc <http://sendapatch.se/projects/pylibmc/index.html>`_ 
     memcached client.
@@ -194,15 +211,6 @@ class PylibmcBackend(GenericMemcachedBackend):
     def __init__(self, arguments):
         self.binary = arguments.get('binary', False)
         self.behaviors = arguments.get('behaviors', {})
-        self.min_compress_len = arguments.get('min_compress_len', 0)
-
-        self.set_arguments = {}
-        if "memcached_expire_time" in arguments:
-            self.set_arguments["time"] = \
-                            arguments["memcached_expire_time"]
-        if "min_compress_len" in arguments:
-            self.set_arguments["min_compress_len"] = \
-                            arguments["min_compress_len"]
         super(PylibmcBackend, self).__init__(arguments)
 
 
@@ -216,7 +224,7 @@ class PylibmcBackend(GenericMemcachedBackend):
                         behaviors=self.behaviors
                     )
 
-class MemcachedBackend(GenericMemcachedBackend):
+class MemcachedBackend(MemcacheArgs, GenericMemcachedBackend):
     """A backend using the standard `Python-memcached <http://www.tummy.com/Community/software/python-memcached/>`_
     library.
     

@@ -1,3 +1,9 @@
+0.2.3
+=====
+- support "min_compress_len" and "memcached_expire_time"
+  with python-memcached backend.  Tests courtesy
+  Justin Azoff #3
+
 0.2.2
 =====
 - add Redis backend, courtesy Ollie Rutherfurd

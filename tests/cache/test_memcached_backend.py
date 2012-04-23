@@ -76,7 +76,16 @@ class MemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
 
 from dogpile.cache.backends.memcached import GenericMemcachedBackend
 from dogpile.cache.backends.memcached import PylibmcBackend
-class MockMemcachedBackend(GenericMemcachedBackend):
+from dogpile.cache.backends.memcached import MemcachedBackend
+
+class MockGenericMemcachedBackend(GenericMemcachedBackend):
+    def _imports(self):
+        pass
+
+    def _create_client(self):
+        return MockClient(self.url)
+
+class MockMemcacheBackend(MemcachedBackend):
     def _imports(self):
         pass
 
@@ -150,17 +159,17 @@ class PylibmcArgsTest(TestCase):
 
 class MemcachedArgstest(TestCase):
     def test_set_time(self):
-        backend = MockMemcachedBackend(arguments={'url':"foo", 
+        backend = MockMemcacheBackend(arguments={'url':"foo", 
                                 "memcached_expire_time":20})
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"time":20}])
 
     def test_set_min_compress_len(self):
-        backend = MockMemcachedBackend(arguments={'url':"foo", 
+        backend = MockMemcacheBackend(arguments={'url':"foo", 
                                 "min_compress_len":20})
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"min_compress_len":20}])
-    
+
 
 class LocalThreadTest(TestCase):
     def setUp(self):
@@ -178,7 +187,7 @@ class LocalThreadTest(TestCase):
         self._test_client_cleanup(10)
 
     def _test_client_cleanup(self, count):
-        backend = MockMemcachedBackend(arguments={'url':'foo'})
+        backend = MockGenericMemcachedBackend(arguments={'url':'foo'})
         canary = []
 
         def f():
