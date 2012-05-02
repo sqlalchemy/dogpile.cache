@@ -21,10 +21,6 @@ if py3k:
 else:
     tounicode = unicode
 
-if py3k:
-    import configparser
-else:
-    import ConfigParser as configparser
 
 def coerce_string_conf(d):
     result = {}

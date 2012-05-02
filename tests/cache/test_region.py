@@ -1,7 +1,7 @@
 from unittest import TestCase
 from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
 from dogpile.cache import make_region, register_backend, CacheRegion, util
-from . import eq_, assert_raises_message
+from . import eq_, assert_raises_message, io, configparser
 import time
 import itertools
 
@@ -62,9 +62,8 @@ class RegionTest(TestCase):
             'cache.example.arguments.xyz=None\n'
 
         my_region = make_region()
-        import StringIO
-        config = util.configparser.ConfigParser()
-        config.readfp(StringIO.StringIO(my_conf))
+        config = configparser.ConfigParser()
+        config.readfp(io.StringIO(my_conf))
 
         my_region.configure_from_config(dict(config.items('xyz')), 'cache.example.')
         eq_(my_region.expiration_time, 600)

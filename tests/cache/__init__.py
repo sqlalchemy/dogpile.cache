@@ -15,3 +15,12 @@ def assert_raises_message(except_cls, msg, callable_, *args, **kwargs):
     except except_cls as e:
         assert re.search(msg, str(e)), "%r !~ %s" % (msg, e)
 
+
+from dogpile.cache.util import py3k
+
+if py3k:
+    import configparser
+    import io
+else:
+    import ConfigParser as configparser
+    import StringIO as io
