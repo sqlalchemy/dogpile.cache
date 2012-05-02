@@ -4,6 +4,10 @@
   with python-memcached backend.  Tests courtesy
   Justin Azoff #3
 
+- Add support for coercion of string config values
+  to Python objects - ints, "false", "true", "None".
+  #4
+
 0.2.2
 =====
 - add Redis backend, courtesy Ollie Rutherfurd

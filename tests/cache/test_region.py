@@ -1,6 +1,6 @@
 from unittest import TestCase
 from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
-from dogpile.cache import make_region, register_backend, CacheRegion
+from dogpile.cache import make_region, register_backend, CacheRegion, util
 from . import eq_, assert_raises_message
 import time
 import itertools
@@ -51,6 +51,26 @@ class RegionTest(TestCase):
         eq_(my_region.expiration_time, 600)
         assert isinstance(my_region.backend, MockBackend) is True
         eq_(my_region.backend.arguments, {'url': '127.0.0.1'})
+
+    def test_instance_from_config_string(self):
+        my_conf = \
+            '[xyz]\n'\
+            'cache.example.backend=mock\n'\
+            'cache.example.expiration_time=600\n'\
+            'cache.example.arguments.url=127.0.0.1\n'\
+            'cache.example.arguments.dogpile_lockfile=false\n'\
+            'cache.example.arguments.xyz=None\n'
+
+        my_region = make_region()
+        import StringIO
+        config = util.configparser.ConfigParser()
+        config.readfp(StringIO.StringIO(my_conf))
+
+        my_region.configure_from_config(dict(config.items('xyz')), 'cache.example.')
+        eq_(my_region.expiration_time, 600)
+        assert isinstance(my_region.backend, MockBackend) is True
+        eq_(my_region.backend.arguments, {'url': '127.0.0.1', 
+                            'dogpile_lockfile':False, 'xyz':None})
 
     def test_key_mangler_argument(self):
         reg = self._region(init_args={"key_mangler":key_mangler})

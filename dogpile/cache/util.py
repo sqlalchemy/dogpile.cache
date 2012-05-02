@@ -1,6 +1,7 @@
 from hashlib import sha1
 import inspect
 import sys
+import re
 
 try:
     import threading
@@ -19,6 +20,29 @@ if py3k:
     tounicode = str
 else:
     tounicode = unicode
+
+if py3k:
+    import configparser
+else:
+    import ConfigParser as configparser
+
+def coerce_string_conf(d):
+    result = {}
+    for k, v in d.items():
+        if not isinstance(v, basestring):
+            result[k] = v
+            continue
+
+        v = v.strip()
+        if re.match(r'^\d+$', v):
+            result[k] = int(v)
+        elif v.lower() in ('false', 'true'):
+            result[k] = v.lower() == 'true'
+        elif v == 'None':
+            result[k] = None
+        else:
+            result[k] = v
+    return result
 
 class PluginLoader(object):
     def __init__(self, group):

@@ -2,7 +2,7 @@ from dogpile.core import Dogpile, NeedRegenerationException
 from dogpile.core.nameregistry import NameRegistry
 
 from .util import function_key_generator, PluginLoader, \
-    memoized_property
+    memoized_property, coerce_string_conf
 from .api import NO_VALUE, CachedValue
 import time
 from functools import wraps
@@ -172,6 +172,7 @@ class CacheRegion(object):
                                                 "cache.memcached.")
 
         """
+        config_dict = coerce_string_conf(config_dict)
         return self.configure(
             config_dict["%sbackend" % prefix],
             expiration_time = config_dict.get(
