@@ -93,7 +93,8 @@ class DBMBackend(CacheBackend):
         self._dogpile_lock = self._init_lock(
                                 arguments.get('dogpile_lockfile'), 
                                 ".dogpile.lock", 
-                                dir_, filename)
+                                dir_, filename,
+                                util.KeyReentrantMutex.factory)
 
         # TODO: make this configurable
         if util.py3k:
@@ -103,16 +104,19 @@ class DBMBackend(CacheBackend):
         self.dbmmodule = dbm
         self._init_dbm_file()
 
-    def _init_lock(self, argument, suffix, basedir, basefile):
+    def _init_lock(self, argument, suffix, basedir, basefile, wrapper=None):
         if argument is None:
-            return FileLock(os.path.join(basedir, basefile + suffix))
+            lock = FileLock(os.path.join(basedir, basefile + suffix))
         elif argument is not False:
-            return FileLock(
+            lock = FileLock(
                         os.path.abspath(
                             os.path.normpath(argument)
                         ))
         else:
             return None
+        if wrapper:
+            lock = wrapper(lock)
+        return lock
 
     def _init_dbm_file(self):
         exists = os.access(self.filename, os.F_OK)
@@ -133,7 +137,10 @@ class DBMBackend(CacheBackend):
         # break other processes trying to get at the file
         # at the same time - so handling unlimited keys
         # can't imply unlimited filenames
-        return self._dogpile_lock
+        if self._dogpile_lock:
+            return self._dogpile_lock(key)
+        else:
+            return None
 
     @contextmanager
     def _use_rw_lock(self, write):
@@ -155,18 +162,18 @@ class DBMBackend(CacheBackend):
             dbm.close()
 
     def get(self, key):
-        with self._dbm_file('r') as dbm:
+        with self._dbm_file(False) as dbm:
             value = dbm.get(key, NO_VALUE)
             if value is not NO_VALUE:
                 value = util.pickle.loads(value)
             return value
 
     def set(self, key, value):
-        with self._dbm_file('w') as dbm:
+        with self._dbm_file(True) as dbm:
             dbm[key] = util.pickle.dumps(value)
 
     def delete(self, key):
-        with self._dbm_file('w') as dbm:
+        with self._dbm_file(True) as dbm:
             try:
                 del dbm[key]
             except KeyError:

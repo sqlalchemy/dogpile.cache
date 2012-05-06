@@ -8,6 +8,15 @@
   to Python objects - ints, "false", "true", "None".
   #4
 
+- Added support to DBM file lock to allow reentrant
+  access per key within a single thread, so that 
+  even though the DBM backend locks for the whole file,
+  a creation function that calls upon a different
+  key in the cache can still proceed.  #5
+
+- Fixed DBM glitch where multiple readers 
+  could be serialized.
+
 0.2.2
 =====
 - add Redis backend, courtesy Ollie Rutherfurd

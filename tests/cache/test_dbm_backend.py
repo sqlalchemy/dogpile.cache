@@ -1,5 +1,5 @@
 from ._fixtures import _GenericBackendTest, _GenericMutexTest
-from . import eq_
+from . import eq_, assert_raises_message
 from unittest import TestCase
 from threading import Thread
 import time
@@ -40,6 +40,30 @@ class DBMMutexTest(_GenericMutexTest):
             "filename":"test.dbm"
         }
     }
+
+    def test_release_assertion_thread(self):
+        backend = self._backend()
+        m1 = backend.get_mutex("foo")
+        assert_raises_message(
+            AssertionError,
+            "this thread didn't do the acquire",
+            m1.release
+        )
+
+    def test_release_assertion_key(self):
+        backend = self._backend()
+        m1 = backend.get_mutex("foo")
+        m2 = backend.get_mutex("bar")
+
+        m1.acquire()
+        try:
+            assert_raises_message(
+                AssertionError,
+                "No acquire held for key 'bar'",
+                m2.release
+            )
+        finally:
+            m1.release()
 
 
 def teardown():

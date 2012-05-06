@@ -169,3 +169,37 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
         for t in threads:
             t.join()
         assert False not in canary
+
+    def test_mutex_reentrant_across_keys(self):
+        backend = self._backend()
+        for x in range(3):
+            m1 = backend.get_mutex("foo")
+            m2 = backend.get_mutex("bar")
+            try:
+                m1.acquire()
+                assert m2.acquire(wait=False)
+                assert not m2.acquire(wait=False)
+                m2.release()
+
+                assert m2.acquire(wait=False)
+                assert not m2.acquire(wait=False)
+                m2.release()
+            finally:
+                m1.release()
+
+    def test_reentrant_dogpile(self):
+        reg = self._region()
+        def create_foo():
+            return "foo" + reg.get_or_create("bar", create_bar)
+
+        def create_bar():
+            return "bar"
+
+        eq_(
+            reg.get_or_create("foo", create_foo),
+            "foobar"
+        )
+        eq_(
+            reg.get_or_create("foo", create_foo),
+            "foobar"
+        )
