@@ -37,8 +37,6 @@ Backends
 Plugins
 ========
 
-.. _mako_plugin:
-
 .. automodule:: dogpile.cache.plugins.mako_cache
     :members:
 
