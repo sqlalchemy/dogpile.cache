@@ -3,30 +3,19 @@ import inspect
 import sys
 import re
 import collections
+from dogpile.compat import string_types, text_type, pickle
+
 
 try:
     import threading
 except ImportError:
     import dummy_threading as threading
 
-py3k = sys.version_info >= (3, 0)
-jython = sys.platform.startswith('java')
-
-if py3k or jython:
-    import pickle
-else:
-    import cPickle as pickle
-
-if py3k:
-    tounicode = str
-else:
-    tounicode = unicode
-
 
 def coerce_string_conf(d):
     result = {}
     for k, v in d.items():
-        if not isinstance(v, basestring):
+        if not isinstance(v, string_types):
             result[k] = v
             continue
 
@@ -97,7 +86,7 @@ def function_key_generator(namespace, fn):
                     "function does not accept keyword arguments.")
         if has_self:
             args = args[1:]
-        return namespace + "|" + " ".join(map(tounicode, args))
+        return namespace + "|" + " ".join(map(text_type, args))
     return generate_key
 
 def sha1_mangle_key(key):

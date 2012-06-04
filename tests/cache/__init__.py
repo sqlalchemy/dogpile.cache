@@ -1,5 +1,6 @@
 import re
 
+
 def eq_(a, b, msg=None):
     """Assert a == b, with repr messaging on failure."""
     assert a == b, msg or "%r != %r" % (a, b)
@@ -15,12 +16,4 @@ def assert_raises_message(except_cls, msg, callable_, *args, **kwargs):
     except except_cls as e:
         assert re.search(msg, str(e)), "%r !~ %s" % (msg, e)
 
-
-from dogpile.cache.util import py3k
-
-if py3k:
-    import configparser
-    import io
-else:
-    import ConfigParser as configparser
-    import StringIO as io
+from dogpile.compat import configparser, io

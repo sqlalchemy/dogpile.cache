@@ -1,5 +1,6 @@
 import operator
-from . import util
+from dogpile.compat import py3k
+
 
 class NoValue(object):
     """Describe a missing cache value.
@@ -12,7 +13,7 @@ class NoValue(object):
     def payload(self):
         return self
 
-    if util.py3k:
+    if py3k:
         def __bool__(self):
             return False
     else:

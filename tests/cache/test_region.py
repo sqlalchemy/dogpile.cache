@@ -1,3 +1,4 @@
+import pprint
 from unittest import TestCase
 from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
 from dogpile.cache import make_region, register_backend, CacheRegion, util
@@ -129,7 +130,7 @@ class RegionTest(TestCase):
         def creator():
             return "some value %d" % next(counter)
         eq_(reg.get_or_create("some key", creator), "some value 1")
-        time.sleep(1)
+        time.sleep(2)
         eq_(reg.get("some key"), "some value 1")
         eq_(reg.get_or_create("some key", creator), "some value 2")
         eq_(reg.get("some key"), "some value 2")
@@ -141,7 +142,7 @@ class RegionTest(TestCase):
             return "some value %d" % next(counter)
         eq_(reg.get_or_create("some key", creator, expiration_time=1), 
                     "some value 1")
-        time.sleep(1)
+        time.sleep(2)
         eq_(reg.get("some key"), "some value 1")
         eq_(reg.get_or_create("some key", creator, expiration_time=1), 
                     "some value 2")
