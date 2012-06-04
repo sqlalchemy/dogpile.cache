@@ -142,20 +142,24 @@ class GenericMemcachedBackend(CacheBackend):
             return None
 
     def get(self, key):
-        value = self.client.get(key)
+        value = self.client.get(self.format_key(key))
         if value is None:
             return NO_VALUE
         else:
             return value
 
     def set(self, key, value):
-        self.client.set(key, 
+        self.client.set(self.format_key(key),
                             value, 
                             **self.set_arguments
                         )
 
     def delete(self, key):
-        self.client.delete(key)
+        self.client.delete(self.format_key(key))
+
+    def format_key(self, key):
+        formated_key = key.replace(' ', '\302\267')
+        return formated_key
 
 class MemcacheArgs(object):
     """Mixin which provides support for the 'time' argument to set(), 
