@@ -11,8 +11,8 @@ from dogpile.cache import util
 import random
 import time
 
-__all__ = 'GenericMemcachedBackend', 'MemcachedBackend', \
-    'PylibmcBackend', 'BMemcachedBackend', 'MemcachedLock'
+__all__ = 'GenericMemcachedBackend', 'MemcachedBackend',\
+          'PylibmcBackend', 'BMemcachedBackend', 'MemcachedLock'
 
 class MemcachedLock(object):
     """Simple distributed lock using memcached.
@@ -104,7 +104,7 @@ class GenericMemcachedBackend(CacheBackend):
         self.url = util.to_list(arguments['url'])
         self.distributed_lock = arguments.get('distributed_lock', False)
         self.memcached_expire_time = arguments.get(
-                                        'memcached_expire_time', 0)
+            'memcached_expire_time', 0)
 
     def _imports(self):
         """client library imports go here."""
@@ -142,24 +142,20 @@ class GenericMemcachedBackend(CacheBackend):
             return None
 
     def get(self, key):
-        value = self.client.get(self.format_key(key))
+        value = self.client.get(key)
         if value is None:
             return NO_VALUE
         else:
             return value
 
     def set(self, key, value):
-        self.client.set(self.format_key(key),
-                            value, 
-                            **self.set_arguments
-                        )
+        self.client.set(key,
+            value,
+            **self.set_arguments
+        )
 
     def delete(self, key):
-        self.client.delete(self.format_key(key))
-
-    def format_key(self, key):
-        formated_key = key.replace(' ', '\302\267')
-        return formated_key
+        self.client.delete(key)
 
 class MemcacheArgs(object):
     """Mixin which provides support for the 'time' argument to set(), 
@@ -171,11 +167,11 @@ class MemcacheArgs(object):
 
         self.set_arguments = {}
         if "memcached_expire_time" in arguments:
-            self.set_arguments["time"] = \
-                            arguments["memcached_expire_time"]
+            self.set_arguments["time"] =\
+            arguments["memcached_expire_time"]
         if "min_compress_len" in arguments:
-            self.set_arguments["min_compress_len"] = \
-                            arguments["min_compress_len"]
+            self.set_arguments["min_compress_len"] =\
+            arguments["min_compress_len"]
         super(MemcacheArgs, self).__init__(arguments)
 
 class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
@@ -223,10 +219,10 @@ class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
         import pylibmc
 
     def _create_client(self):
-        return pylibmc.Client(self.url, 
-                        binary=self.binary,
-                        behaviors=self.behaviors
-                    )
+        return pylibmc.Client(self.url,
+            binary=self.binary,
+            behaviors=self.behaviors
+        )
 
 class MemcachedBackend(MemcacheArgs, GenericMemcachedBackend):
     """A backend using the standard `Python-memcached <http://www.tummy.com/Community/software/python-memcached/>`_
@@ -309,7 +305,7 @@ class BMemcachedBackend(GenericMemcachedBackend):
         self.Client = RepairBMemcachedAPI
 
     def _create_client(self):
-        return self.Client(self.url, 
-                        username=self.username,
-                        password=self.password
-                    )
+        return self.Client(self.url,
+            username=self.username,
+            password=self.password
+        )
