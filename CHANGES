@@ -1,3 +1,8 @@
+0.2.4
+=====
+- Fixed py3k issue with config string coerce,
+  courtesy Alexander Fedorov
+
 0.2.3
 =====
 - support "min_compress_len" and "memcached_expire_time"
