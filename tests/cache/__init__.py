@@ -16,4 +16,4 @@ def assert_raises_message(except_cls, msg, callable_, *args, **kwargs):
     except except_cls as e:
         assert re.search(msg, str(e)), "%r !~ %s" % (msg, e)
 
-from dogpile.compat import configparser, io
+from dogpile.cache.compat import configparser, io

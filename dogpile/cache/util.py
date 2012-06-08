@@ -3,19 +3,13 @@ import inspect
 import sys
 import re
 import collections
-from dogpile.compat import string_types, text_type, pickle
-
-
-try:
-    import threading
-except ImportError:
-    import dummy_threading as threading
+from . import compat
 
 
 def coerce_string_conf(d):
     result = {}
     for k, v in d.items():
-        if not isinstance(v, string_types):
+        if not isinstance(v, compat.string_types):
             result[k] = v
             continue
 
@@ -86,7 +80,7 @@ def function_key_generator(namespace, fn):
                     "function does not accept keyword arguments.")
         if has_self:
             args = args[1:]
-        return namespace + "|" + " ".join(map(text_type, args))
+        return namespace + "|" + " ".join(map(compat.text_type, args))
     return generate_key
 
 def sha1_mangle_key(key):
@@ -147,7 +141,7 @@ class KeyReentrantMutex(object):
         return fac
 
     def acquire(self, wait=True):
-        current_thread = threading.current_thread().ident
+        current_thread = compat.threading.current_thread().ident
         keys = self.keys.get(current_thread)
         if keys is not None and \
             self.key not in keys:
@@ -162,7 +156,7 @@ class KeyReentrantMutex(object):
             return False
 
     def release(self):
-        current_thread = threading.current_thread().ident
+        current_thread = compat.threading.current_thread().ident
         keys = self.keys.get(current_thread)
         assert keys is not None, "this thread didn't do the acquire"
         assert self.key in keys, "No acquire held for key '%s'" % self.key

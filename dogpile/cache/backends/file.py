@@ -8,6 +8,7 @@ Provides backends that deal with local filesystem access.
 
 from dogpile.cache.api import CacheBackend, NO_VALUE
 from contextlib import contextmanager
+from dogpile.cache import compat
 from dogpile.cache import util
 import os
 import fcntl
@@ -97,7 +98,7 @@ class DBMBackend(CacheBackend):
                                 util.KeyReentrantMutex.factory)
 
         # TODO: make this configurable
-        if util.py3k:
+        if compat.py3k:
             import dbm
         else:
             import anydbm as dbm
@@ -165,12 +166,12 @@ class DBMBackend(CacheBackend):
         with self._dbm_file(False) as dbm:
             value = dbm.get(key, NO_VALUE)
             if value is not NO_VALUE:
-                value = util.pickle.loads(value)
+                value = compat.pickle.loads(value)
             return value
 
     def set(self, key, value):
         with self._dbm_file(True) as dbm:
-            dbm[key] = util.pickle.dumps(value)
+            dbm[key] = compat.pickle.dumps(value)
 
     def delete(self, key):
         with self._dbm_file(True) as dbm:
@@ -188,7 +189,7 @@ class FileLock(object):
     """
 
     def __init__(self, filename):
-        self._filedescriptor = util.threading.local()
+        self._filedescriptor = compat.threading.local()
         self.filename = filename
 
     def acquire(self, wait=True):

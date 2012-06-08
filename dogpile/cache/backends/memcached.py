@@ -7,6 +7,7 @@ Provides backends for talking to `memcached <http://memcached.org>`_.
 """
 
 from dogpile.cache.api import CacheBackend, NO_VALUE
+from dogpile.cache import compat
 from dogpile.cache import util
 import random
 import time
@@ -117,7 +118,7 @@ class GenericMemcachedBackend(CacheBackend):
     @util.memoized_property
     def _clients(self):
         backend = self
-        class ClientPool(util.threading.local):
+        class ClientPool(compat.threading.local):
             def __init__(self):
                 self.memcached = backend._create_client()
 

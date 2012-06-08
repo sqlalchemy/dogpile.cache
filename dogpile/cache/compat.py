@@ -5,6 +5,12 @@ py3k = sys.version_info >= (3, 0)
 jython = sys.platform.startswith('java')
 
 
+try:
+    import threading
+except ImportError:
+    import dummy_threading as threading
+
+
 if py3k: # pragma: no cover
     string_types = str,
     text_type = str

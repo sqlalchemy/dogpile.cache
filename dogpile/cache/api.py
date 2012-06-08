@@ -1,5 +1,5 @@
 import operator
-from dogpile.compat import py3k
+from .compat import py3k
 
 
 class NoValue(object):

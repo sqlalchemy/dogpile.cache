@@ -8,7 +8,7 @@ Provides backends for talking to `Redis <http://redis.io>`_.
 
 from __future__ import absolute_import
 from dogpile.cache.api import CacheBackend, NO_VALUE
-from dogpile.cache.util import pickle
+from dogpile.cache.compat import pickle
 import random
 import time
 
