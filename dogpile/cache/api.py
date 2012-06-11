@@ -14,10 +14,10 @@ class NoValue(object):
         return self
 
     if py3k:
-        def __bool__(self):
+        def __bool__(self): #pragma NO COVERAGE
             return False
     else:
-        def __nonzero__(self):
+        def __nonzero__(self): #pragma NO COVERAGE
             return False
 
 NO_VALUE = NoValue()
@@ -58,7 +58,7 @@ class CacheBackend(object):
 
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments): #pragma NO COVERAGE
         """Construct a new :class:`.CacheBackend`.
         
         Subclasses should override this to
@@ -114,7 +114,7 @@ class CacheBackend(object):
         """
         return None
 
-    def get(self, key):
+    def get(self, key): #pragma NO COVERAGE
         """Retrieve a value from the cache.
         
         The returned value should be an instance of
@@ -124,7 +124,7 @@ class CacheBackend(object):
         """
         raise NotImplementedError()
 
-    def set(self, key, value):
+    def set(self, key, value): #pragma NO COVERAGE
         """Set a value in the cache.
         
         The key will be whatever was passed
@@ -136,7 +136,7 @@ class CacheBackend(object):
         """
         raise NotImplementedError()
 
-    def delete(self, key):
+    def delete(self, key): #pragma NO COVERAGE
         """Delete a value from the cache.
         
         The key will be whatever was passed

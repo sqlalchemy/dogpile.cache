@@ -32,7 +32,9 @@ class PluginLoader(object):
     def load(self, name):
         if name in self.impls:
              return self.impls[name]()
-        else:
+        else: #pragma NO COVERAGE
+            # TODO: if someone has ideas on how to
+            # unit test entrypoint stuff, let me know.
             import pkg_resources
             for impl in pkg_resources.iter_entry_points(
                                 self.group, 
