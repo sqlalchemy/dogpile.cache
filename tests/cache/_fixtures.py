@@ -126,7 +126,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
             return "some value %d" % next(counter)
         eq_(reg.get_or_create("some key", creator), "some value 1")
         time.sleep(.4)
-        eq_(reg.get("some key"), "some value 1")
+        eq_(reg.get("some key", ignore_expiration=True), "some value 1")
         eq_(reg.get_or_create("some key", creator), "some value 2")
         eq_(reg.get("some key"), "some value 2")
 

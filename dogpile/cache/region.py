@@ -93,6 +93,7 @@ class CacheRegion(object):
             self.key_mangler = key_mangler
         else:
             self.key_mangler = None
+        self._invalidated = None
 
     def configure(self, backend,
             expiration_time=None,
@@ -148,6 +149,27 @@ class CacheRegion(object):
                 lock=self.backend.get_mutex(identifier)
             )
 
+    def invalidate(self):
+        """Invalidate this :class:`.CacheRegion`.
+        
+        Invalidation works by setting a current timestamp
+        (using ``time.time()``)
+        representing the "minimum creation time" for 
+        a value.  Any retrieved value whose creation
+        time is prior to this timestamp 
+        is considered to be stale.  It does not
+        affect the data in the cache in any way, and is also
+        local to this instance of :class:`.CacheRegion`.
+        
+        Once set, the invalidation time is honored by
+        the :meth:`.CacheRegion.get_or_create` and 
+        :meth:`.CacheRegion.get` methods.
+        
+        .. versionadded:: 0.3.0
+        
+        """
+        self._invalidated = time.time()
+
     def configure_from_config(self, config_dict, prefix):
         """Configure from a configuration dictionary 
         and a prefix.
@@ -185,36 +207,109 @@ class CacheRegion(object):
     def backend(self):
         raise Exception("No backend is configured on this region.")
 
-    def get(self, key):
+    def get(self, key, expiration_time=None, ignore_expiration=False):
         """Return a value from the cache, based on the given key.
 
-        While it's typical the key is a string, it's 
-        passed through to the underlying backend so can be 
-        of any type recognized by the backend. If
-        the value is not present, returns the token 
-        ``NO_VALUE``. ``NO_VALUE`` evaluates to False, but is 
-        separate from ``None`` to distinguish between a cached value 
-        of ``None``. Note that the ``expiration_time`` argument is 
-        **not** used here - this method is a direct line to the
-        backend's behavior. 
+        If the value is not present, the method returns the token
+        ``NO_VALUE``. ``NO_VALUE`` evaluates to False, but is separate from
+        ``None`` to distinguish between a cached value of ``None``.
+
+        By default, the configured expiration time of the
+        :class:`.CacheRegion`, or alternatively the expiration
+        time supplied by the ``expiration_time`` argument,
+        is tested against the creation time of the retrieved
+        value versus the current time (as reported by ``time.time()``).
+        If stale, the cached value is ignored and the ``NO_VALUE`` 
+        token is returned.  Passing the flag ``ignore_expiration=True``
+        bypasses the expiration time check.
+        
+        .. versionchanged:: 0.3.0
+           :meth:`.CacheRegion.get` now checks the value's creation time
+           against the expiration time, rather than returning
+           the value unconditionally.
+        
+        The method also interprets the cached value in terms
+        of the current "invalidation" time as set by 
+        the :meth:`.invalidate` method.   If a value is present,
+        but its creation time is older than the current 
+        invalidation time, the ``NO_VALUE`` token is returned.
+        Passing the flag ``ignore_expiration=True`` bypasses
+        the invalidation time check.
+        
+        .. versionadded:: 0.3.0 
+           Support for the :meth:`.CacheRegion.invalidate`
+           method.
+        
+        :param key: Key to be retrieved. While it's typical for a key to be a
+         string, it is ultimately passed directly down to the cache backend,
+         before being optionally processed by the key_mangler function, so can
+         be of any type recognized by the backend or by the key_mangler
+         function, if present.
+
+        :param expiration_time: Optional expiration time value 
+         which will supersede that configured on the :class:`.CacheRegion`
+         itself.
+         
+         .. versionadded:: 0.3.0
+         
+        :param ignore_expiration: if ``True``, the value is returned
+         from the cache if present, regardless of configured
+         expiration times or whether or not :meth:`.invalidate`
+         was called.
+         
+         .. versionadded:: 0.3.0
 
         """
 
         if self.key_mangler:
             key = self.key_mangler(key)
         value = self.backend.get(key)
+
+        if not ignore_expiration:
+            if expiration_time is None:
+                expiration_time = self.expiration_time
+            if expiration_time is not None and \
+                time.time() - value.metadata["ct"] > expiration_time:
+                return NO_VALUE
+            elif self._invalidated and value.metadata["ct"] < self._invalidated:
+                return NO_VALUE
+
         return value.payload
 
     def get_or_create(self, key, creator, expiration_time=None):
-        """Similar to ``get``, will use the given "creation" 
-        function to create a new
-        value if the value does not exist.
+        """Return a cached value based on the given key.  
+        
+        If the value does not exist or is considered to be expired
+        based on its creation time, the given 
+        creation function may or may not be used to recreate the value
+        and persist the newly generated value in the cache.
+        
+        Whether or not the function is used depends on if the
+        *dogpile lock* can be acquired or not.  If it can't, it means
+        a different thread or process is already running a creation
+        function for this key against the cache.  When the dogpile
+        lock cannot be acquired, the method will block if no
+        previous value is available, until the lock is released and
+        a new value available.  If a previous value 
+        is available, that value is returned immediately without blocking.
+        
+        If the :meth:`.invalidate` method has been called, and 
+        the retrieved value's timestamp is older than the invalidation
+        timestamp, the value is unconditionally prevented from
+        being returned.  The method will attempt to acquire the dogpile 
+        lock to generate a new value, or will wait
+        until the lock is released to return the new value.
 
-        This will use the underlying dogpile/
-        expiration mechanism to determine when/how 
-        the creation function is called.
+        .. versionchanged:: 0.3.0
+          The value is unconditionally regenerated if the creation
+          time is older than the last call to :meth:`.invalidate`.
 
-        :param key: Key to retrieve
+        :param key: Key to be retrieved. While it's typical for a key to be a
+         string, it is ultimately passed directly down to the cache backend,
+         before being optionally processed by the key_mangler function, so can
+         be of any type recognized by the backend or by the key_mangler
+         function, if present.
+
         :param creator: function which creates a new value.
         :param expiration_time: optional expiration time which will overide
          the expiration time already configured on this :class:`.CacheRegion`
@@ -234,6 +329,11 @@ class CacheRegion(object):
             the :class:`.CacheRegion` as a whole is expected to be the
             usual mode of operation.
 
+        See also:
+        
+        :meth:`.CacheRegion.cache_on_arguments` - applies :meth:`.get_or_create`
+        to any function using a decorator.
+         
         """
         if self.key_mangler:
             key = self.key_mangler(key)
@@ -241,7 +341,9 @@ class CacheRegion(object):
         def get_value():
             value = self.backend.get(key)
             if value is NO_VALUE or \
-                value.metadata['v'] != value_version:
+                value.metadata['v'] != value_version or \
+                    (self._invalidated and 
+                    value.metadata["ct"] < self._invalidated):
                 raise NeedRegenerationException()
             return value.payload, value.metadata["ct"]
 
@@ -286,6 +388,11 @@ class CacheRegion(object):
         """A function decorator that will cache the return 
         value of the function using a key derived from the 
         function itself and its arguments.
+        
+        The decorator internally makes use of the
+        :meth:`.CacheRegion.get_or_create` method to access the
+        cache and conditionally call the function.  See that 
+        method for additional behavioral details.
         
         E.g.::
         

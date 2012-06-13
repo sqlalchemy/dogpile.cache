@@ -2,7 +2,7 @@ import pprint
 from unittest import TestCase
 from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
 from dogpile.cache import make_region, register_backend, CacheRegion, util
-from . import eq_, assert_raises_message, io, configparser
+from . import eq_, is_, assert_raises_message, io, configparser
 import time
 import itertools
 
@@ -131,9 +131,32 @@ class RegionTest(TestCase):
             return "some value %d" % next(counter)
         eq_(reg.get_or_create("some key", creator), "some value 1")
         time.sleep(2)
-        eq_(reg.get("some key"), "some value 1")
+        is_(reg.get("some key"), NO_VALUE)
+        eq_(reg.get("some key", ignore_expiration=True), "some value 1")
         eq_(reg.get_or_create("some key", creator), "some value 2")
         eq_(reg.get("some key"), "some value 2")
+
+    def test_expire_on_get(self):
+        reg = self._region(config_args={"expiration_time":.5})
+        reg.set("some key", "some value")
+        eq_(reg.get("some key"), "some value")
+        time.sleep(1)
+        is_(reg.get("some key"), NO_VALUE)
+
+    def test_ignore_expire_on_get(self):
+        reg = self._region(config_args={"expiration_time":.5})
+        reg.set("some key", "some value")
+        eq_(reg.get("some key"), "some value")
+        time.sleep(1)
+        eq_(reg.get("some key", ignore_expiration=True), "some value")
+
+    def test_override_expire_on_get(self):
+        reg = self._region(config_args={"expiration_time":.5})
+        reg.set("some key", "some value")
+        eq_(reg.get("some key"), "some value")
+        time.sleep(1)
+        eq_(reg.get("some key", expiration_time=5), "some value")
+        is_(reg.get("some key"), NO_VALUE)
 
     def test_expire_override(self):
         reg = self._region(config_args={"expiration_time":5})
@@ -148,3 +171,21 @@ class RegionTest(TestCase):
                     "some value 2")
         eq_(reg.get("some key"), "some value 2")
 
+
+    def test_invalidate_get(self):
+        reg = self._region()
+        reg.set("some key", "some value")
+        reg.invalidate()
+        is_(reg.get("some key"), NO_VALUE)
+
+    def test_invalidate_get_or_create(self):
+        reg = self._region()
+        counter = itertools.count(1)
+        def creator():
+            return "some value %d" % next(counter)
+        eq_(reg.get_or_create("some key", creator), 
+                    "some value 1")
+
+        reg.invalidate()
+        eq_(reg.get_or_create("some key", creator), 
+                    "some value 2")
