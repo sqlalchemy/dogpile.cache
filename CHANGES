@@ -1,13 +1,16 @@
 0.3.0
 =====
-- get() method now checks expiration time 
+- [feature] get() method now checks expiration time 
   by default.   Use ignore_expiration=True
   to bypass this.
 
-- Added new invalidate() method.  Sets the current
+- [feature] Added new invalidate() method.  Sets the current
   timestamp as a minimum value that all retrieved
   values must be created after.  Is honored by the
   get_or_create() and get() methods. #7
+
+- [bug] Fixed bug whereby region.get() didn't 
+  work if the value wasn't present.  #8
 
 0.2.4
 =====

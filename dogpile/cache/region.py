@@ -125,7 +125,7 @@ class CacheRegion(object):
         if "backend" in self.__dict__:
             raise Exception(
                     "This region is already "
-                    "configured with the %s backend" 
+                    "configured with backend: %s" 
                     % self.backend)
         backend_cls = _backend_loader.load(backend)
         if _config_argument_dict:
@@ -264,8 +264,9 @@ class CacheRegion(object):
         if self.key_mangler:
             key = self.key_mangler(key)
         value = self.backend.get(key)
-
-        if not ignore_expiration:
+        if value is NO_VALUE:
+            return value
+        elif not ignore_expiration:
             if expiration_time is None:
                 expiration_time = self.expiration_time
             if expiration_time is not None and \

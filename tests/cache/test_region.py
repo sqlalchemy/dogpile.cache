@@ -94,6 +94,15 @@ class RegionTest(TestCase):
         reg.delete("some key")
         eq_(reg.get("some key"), NO_VALUE)
 
+    def test_dupe_config(self):
+        reg = CacheRegion()
+        reg.configure("mock")
+        assert_raises_message(
+            Exception,
+            "This region is already configured",
+            reg.configure, "mock"
+        )
+
     def test_no_config(self):
         reg = CacheRegion()
         assert_raises_message(
@@ -109,6 +118,9 @@ class RegionTest(TestCase):
 
     def test_set_get_nothing(self):
         reg = self._region()
+        eq_(reg.get("some key"), NO_VALUE)
+        eq_(reg.get("some key", expiration_time=10), NO_VALUE)
+        reg.invalidate()
         eq_(reg.get("some key"), NO_VALUE)
 
     def test_creator(self):
@@ -189,3 +201,24 @@ class RegionTest(TestCase):
         reg.invalidate()
         eq_(reg.get_or_create("some key", creator), 
                     "some value 2")
+
+class CacheDecoratorTest(TestCase):
+    def _region(self, init_args={}, config_args={}, backend="mock"):
+        reg = CacheRegion(**init_args)
+        reg.configure(backend, **config_args)
+        return reg
+
+    def test_cache_arg(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_on_arguments()
+        def generate(x, y):
+            return next(counter) + x + y
+
+        eq_(generate(1, 2), 4)
+        eq_(generate(2, 1), 5)
+        eq_(generate(1, 2), 4)
+        generate.invalidate(1, 2)
+        eq_(generate(1, 2), 6)
