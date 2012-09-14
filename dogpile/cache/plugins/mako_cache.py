@@ -11,12 +11,12 @@ and a region dictionary::
     from mako.lookup import TemplateLookup
 
     my_regions = {
-        "local":make_region(
+        "local":make_region().configure(
                     "dogpile.cache.dbm", 
                     expiration_time=360,
                     arguments={"filename":"file.dbm"}
                 ),
-        "memcached":make_region(
+        "memcached":make_region().configure(
                     "dogpile.cache.pylibmc", 
                     expiration_time=3600,
                     arguments={"url":["127.0.0.1"]}
@@ -35,7 +35,7 @@ To use the above configuration in a template, use the ``cached=True`` argument o
 Mako tag which accepts it, in conjunction with the name of the desired region
 as the ``cache_region`` argument::
 
-    <%def name="mysection()" cached=True cache_region="memcached">
+    <%def name="mysection()" cached="True" cache_region="memcached">
         some content that's cached
     </%def>
 
@@ -70,6 +70,9 @@ class MakoPlugin(CacheImpl):
 
     def get_and_replace(self, key, creation_function, **kw):
         return self._get_region(**kw).get_or_create(key, creation_function)
+
+    def get_or_create(self, key, creation_function, **kw):
+        return self.get_and_replace(key, creation_function, **kw)
 
     def put(self, key, value, **kw):
         self._get_region(**kw).put(key, value)
