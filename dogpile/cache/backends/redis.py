@@ -15,7 +15,7 @@ import time
 __all__ = 'RedisBackend', 'RedisLock'
 
 class RedisBackend(CacheBackend):
-    """A `Redis <http://redis.io/>`_ backend, using the 
+    """A `Redis <http://redis.io/>`_ backend, using the
     `redis-py <http://pypi.python.org/pypi/redis/>`_ backend.
 
     Example configuration::

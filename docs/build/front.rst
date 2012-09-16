@@ -28,7 +28,7 @@ Installation via source distribution is via the ``setup.py`` script::
 Community
 =========
 
-dogpile.cache is developed by `Mike Bayer <http://techspot.zzzeek.org>`_, and is 
+dogpile.cache is developed by `Mike Bayer <http://techspot.zzzeek.org>`_, and is
 loosely associated with the `Pylons Project <http://www.pylonsproject.org/>`_.
 As dogpile.cache's usage increases, it is anticipated that the Pylons mailing list and IRC channel
 will become the primary channels for support.
@@ -38,7 +38,7 @@ Bugs
 
 Bugs and feature enhancements to dogpile.cache should be reported on the `Bitbucket
 issue tracker
-<https://bitbucket.org/zzzeek/dogpile.cache/issues?status=new&status=open>`_.   If you're not sure 
+<https://bitbucket.org/zzzeek/dogpile.cache/issues?status=new&status=open>`_.   If you're not sure
 that a particular issue is specific to either dogpile.cache or `dogpile.core <https://bitbucket.org/zzzeek/dogpile.core>`_, posting to the dogpile.cache
 tracker is likely the better place to post first.
 

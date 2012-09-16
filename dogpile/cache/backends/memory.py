@@ -14,23 +14,23 @@ class MemoryBackend(CacheBackend):
     There is no size management, and values which
     are placed into the dictionary will remain
     until explicitly removed.   Note that
-    Dogpile's expiration of items is based on 
-    timestamps and does not remove them from 
+    Dogpile's expiration of items is based on
+    timestamps and does not remove them from
     the cache.
 
     E.g.::
-    
+
         from dogpile.cache import make_region
 
         region = make_region().configure(
             'dogpile.cache.memory'
         )
-        
-    
+
+
     To use a Python dictionary of your choosing,
     it can be passed in with the ``cache_dict``
     argument::
-    
+
         my_dictionary = {}
         region = make_region().configure(
             'dogpile.cache.memory',
@@ -38,8 +38,8 @@ class MemoryBackend(CacheBackend):
                 "cache_dict":my_dictionary
             }
         )
-    
-    
+
+
     """
     def __init__(self, arguments):
         self._cache = arguments.pop("cache_dict", {})

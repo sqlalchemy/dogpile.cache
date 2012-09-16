@@ -66,18 +66,18 @@ class GenericMemcachedBackend(CacheBackend):
 
      .. note::
 
-         This parameter is **different** from Dogpile's own 
+         This parameter is **different** from Dogpile's own
          ``expiration_time``, which is the number of seconds after
-         which Dogpile will consider the value to be expired. 
-         When Dogpile considers a value to be expired, 
+         which Dogpile will consider the value to be expired.
+         When Dogpile considers a value to be expired,
          it **continues to use the value** until generation
-         of a new value is complete, when using 
+         of a new value is complete, when using
          :meth:`.CacheRegion.get_or_create`.
          Therefore, if you are setting ``memcached_expire_time``, you'll
-         want to make sure it is greater than ``expiration_time`` 
+         want to make sure it is greater than ``expiration_time``
          by at least enough seconds for new values to be generated,
-         else the value won't be available during a regeneration, 
-         forcing all threads to wait for a regeneration each time 
+         else the value won't be available during a regeneration,
+         forcing all threads to wait for a regeneration each time
          a value expires.
 
     The :class:`.GenericMemachedBackend` uses a ``threading.local()``
@@ -85,8 +85,8 @@ class GenericMemcachedBackend(CacheBackend):
     as most modern memcached clients do not appear to be inherently
     threadsafe.
 
-    In particular, ``threading.local()`` has the advantage over pylibmc's 
-    built-in thread pool in that it automatically discards objects 
+    In particular, ``threading.local()`` has the advantage over pylibmc's
+    built-in thread pool in that it automatically discards objects
     associated with a particular thread when that thread ends.
 
     """
@@ -100,7 +100,7 @@ class GenericMemcachedBackend(CacheBackend):
         # using a plain threading.local here.   threading.local
         # automatically deletes the __dict__ when a thread ends,
         # so the idea is that this is superior to pylibmc's
-        # own ThreadMappedPool which doesn't handle this 
+        # own ThreadMappedPool which doesn't handle this
         # automatically.
         self.url = util.to_list(arguments['url'])
         self.distributed_lock = arguments.get('distributed_lock', False)
@@ -159,9 +159,9 @@ class GenericMemcachedBackend(CacheBackend):
         self.client.delete(key)
 
 class MemcacheArgs(object):
-    """Mixin which provides support for the 'time' argument to set(), 
+    """Mixin which provides support for the 'time' argument to set(),
     'min_compress_len' to other methods.
-    
+
     """
     def __init__(self, arguments):
         self.min_compress_len = arguments.get('min_compress_len', 0)
@@ -176,8 +176,8 @@ class MemcacheArgs(object):
         super(MemcacheArgs, self).__init__(arguments)
 
 class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
-    """A backend for the 
-    `pylibmc <http://sendapatch.se/projects/pylibmc/index.html>`_ 
+    """A backend for the
+    `pylibmc <http://sendapatch.se/projects/pylibmc/index.html>`_
     memcached client.
 
     A configuration illustrating several of the optional
@@ -195,15 +195,15 @@ class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
             }
         )
 
-    Arguments accepted here include those of 
-    :class:`.GenericMemcachedBackend`, as well as 
+    Arguments accepted here include those of
+    :class:`.GenericMemcachedBackend`, as well as
     those below.
 
     :param binary: sets the ``binary`` flag understood by
      ``pylibmc.Client``.
     :param behaviors: a dictionary which will be passed to
      ``pylibmc.Client`` as the ``behaviors`` parameter.
-    :param min_compres_len: Integer, will be passed as the 
+    :param min_compres_len: Integer, will be passed as the
      ``min_compress_len`` parameter to the ``pylibmc.Client.set``
      method.
 
@@ -228,9 +228,9 @@ class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
 class MemcachedBackend(MemcacheArgs, GenericMemcachedBackend):
     """A backend using the standard `Python-memcached <http://www.tummy.com/Community/software/python-memcached/>`_
     library.
-    
+
     Example::
-    
+
         from dogpile.cache import make_region
 
         region = make_region().configure(
@@ -250,8 +250,8 @@ class MemcachedBackend(MemcacheArgs, GenericMemcachedBackend):
         return memcache.Client(self.url)
 
 class BMemcachedBackend(GenericMemcachedBackend):
-    """A backend for the 
-    `python-binary-memcached <https://github.com/jaysonsantos/python-binary-memcached>`_ 
+    """A backend for the
+    `python-binary-memcached <https://github.com/jaysonsantos/python-binary-memcached>`_
     memcached client.
 
     This is a pure Python memcached client which
@@ -272,10 +272,10 @@ class BMemcachedBackend(GenericMemcachedBackend):
             }
         )
 
-    Arguments which can be passed to the ``arguments`` 
+    Arguments which can be passed to the ``arguments``
     dictionary include:
 
-    :param username: optional username, will be used for 
+    :param username: optional username, will be used for
      SASL authentication.
     :param password: optional password, will be used for
      SASL authentication.
@@ -291,9 +291,9 @@ class BMemcachedBackend(GenericMemcachedBackend):
         import bmemcached
 
         class RepairBMemcachedAPI(bmemcached.Client):
-            """Repairs BMemcached's non-standard method 
-            signatures, which was fixed in BMemcached 
-            ef206ed4473fec3b639e.   
+            """Repairs BMemcached's non-standard method
+            signatures, which was fixed in BMemcached
+            ef206ed4473fec3b639e.
 
             """
 

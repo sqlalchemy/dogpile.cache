@@ -32,51 +32,51 @@ class DBMBackend(CacheBackend):
 
     DBM access is provided using the Python ``anydbm`` module,
     which selects a platform-specific dbm module to use.
-    This may be made to be more configurable in a future 
+    This may be made to be more configurable in a future
     release.
-    
+
     Note that different dbm modules have different behaviors.
-    Some dbm implementations handle their own locking, while 
+    Some dbm implementations handle their own locking, while
     others don't.  The :class:`.DBMBackend` uses a read/write
     lockfile by default, which is compatible even with those
     DBM implementations for which this is unnecessary,
     though the behavior can be disabled.
 
     The DBM backend by default makes use of two lockfiles.
-    One is in order to protect the DBM file itself from 
+    One is in order to protect the DBM file itself from
     concurrent writes, the other is to coordinate
     value creation (i.e. the dogpile lock).  By default,
-    these lockfiles use the ``flock()`` system call 
-    for locking; this is only available on Unix 
+    these lockfiles use the ``flock()`` system call
+    for locking; this is only available on Unix
     platforms.
-    
+
     Currently, the dogpile lock is against the entire
     DBM file, not per key.   This means there can
     only be one "creator" job running at a time
     per dbm file.
-    
-    A future improvement might be to have the dogpile lock 
-    using a filename that's based on a modulus of the key. 
-    Locking on a filename that uniquely corresponds to the 
+
+    A future improvement might be to have the dogpile lock
+    using a filename that's based on a modulus of the key.
+    Locking on a filename that uniquely corresponds to the
     key is problematic, since it's not generally safe to
-    delete lockfiles as the application runs, implying an 
-    unlimited number of key-based files would need to be 
+    delete lockfiles as the application runs, implying an
+    unlimited number of key-based files would need to be
     created and never deleted.
-    
-    Parameters to the ``arguments`` dictionary are 
+
+    Parameters to the ``arguments`` dictionary are
     below.
 
-    :param filename: path of the filename in which to 
+    :param filename: path of the filename in which to
      create the DBM file.  Note that some dbm backends
      will change this name to have additional suffixes.
     :param rw_lockfile: the name of the file to use for
      read/write locking.  If omitted, a default name
-     is used by appending the suffix ".rw.lock" to the 
+     is used by appending the suffix ".rw.lock" to the
      DBM filename.  If False, then no lock is used.
     :param dogpile_lockfile: the name of the file to use
-     for value creation, i.e. the dogpile lock.  If 
-     omitted, a default name is used by appending the 
-     suffix ".dogpile.lock" to the DBM filename. If 
+     for value creation, i.e. the dogpile lock.  If
+     omitted, a default name is used by appending the
+     suffix ".dogpile.lock" to the DBM filename. If
      False, then dogpile.cache uses the default dogpile
      lock, a plain thread-based mutex.
 
@@ -89,11 +89,11 @@ class DBMBackend(CacheBackend):
         dir_, filename = os.path.split(self.filename)
 
         self._rw_lock = self._init_lock(
-                                arguments.get('rw_lockfile'), 
+                                arguments.get('rw_lockfile'),
                                 ".rw.lock", dir_, filename)
         self._dogpile_lock = self._init_lock(
-                                arguments.get('dogpile_lockfile'), 
-                                ".dogpile.lock", 
+                                arguments.get('dogpile_lockfile'),
+                                ".dogpile.lock",
                                 dir_, filename,
                                 util.KeyReentrantMutex.factory)
 
@@ -132,9 +132,9 @@ class DBMBackend(CacheBackend):
 
     def get_mutex(self, key):
         # using one dogpile for the whole file.   Other ways
-        # to do this might be using a set of files keyed to a 
+        # to do this might be using a set of files keyed to a
         # hash/modulus of the key.   the issue is it's never
-        # really safe to delete a lockfile as this can 
+        # really safe to delete a lockfile as this can
         # break other processes trying to get at the file
         # at the same time - so handling unlimited keys
         # can't imply unlimited filenames
@@ -157,7 +157,7 @@ class DBMBackend(CacheBackend):
     @contextmanager
     def _dbm_file(self, write):
         with self._use_rw_lock(write):
-            dbm = self.dbmmodule.open(self.filename, 
+            dbm = self.dbmmodule.open(self.filename,
                                 "w" if write else "r")
             yield dbm
             dbm.close()
@@ -182,10 +182,10 @@ class DBMBackend(CacheBackend):
 
 class FileLock(object):
     """Use lockfiles to coordinate read/write access to a file.
-    
-    Only works on Unix systems, using 
+
+    Only works on Unix systems, using
     `fcntl.flock() <http://docs.python.org/library/fcntl.html>`_.
-    
+
     """
 
     def __init__(self, filename):
@@ -236,7 +236,7 @@ class FileLock(object):
         except IOError:
             os.close(fileno)
             if not wait:
-                # this is typically 
+                # this is typically
                 # "[Errno 35] Resource temporarily unavailable",
                 # because of LOCK_NB
                 return False

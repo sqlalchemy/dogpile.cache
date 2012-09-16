@@ -2,7 +2,7 @@
 Mako Integration
 ----------------
 
-dogpile.cache includes a `Mako <http://www.makotemplates.org>`_ plugin that replaces `Beaker <http://beaker.groovie.org>`_ 
+dogpile.cache includes a `Mako <http://www.makotemplates.org>`_ plugin that replaces `Beaker <http://beaker.groovie.org>`_
 as the cache backend.
 Setup a Mako template lookup using the "dogpile.cache" cache implementation
 and a region dictionary::
@@ -12,12 +12,12 @@ and a region dictionary::
 
     my_regions = {
         "local":make_region().configure(
-                    "dogpile.cache.dbm", 
+                    "dogpile.cache.dbm",
                     expiration_time=360,
                     arguments={"filename":"file.dbm"}
                 ),
         "memcached":make_region().configure(
-                    "dogpile.cache.pylibmc", 
+                    "dogpile.cache.pylibmc",
                     expiration_time=3600,
                     arguments={"url":["127.0.0.1"]}
                 )
@@ -76,9 +76,9 @@ class MakoPlugin(CacheImpl):
 
     def put(self, key, value, **kw):
         self._get_region(**kw).put(key, value)
- 
+
     def get(self, key, **kw):
         return self._get_region(**kw).get(key)
- 
+
     def invalidate(self, key, **kw):
         self._get_region(**kw).delete(key)

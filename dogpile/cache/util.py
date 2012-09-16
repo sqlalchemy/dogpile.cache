@@ -37,13 +37,13 @@ class PluginLoader(object):
             # unit test entrypoint stuff, let me know.
             import pkg_resources
             for impl in pkg_resources.iter_entry_points(
-                                self.group, 
+                                self.group,
                                 name):
                 self.impls[name] = impl.load
                 return impl.load()
             else:
                 raise Exception(
-                        "Can't load plugin %s %s" % 
+                        "Can't load plugin %s %s" %
                         (self.group, name))
 
     def register(self, name, modulepath, objname):

@@ -11,7 +11,7 @@ others read" in the abstract.   Overall, dogpile.cache is intended as a
 replacement to the `Beaker <http://beaker.groovie.org>`_ caching system, the internals
 of which are written by the same author.   All the ideas of Beaker which "work"
 are re-implemented in dogpile.cache in a more efficient and succinct manner,
-and all the cruft (Beaker's internals were first written in 2005) relegated 
+and all the cruft (Beaker's internals were first written in 2005) relegated
 to the trash heap.
 
 Features
@@ -23,12 +23,12 @@ Features
 * A standard get/set/delete API as well as a function decorator API is
   provided.
 * The mechanics of key generation are fully customizable.   The function
-  decorator API features a pluggable "key generator" to customize how 
+  decorator API features a pluggable "key generator" to customize how
   cache keys are made to correspond to function calls, and an optional
-  "key mangler" feature provides for pluggable mangling of keys 
+  "key mangler" feature provides for pluggable mangling of keys
   (such as encoding, SHA-1 hashing) as desired for each region.
 * The dogpile lock, first developed as the core engine behind the Beaker
-  caching system, here vastly simplified, improved, and better tested.   
+  caching system, here vastly simplified, improved, and better tested.
   Some key performance
   issues that were intrinsic to Beaker's architecture, particularly that
   values would frequently be "double-fetched" from the cache, have been fixed.
@@ -44,9 +44,9 @@ Features
   lock tailored towards the backend is an optional addition, else dogpile uses
   a regular thread mutex. New backends can be registered with dogpile.cache
   directly or made available via setuptools entry points.
-* Included backends feature three memcached backends (python-memcached, pylibmc, 
+* Included backends feature three memcached backends (python-memcached, pylibmc,
   bmemcached), a Redis backend, a backend based on Python's
-  anydbm, and a plain dictionary backend.  
+  anydbm, and a plain dictionary backend.
 * Space for third party plugins, including the first which provides the
   dogpile.cache engine to Mako templates.
 * Python 3 compatible in place - no 2to3 required.
@@ -55,11 +55,11 @@ Synopsis
 --------
 
 dogpile.cache features a single public usage object known as the ``CacheRegion``.
-This object then refers to a particular ``CacheBackend``.   Typical usage 
+This object then refers to a particular ``CacheBackend``.   Typical usage
 generates a region using ``make_region()``, which can then be used at the
 module level to decorate functions, or used directly in code with a traditional
 get/set interface.   Configuration of the backend is applied to the region
-using ``configure()`` or ``configure_from_config()``, allowing deferred 
+using ``configure()`` or ``configure_from_config()``, allowing deferred
 config-file based configuration to occur after modules have been imported::
 
     from dogpile.cache import make_region
@@ -82,7 +82,7 @@ config-file based configuration to occur after modules have been imported::
 Documentation
 -------------
 
-See dogpile.cache's full documentation at 
+See dogpile.cache's full documentation at
 `dogpile.cache documentation <http://dogpilecache.readthedocs.org>`_.
 
 

@@ -4,10 +4,10 @@ from .compat import py3k
 
 class NoValue(object):
     """Describe a missing cache value.
-    
+
     The :attr:`.NO_VALUE` module global
     should be used.
-    
+
     """
     @property
     def payload(self):
@@ -21,19 +21,19 @@ class NoValue(object):
             return False
 
 NO_VALUE = NoValue()
-"""Value returned from ``get()`` that describes 
+"""Value returned from ``get()`` that describes
 a  key not present."""
 
 class CachedValue(tuple):
     """Represent a value stored in the cache.
-    
+
     :class:`.CachedValue` is a two-tuple of
     ``(payload, metadata)``, where ``metadata``
     is dogpile.cache's tracking information (
     currently the creation time).  The metadata
-    and tuple structure is pickleable, if 
+    and tuple structure is pickleable, if
     the backend requires serialization.
-    
+
     """
     payload = property(operator.itemgetter(0))
     """Named accessor for the payload."""
@@ -51,8 +51,8 @@ class CacheBackend(object):
     """Base class for backend implementations."""
 
     key_mangler = None
-    """Key mangling function.  
-    
+    """Key mangling function.
+
     May be None, or otherwise declared
     as an ordinary instance method.
 
@@ -60,13 +60,13 @@ class CacheBackend(object):
 
     def __init__(self, arguments): #pragma NO COVERAGE
         """Construct a new :class:`.CacheBackend`.
-        
+
         Subclasses should override this to
         handle the given arguments.
-        
+
         :param arguments: The ``arguments`` parameter
          passed to :func:`.make_registry`.
-         
+
         """
         raise NotImplementedError()
 
@@ -75,8 +75,8 @@ class CacheBackend(object):
         prefix_len = len(prefix)
         return cls(
                 dict(
-                    (key[prefix_len:], config_dict[key]) 
-                    for key in config_dict 
+                    (key[prefix_len:], config_dict[key])
+                    for key in config_dict
                     if key.startswith(prefix)
                 )
             )
@@ -86,63 +86,63 @@ class CacheBackend(object):
 
         This object need only provide an ``acquire()``
         and ``release()`` method.
-        
+
         May return ``None``, in which case the dogpile
         lock will use a regular ``threading.Lock``
-        object to mutex concurrent threads for 
+        object to mutex concurrent threads for
         value creation.   The default implementation
         returns ``None``.
-        
+
         Different backends may want to provide various
         kinds of "mutex" objects, such as those which
         link to lock files, distributed mutexes,
         memcached semaphores, etc.  Whatever
         kind of system is best suited for the scope
         and behavior of the caching backend.
-        
+
         A mutex that takes the key into account will
         allow multiple regenerate operations across
         keys to proceed simultaneously, while a mutex
         that does not will serialize regenerate operations
         to just one at a time across all keys in the region.
         The latter approach, or a variant that involves
-        a modulus of the given key's hash value, 
+        a modulus of the given key's hash value,
         can be used as a means of throttling the total
         number of value recreation operations that may
         proceed at one time.
-        
+
         """
         return None
 
     def get(self, key): #pragma NO COVERAGE
         """Retrieve a value from the cache.
-        
+
         The returned value should be an instance of
         :class:`.CachedValue`, or ``NO_VALUE`` if
         not present.
-        
+
         """
         raise NotImplementedError()
 
     def set(self, key, value): #pragma NO COVERAGE
         """Set a value in the cache.
-        
+
         The key will be whatever was passed
         to the registry, processed by the
         "key mangling" function, if any.
         The value will always be an instance
         of :class:`.CachedValue`.
-        
+
         """
         raise NotImplementedError()
 
     def delete(self, key): #pragma NO COVERAGE
         """Delete a value from the cache.
-        
+
         The key will be whatever was passed
         to the registry, processed by the
         "key mangling" function, if any.
-        
+
         The behavior here should be idempotent,
         that is, can be called any number of times
         regardless of whether or not the
