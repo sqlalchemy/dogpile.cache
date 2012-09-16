@@ -1,6 +1,13 @@
+0.3.1
+=====
+- [bug] Fixed the mako_cache plugin which was not yet
+  covered, and wasn't implementing the mako plugin
+  API correctly; fixed docs as well.  Courtesy
+  Ben Hayden.
+
 0.3.0
 =====
-- [feature] get() method now checks expiration time 
+- [feature] get() method now checks expiration time
   by default.   Use ignore_expiration=True
   to bypass this.
 
@@ -9,7 +16,7 @@
   values must be created after.  Is honored by the
   get_or_create() and get() methods. #7
 
-- [bug] Fixed bug whereby region.get() didn't 
+- [bug] Fixed bug whereby region.get() didn't
   work if the value wasn't present.  #8
 
 0.2.4
@@ -28,16 +35,16 @@
   #4
 
 - Added support to DBM file lock to allow reentrant
-  access per key within a single thread, so that 
+  access per key within a single thread, so that
   even though the DBM backend locks for the whole file,
   a creation function that calls upon a different
   key in the cache can still proceed.  #5
 
-- Fixed DBM glitch where multiple readers 
+- Fixed DBM glitch where multiple readers
   could be serialized.
 
 - Adjust bmemcached backend to work with newly-repaired
-  bmemcached calling API (see bmemcached 
+  bmemcached calling API (see bmemcached
   ef206ed4473fec3b639e).
 
 0.2.2
