@@ -5,6 +5,9 @@
   API correctly; fixed docs as well.  Courtesy
   Ben Hayden.
 
+- [bug] Fixed setup so that the tests/* directory
+  isn't yanked into the install.  Courtesy Ben Hayden.
+
 0.3.0
 =====
 - [feature] get() method now checks expiration time
