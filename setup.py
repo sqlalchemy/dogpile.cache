@@ -26,7 +26,7 @@ setup(name='dogpile.cache',
       author_email='mike_mp@zzzcomputing.com',
       url='http://bitbucket.org/zzzeek/dogpile.cache',
       license='BSD',
-      packages=find_packages(exclude=['ez_setup', 'tests']),
+      packages=find_packages('.', exclude=['ez_setup', 'tests*']),
       namespace_packages=['dogpile'],
       entry_points="""
       [mako.cache]
