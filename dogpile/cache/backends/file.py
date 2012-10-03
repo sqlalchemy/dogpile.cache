@@ -6,6 +6,7 @@ Provides backends that deal with local filesystem access.
 
 """
 
+from __future__ import with_statement
 from dogpile.cache.api import CacheBackend, NO_VALUE
 from contextlib import contextmanager
 from dogpile.cache import compat

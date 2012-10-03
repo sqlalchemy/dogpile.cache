@@ -1,3 +1,4 @@
+from __future__ import with_statement
 from dogpile.core import Dogpile, NeedRegenerationException
 from dogpile.core.nameregistry import NameRegistry
 
