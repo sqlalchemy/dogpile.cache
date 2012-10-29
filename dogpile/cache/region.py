@@ -1,12 +1,12 @@
 from __future__ import with_statement
-from dogpile.core import Dogpile, NeedRegenerationException
+from dogpile.core import Lock, NeedRegenerationException
 from dogpile.core.nameregistry import NameRegistry
-
 from .util import function_key_generator, PluginLoader, \
     memoized_property, coerce_string_conf
 from .api import NO_VALUE, CachedValue
 import time
 from functools import wraps
+import threading
 
 _backend_loader = PluginLoader("dogpile.cache")
 register_backend = _backend_loader.register
@@ -149,18 +149,33 @@ class CacheRegion(object):
         else:
             self.backend = backend_cls(arguments or {})
         self.expiration_time = expiration_time
-        self.dogpile_registry = NameRegistry(self._create_dogpile)
         if self.key_mangler is None:
             self.key_mangler = self.backend.key_mangler
+
+        self._lock_registry = NameRegistry(self._create_mutex)
+
         return self
 
-    def _create_dogpile(self, identifier, expiration_time):
-        if expiration_time is None:
-            expiration_time = self.expiration_time
-        return Dogpile(
-                expiration_time,
-                lock=self.backend.get_mutex(identifier)
-            )
+    def _mutex(self, key):
+        return self._lock_registry.get(key)
+
+    class _LockWrapper(object):
+        """weakref-capable wrapper for threading.Lock"""
+        def __init__(self):
+            self.lock = threading.Lock()
+
+        def acquire(self, wait=True):
+            return self.lock.acquire(wait)
+
+        def release(self):
+            self.lock.release()
+
+    def _create_mutex(self, key):
+        mutex = self.backend.get_mutex(key)
+        if mutex is not None:
+            return mutex
+        else:
+            return self._LockWrapper()
 
     def invalidate(self):
         """Invalidate this :class:`.CacheRegion`.
@@ -215,6 +230,7 @@ class CacheRegion(object):
             _config_argument_dict=config_dict,
             _config_prefix="%sarguments." % prefix
         )
+
 
     @memoized_property
     def backend(self):
@@ -366,16 +382,20 @@ class CacheRegion(object):
             self.backend.set(key, value)
             return value.payload, value.metadata["ct"]
 
-        dogpile = self.dogpile_registry.get(key, expiration_time)
-        with dogpile.acquire(gen_value,
-                    value_and_created_fn=get_value) as value:
+        if expiration_time is None:
+            expiration_time = self.expiration_time
+        with Lock(
+                self._mutex(key),
+                gen_value,
+                get_value,
+                expiration_time) as value:
             return value
 
     def _value(self, value):
         """Return a :class:`.CachedValue` given a value."""
         return CachedValue(value, {
-                            "ct":time.time(),
-                            "v":value_version
+                            "ct": time.time(),
+                            "v": value_version
                         })
 
     def set(self, key, value):

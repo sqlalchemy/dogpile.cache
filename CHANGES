@@ -1,3 +1,14 @@
+0.4.0
+=====
+- [bug] Using dogpile.core 0.4.0 now, fixes a critical
+  bug whereby dogpile pileup could occur on first value
+  get across multiple processes, due to reliance upon
+  a non-shared creation time.  This is dogpile.core
+  issue #1.
+
+- [bug] Fixed missing __future__ with_statement
+  directive in region.py.
+
 0.3.1
 =====
 - [bug] Fixed the mako_cache plugin which was not yet
