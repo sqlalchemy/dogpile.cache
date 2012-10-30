@@ -118,18 +118,6 @@ class CacheRegion(object):
          method) will call upon the value creation function after this
          time period has passed since the last generation.
 
-         .. note::
-
-            The expiration_time is only stored *locally*,
-            within the :class:`.CacheRegion` instance, and not
-            in the cache itself.  Only the *creation time* of a
-            particular value is stored along with it in the cache.
-            This means an individual :class:`.CacheRegion` can
-            be modified to have a different expiration time, which
-            will have an immediate effect on data in the cache without
-            the need to set new values.
-
-
         :param arguments:   Optional.  The structure here is passed
          directly to the constructor of the :class:`.CacheBackend`
          in use, though is typically a dictionary.
