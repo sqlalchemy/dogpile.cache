@@ -20,6 +20,7 @@ to an application and its environment.
    front
    usage
    api
+   changelog
 
 Indices and tables
 ==================
