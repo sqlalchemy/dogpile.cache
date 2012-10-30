@@ -333,20 +333,6 @@ class CacheRegion(object):
          the expiration time already configured on this :class:`.CacheRegion`
          if not None.   To set no expiration, use the value -1.
 
-         .. note::
-
-            the expiration_time argument here is **not guaranteed** to be
-            effective if multiple concurrent threads are accessing the same
-            key via :meth:`get_or_create` using different values
-            for ``expiration_time`` - the first thread within a cluster
-            of concurrent usages establishes the expiration time within a
-            :class:`.Dogpile` instance for the duration of those usages.
-            It is advised that all access to a particular key within a particular
-            :class:`.CacheRegion` use the **same** value for ``expiration_time``.
-            Sticking with the default expiration time configured for
-            the :class:`.CacheRegion` as a whole is expected to be the
-            usual mode of operation.
-
         See also:
 
         :meth:`.CacheRegion.cache_on_arguments` - applies :meth:`.get_or_create`
