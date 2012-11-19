@@ -165,7 +165,14 @@ class DBMBackend(CacheBackend):
 
     def get(self, key):
         with self._dbm_file(False) as dbm:
-            value = dbm.get(key, NO_VALUE)
+            if hasattr(dbm, 'get'):
+                value = dbm.get(key, NO_VALUE)
+            else:
+                # gdbm objects lack a .get method
+                try:
+                    value = dbm[key]
+                except KeyError, e:
+                    value = NO_VALUE
             if value is not NO_VALUE:
                 value = compat.pickle.loads(value)
             return value
