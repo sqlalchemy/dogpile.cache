@@ -35,5 +35,5 @@ setup(name='dogpile.cache',
       zip_safe=False,
       install_requires=['dogpile.core>=0.4.0'],
       test_suite='nose.collector',
-      tests_require=['nose'],
+      tests_require=['nose', 'mock'],
 )

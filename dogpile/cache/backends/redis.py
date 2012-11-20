@@ -35,7 +35,11 @@ class RedisBackend(CacheBackend):
 
     Arguments accepted in the arguments dictionary:
 
+    :param url: string. If provided, will override separate host/port/db params.
+
     :param host: string, default is ``localhost``.
+
+    :param password: string, default is no password.
 
     :param port: integer, default is ``6379``.
 
@@ -56,7 +60,9 @@ class RedisBackend(CacheBackend):
 
     def __init__(self, arguments):
         self._imports()
+        self.url = arguments.pop('url', None)
         self.host = arguments.pop('host', 'localhost')
+        self.password = arguments.pop('password', None)
         self.port = arguments.pop('port', 6379)
         self.db = arguments.pop('db', 0)
         self.distributed_lock = arguments.get('distributed_lock', False)
@@ -70,7 +76,9 @@ class RedisBackend(CacheBackend):
 
     def _create_client(self):
         # creates client instace (so test harness can test connection)
-        return redis.StrictRedis(host=self.host, port=self.port, db=self.db)
+        if self.url is not None:
+            return redis.StrictRedis.from_url(url=self.url)
+        return redis.StrictRedis(host=self.host, password=self.password, port=self.port, db=self.db)
 
     def get_mutex(self, key):
         if self.distributed_lock:
