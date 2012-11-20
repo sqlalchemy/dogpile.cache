@@ -1,6 +1,16 @@
 ==============
 Changelog
 ==============
+.. changelog::
+    :version: 0.4.1
+
+    .. change:
+        :tags: feature
+
+      Redis backend now accepts optional "url" argument,
+      will be passed to the new ``StrictRedis.from_url()``
+      method to determine connection info.  Courtesy
+      inklesspen.
 
 .. changelog::
     :version: 0.4.0

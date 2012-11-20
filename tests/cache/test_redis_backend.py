@@ -21,7 +21,7 @@ class _TestRedisConn(object):
 class RedisTest(_TestRedisConn, _GenericBackendTest):
     backend = 'dogpile.cache.redis'
     config_args = {
-        "arguments":{
+        "arguments": {
             'host': '127.0.0.1',
             'port': 6379,
             'db': 0,
@@ -32,7 +32,7 @@ class RedisTest(_TestRedisConn, _GenericBackendTest):
 class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTest):
     backend = 'dogpile.cache.redis'
     config_args = {
-        "arguments":{
+        "arguments": {
             'host': '127.0.0.1',
             'port': 6379,
             'db': 0,
@@ -42,22 +42,22 @@ class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTest):
 
 @patch('redis.StrictRedis', autospec=True)
 class RedisConnectionTest(TestCase):
+    backend = 'dogpile.cache.redis'
+
     @classmethod
     def setup_class(cls):
         try:
-            global redis
-            import redis
+            cls.backend_cls = _backend_loader.load(cls.backend)
+            cls.backend_cls({})
         except ImportError:
-            raise SkipTest("Redis library not installed")
-
-        cls.backend_cls = _backend_loader.load('dogpile.cache.redis')
+            raise SkipTest("Backend %s not installed" % cls.backend)
 
     def _test_helper(self, mock_obj, expected_args, connection_args=None):
         if connection_args is None:
             # The redis backend pops items from the dict, so we copy
             connection_args = expected_args.copy()
 
-        backend = self.backend_cls(connection_args)
+        self.backend_cls(connection_args)
         mock_obj.assert_called_once_with(**expected_args)
 
     def test_connect_with_defaults(self, MockStrictRedis):
@@ -87,7 +87,7 @@ class RedisConnectionTest(TestCase):
             'db': 0,
             }
         self._test_helper(MockStrictRedis, arguments)
-        
+
     def test_connect_with_url(self, MockStrictRedis):
         arguments = {
             'url': 'redis://redis:password@127.0.0.1:6379/0'

@@ -12,6 +12,8 @@ from dogpile.cache.compat import pickle
 import random
 import time
 
+redis = None
+
 __all__ = 'RedisBackend', 'RedisLock'
 
 class RedisBackend(CacheBackend):
@@ -35,7 +37,10 @@ class RedisBackend(CacheBackend):
 
     Arguments accepted in the arguments dictionary:
 
-    :param url: string. If provided, will override separate host/port/db params.
+    :param url: string. If provided, will override separate host/port/db
+     params.  The format is that accepted by ``StrictRedis.from_url()``.
+
+     .. versionadded:: 0.4.1
 
     :param host: string, default is ``localhost``.
 
@@ -75,10 +80,11 @@ class RedisBackend(CacheBackend):
         import redis
 
     def _create_client(self):
-        # creates client instace (so test harness can test connection)
         if self.url is not None:
             return redis.StrictRedis.from_url(url=self.url)
-        return redis.StrictRedis(host=self.host, password=self.password, port=self.port, db=self.db)
+        else:
+            return redis.StrictRedis(host=self.host, password=self.password,
+                                        port=self.port, db=self.db)
 
     def get_mutex(self, key):
         if self.distributed_lock:
@@ -122,7 +128,7 @@ class RedisLock(object):
             elif not wait:
                 return False
             else:
-                sleep_time = (((i+1)*random.random()) + 2**i) / 2.5
+                sleep_time = (((i + 1) * random.random()) + 2 ** i) / 2.5
                 time.sleep(sleep_time)
             if i < 15:
                 i += 1
