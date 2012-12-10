@@ -58,12 +58,12 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
     def test_explicit_set(self):
         go = self._fixture(expiration_time=1)
         eq_(go(1, 2), (1, 1, 2))
-        go.cache_for(1, 2, cache_value=(5, 1, 2))
+        go.cache_for(5, 1, 2)
         eq_(go(3, 4), (2, 3, 4))
         eq_(go(1, 2), (5, 1, 2))
         go.invalidate(1, 2)
         eq_(go(1, 2), (3, 1, 2))
-        go.cache_for(1, 3, cache_value=(0, 1, 3))
+        go.cache_for(0, 1, 3)
         eq_(go(1, 3), (0, 1, 3))
 
 class KeyGenerationTest(TestCase):

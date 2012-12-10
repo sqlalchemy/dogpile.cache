@@ -426,9 +426,9 @@ class CacheRegion(object):
         :meth:`.CacheRegion.set` with the same key generator as it would
         have been by using ``cache_on_arguments``. Pass to ``cache_for()``
         the same arguments you'd pass to the function itself and an extra
-        keyword argument ``cache_value`` that contains the value to cache::
+        argument ``value`` at the begining that contains the value to cache::
 
-            generate_something.cache_for(5, 6, cache_value=3)
+            generate_something.cache_for(3, 5, 6)
 
         The default key generation will use the name
         of the function, the module name for the function,
@@ -512,8 +512,7 @@ class CacheRegion(object):
                 key = key_generator(*arg, **kw)
                 self.delete(key)
 
-            def cache_for(*arg, **kw):
-                value = kw.pop('cache_value')
+            def cache_for(value, *arg, **kw):
                 key = key_generator(*arg, **kw)
                 self.set(key, value)
 
