@@ -18,6 +18,14 @@ class _GenericBackendFixture(object):
             raise SkipTest("Backend %s not installed" % cls.backend)
         cls._check_backend_available(backend)
 
+    def tearDown(self):
+        if self._region_inst:
+            for key in self._keys:
+                self._region_inst.delete(key)
+            self._keys.clear()
+        elif self._backend_inst:
+            self._backend_inst.delete("some_key")
+
     @classmethod
     def _check_backend_available(cls, backend):
         pass
@@ -28,13 +36,25 @@ class _GenericBackendFixture(object):
     _region_inst = None
     _backend_inst = None
 
+    _keys = set()
+
     def _region(self, region_args={}, config_args={}):
         _region_args = self.region_args.copy()
         _region_args.update(**region_args)
         _config_args = self.config_args.copy()
         _config_args.update(config_args)
 
+        def _store_keys(key):
+            if existing_key_mangler:
+                key = existing_key_mangler(key)
+            self._keys.add(key)
+            return key
         self._region_inst = reg = CacheRegion(**_region_args)
+
+        existing_key_mangler = self._region_inst.key_mangler
+        self._region_inst.key_mangler = _store_keys
+
+
         reg.configure(self.backend, **_config_args)
         return reg
 
@@ -45,11 +65,6 @@ class _GenericBackendFixture(object):
         return self._backend_inst
 
 class _GenericBackendTest(_GenericBackendFixture, TestCase):
-    def tearDown(self):
-        if self._region_inst:
-            self._region_inst.delete("some key")
-        elif self._backend_inst:
-            self._backend_inst.delete("some_key")
 
     def test_backend_get_nothing(self):
         backend = self._backend()
@@ -89,7 +104,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         # run a basic dogpile concurrency test.
         # note the concurrency of dogpile itself
         # is intensively tested as part of dogpile.
-        reg = self._region(config_args={"expiration_time":.25})
+        reg = self._region(config_args={"expiration_time": .25})
         lock = Lock()
         canary = []
         def creator():
@@ -120,7 +135,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         eq_(reg.get("some key"), NO_VALUE)
 
     def test_region_expire(self):
-        reg = self._region(config_args={"expiration_time":.25})
+        reg = self._region(config_args={"expiration_time": .25})
         counter = itertools.count(1)
         def creator():
             return "some value %d" % next(counter)
@@ -129,6 +144,37 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         eq_(reg.get("some key", ignore_expiration=True), "some value 1")
         eq_(reg.get_or_create("some key", creator), "some value 2")
         eq_(reg.get("some key"), "some value 2")
+
+    def test_decorated_fn_functionality(self):
+        # test for any quirks in the fn decoration that interact
+        # with the backend.
+
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_on_arguments()
+        def my_function(x, y):
+            return next(counter) + x + y
+
+        eq_(my_function(3, 4), 8)
+        eq_(my_function(5, 6), 13)
+        eq_(my_function(3, 4), 8)
+        eq_(my_function(4, 3), 10)
+
+        my_function.invalidate(4, 3)
+        eq_(my_function(4, 3), 11)
+
+    def test_exploding_value_fn(self):
+        reg = self._region()
+        def boom():
+            raise Exception("boom")
+
+        assert_raises_message(
+            Exception,
+            "boom",
+            reg.get_or_create, "some_key", boom
+        )
 
 class _GenericMutexTest(_GenericBackendFixture, TestCase):
     def test_mutex(self):

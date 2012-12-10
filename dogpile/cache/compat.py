@@ -14,12 +14,14 @@ except ImportError:
 if py3k: # pragma: no cover
     string_types = str,
     text_type = str
+    string_type = str
 
     import configparser
     import io
 else:
     string_types = basestring,
     text_type = unicode
+    string_type = str
 
     import ConfigParser as configparser
     import StringIO as io

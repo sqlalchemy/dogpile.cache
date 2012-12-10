@@ -10,7 +10,8 @@ class _TestRedisConn(object):
         try:
             client = backend._create_client()
             client.set("x", "y")
-            assert client.get("x") == "y"
+            # on py3k it appears to return b"y"
+            assert client.get("x").decode("ascii") == "y"
             client.delete("x")
         except:
             raise SkipTest(
@@ -36,7 +37,7 @@ class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTest):
             'host': '127.0.0.1',
             'port': 6379,
             'db': 0,
-            'distributed_lock':True,
+            'distributed_lock': True,
             }
     }
 

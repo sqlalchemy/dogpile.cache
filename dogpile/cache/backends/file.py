@@ -171,7 +171,7 @@ class DBMBackend(CacheBackend):
                 # gdbm objects lack a .get method
                 try:
                     value = dbm[key]
-                except KeyError, e:
+                except KeyError:
                     value = NO_VALUE
             if value is not NO_VALUE:
                 value = compat.pickle.loads(value)
@@ -213,14 +213,18 @@ class FileLock(object):
     @contextmanager
     def read(self):
         self.acquire_read_lock(True)
-        yield
-        self.release_read_lock()
+        try:
+            yield
+        finally:
+            self.release_read_lock()
 
     @contextmanager
     def write(self):
         self.acquire_write_lock(True)
-        yield
-        self.release_write_lock()
+        try:
+            yield
+        finally:
+            self.release_write_lock()
 
     def acquire_read_lock(self, wait):
         return self._acquire(wait, os.O_RDONLY, fcntl.LOCK_SH)

@@ -46,6 +46,8 @@ class RedisBackend(CacheBackend):
 
     :param password: string, default is no password.
 
+     .. versionadded:: 0.4.1
+
     :param port: integer, default is ``6379``.
 
     :param db: integer, default is ``0``.

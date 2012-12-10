@@ -82,7 +82,7 @@ def function_key_generator(namespace, fn):
                     "function does not accept keyword arguments.")
         if has_self:
             args = args[1:]
-        return namespace + "|" + " ".join(map(compat.text_type, args))
+        return namespace + "|" + " ".join(map(compat.string_type, args))
     return generate_key
 
 def sha1_mangle_key(key):

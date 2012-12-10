@@ -5,12 +5,46 @@ Changelog
     :version: 0.4.1
 
     .. change:
+        :tags: bug
+        :tickets: 15
+
+      Fixed bug in DBM backend whereby if an error occurred
+      during the "write" operation, the file lock, if enabled,
+      would not be released, thereby deadlocking the app.
+
+    .. change:
+        :tags: bug
+        :tickets: 12
+
+      The :func:`.util.function_key_generator` used by the
+      function decorator no longer coerces non-unicode
+      arguments into a Python unicode object on Python 2.x;
+      this causes failures on backends such as DBM which
+      on Python 2.x apparently require bytestrings.  The
+      key_mangler is still needed if actual unicode arguments
+      are being used by the decorated function, however.
+
+    .. change:
         :tags: feature
 
       Redis backend now accepts optional "url" argument,
       will be passed to the new ``StrictRedis.from_url()``
       method to determine connection info.  Courtesy
-      inklesspen.
+      Jon Rosebaugh.
+
+    .. change:
+        :tags: feature
+
+      Redis backend now accepts optional "password"
+      argument.  Courtesy Jon Rosebaugh.
+
+    .. change:
+        :tags: feature
+
+      DBM backend has "fallback" when calling dbm.get() to
+      instead use dictionary access + KeyError, in the case
+      that the "gdbm" backend is used which does not include
+      .get().  Courtesy Jon Rosebaugh.
 
 .. changelog::
     :version: 0.4.0
