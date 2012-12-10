@@ -4,7 +4,18 @@ Changelog
 .. changelog::
     :version: 0.4.1
 
-    .. change:
+    .. change::
+        :tags: feature
+        :pullreq: 9
+
+      The function decorated by :meth:`.Region.cache_on_arguments`
+      now includes a ``set()`` method, in addition to the existing
+      ``invalidate()`` method.   Like ``invalidate()``, it accepts
+      a set of function arguments, but additionally accepts as the
+      first positional argument a new value to place in the cache,
+      to take the place of that key.  Courtesy Antoine Bertin.
+
+    .. change::
         :tags: bug
         :tickets: 15
 
@@ -12,7 +23,7 @@ Changelog
       during the "write" operation, the file lock, if enabled,
       would not be released, thereby deadlocking the app.
 
-    .. change:
+    .. change::
         :tags: bug
         :tickets: 12
 
@@ -24,7 +35,7 @@ Changelog
       key_mangler is still needed if actual unicode arguments
       are being used by the decorated function, however.
 
-    .. change:
+    .. change::
         :tags: feature
 
       Redis backend now accepts optional "url" argument,
@@ -32,13 +43,13 @@ Changelog
       method to determine connection info.  Courtesy
       Jon Rosebaugh.
 
-    .. change:
+    .. change::
         :tags: feature
 
       Redis backend now accepts optional "password"
       argument.  Courtesy Jon Rosebaugh.
 
-    .. change:
+    .. change::
         :tags: feature
 
       DBM backend has "fallback" when calling dbm.get() to

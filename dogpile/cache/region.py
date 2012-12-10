@@ -421,14 +421,14 @@ class CacheRegion(object):
 
             generate_something.invalidate(5, 6)
 
-        Another attribute ``cache_for`` is added to provide extra caching
+        Another attribute ``set`` is added to provide extra caching
         possibilities within the function. This is a convenience method for
         :meth:`.CacheRegion.set` with the same key generator as it would
-        have been by using ``cache_on_arguments``. Pass to ``cache_for()``
+        have been by using ``cache_on_arguments``. Pass to ``set()``
         the same arguments you'd pass to the function itself and an extra
         argument ``value`` at the begining that contains the value to cache::
 
-            generate_something.cache_for(3, 5, 6)
+            generate_something.set(3, 5, 6)
 
         The default key generation will use the name
         of the function, the module name for the function,
@@ -512,11 +512,11 @@ class CacheRegion(object):
                 key = key_generator(*arg, **kw)
                 self.delete(key)
 
-            def cache_for(value, *arg, **kw):
+            def set_(value, *arg, **kw):
                 key = key_generator(*arg, **kw)
                 self.set(key, value)
 
-            decorate.cache_for = cache_for
+            decorate.set = set_
             decorate.invalidate = invalidate
 
             return decorate

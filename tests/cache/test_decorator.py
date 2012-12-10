@@ -12,7 +12,7 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         reg = self._region(config_args={"expiration_time":.25})
 
         counter = [0]
-        @reg.cache_on_arguments(namespace=namespace, 
+        @reg.cache_on_arguments(namespace=namespace,
                             expiration_time=expiration_time)
         def go(a, b):
             counter[0] +=1
@@ -58,13 +58,13 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
     def test_explicit_set(self):
         go = self._fixture(expiration_time=1)
         eq_(go(1, 2), (1, 1, 2))
-        go.cache_for(5, 1, 2)
+        go.set(5, 1, 2)
         eq_(go(3, 4), (2, 3, 4))
-        eq_(go(1, 2), (5, 1, 2))
+        eq_(go(1, 2), 5)
         go.invalidate(1, 2)
         eq_(go(1, 2), (3, 1, 2))
-        go.cache_for(0, 1, 3)
-        eq_(go(1, 3), (0, 1, 3))
+        go.set(0, 1, 3)
+        eq_(go(1, 3), 0)
 
 class KeyGenerationTest(TestCase):
     def _keygen_decorator(self, namespace=None):
