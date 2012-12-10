@@ -422,13 +422,20 @@ class CacheRegion(object):
             generate_something.invalidate(5, 6)
 
         Another attribute ``set`` is added to provide extra caching
-        possibilities within the function. This is a convenience method for
-        :meth:`.CacheRegion.set` with the same key generator as it would
-        have been by using ``cache_on_arguments``. Pass to ``set()``
-        the same arguments you'd pass to the function itself and an extra
-        argument ``value`` at the begining that contains the value to cache::
+        possibilities relative to the function.   This is a convenience
+        method for :meth:`.CacheRegion.set` which will store a given
+        value directly without calling the decorated function.
+        The value to be cached is passed as the first argument, and the
+        arguments which would normally be passed to the function
+        should follow::
 
             generate_something.set(3, 5, 6)
+
+        The above example is equivalent to calling ``generate_something(5, 6)``,
+        if the function were to produce the value ``3`` as the value to be
+        cached.
+
+        .. versionadded:: 0.4.1 Added set() method to decorated function.
 
         The default key generation will use the name
         of the function, the module name for the function,
@@ -445,7 +452,7 @@ class CacheRegion(object):
         Above, calling ``one(3, 4)`` will produce a
         cache key as follows::
 
-            myapp.tools:one|foo|3, 4
+            myapp.tools:one|foo|3 4
 
         The key generator will ignore an initial argument
         of ``self`` or ``cls``, making the decorator suitable
@@ -458,7 +465,7 @@ class CacheRegion(object):
                     return a + b
 
         The cache key above for ``MyClass().one(3, 4)`` will
-        again produce the same cache key of ``myapp.tools:one|foo|3, 4`` -
+        again produce the same cache key of ``myapp.tools:one|foo|3 4`` -
         the name ``self`` is skipped.
 
         The ``namespace`` parameter is optional, and is used

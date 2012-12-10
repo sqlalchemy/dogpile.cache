@@ -8,7 +8,7 @@ Changelog
         :tags: feature
         :pullreq: 9
 
-      The function decorated by :meth:`.Region.cache_on_arguments`
+      The function decorated by :meth:`.CacheRegion.cache_on_arguments`
       now includes a ``set()`` method, in addition to the existing
       ``invalidate()`` method.   Like ``invalidate()``, it accepts
       a set of function arguments, but additionally accepts as the
