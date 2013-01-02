@@ -80,13 +80,18 @@ class CacheRegion(object):
      hash, so that the string length is fixed.  To
      disable all key mangling, set to ``False``.
 
+    :param threaded_creation: A boolean value that, when True,
+     tells dogpile.lock to create new values in a background thread
+     when possible.  The first request for a key with no value will
+     always block, but subsequent requests will cached values
+     promptly, even if the value is expired.
     """
 
     def __init__(self,
             name=None,
             function_key_generator=function_key_generator,
-            key_mangler=None
-
+            key_mangler=None,
+            threaded_creation=False,
     ):
         """Construct a new :class:`.CacheRegion`."""
         self.function_key_generator = function_key_generator
@@ -95,6 +100,7 @@ class CacheRegion(object):
         else:
             self.key_mangler = None
         self._invalidated = None
+        self.threaded_creation = threaded_creation
 
     def configure(self, backend,
             expiration_time=None,
@@ -362,7 +368,8 @@ class CacheRegion(object):
                 self._mutex(key),
                 gen_value,
                 get_value,
-                expiration_time) as value:
+                expiration_time,
+                self.threaded_creation) as value:
             return value
 
     def _value(self, value):
