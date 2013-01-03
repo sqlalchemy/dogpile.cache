@@ -80,18 +80,55 @@ class CacheRegion(object):
      hash, so that the string length is fixed.  To
      disable all key mangling, set to ``False``.
 
-    :param threaded_creation: A boolean value that, when True,
-     tells dogpile.lock to create new values in a background thread
-     when possible.  The first request for a key with no value will
-     always block, but subsequent requests will cached values
-     promptly, even if the value is expired.
+    :param background_runner:  A callable that, when specified, will
+     be called by dogpile.lock when there is a stale value present
+     in the cache.  It will be passed the mutex and creator callable
+     and is responsible for invoking the creator and releasing the
+     mutex when finished.  This can be used to defer the computation
+     of expensive creator functions to later points in the future by
+     way of, for example, a background thread, a long-running queue,
+     or a task manager system like Celery.
+
+     For a specific example, using background_runner, new values can
+     be created in a background thread like so::
+
+        import threading
+
+        def my_background_runner(mutex, creator):
+            def f():
+                try:
+                    creator()
+                finally:
+                    mutex.release()
+
+            thread = threading.Thread(target=f)
+            thread.start()
+
+        region = make_region(
+            background_runner=my_background_runner,
+        ).configure(
+            "dogpile.cache.memcached",
+            expiration_time=300,
+            arguments={
+                "url": "127.0.0.1:11211",
+            }
+        )
+
+     Remember that the first request for a key with no associated
+     value will always block; background_runner will not be invoked.
+     However, subsequent requests for cached-but-expired values will
+     still return promptly.  They will be refreshed by whatever
+     asynchronous means the provided background_runner callable
+     implements.
+
+     By default the background_runner is disabled and is set to ``None``.
     """
 
     def __init__(self,
             name=None,
             function_key_generator=function_key_generator,
             key_mangler=None,
-            threaded_creation=False,
+            background_runner=None,
     ):
         """Construct a new :class:`.CacheRegion`."""
         self.function_key_generator = function_key_generator
@@ -100,7 +137,7 @@ class CacheRegion(object):
         else:
             self.key_mangler = None
         self._invalidated = None
-        self.threaded_creation = threaded_creation
+        self.background_runner = background_runner
 
     def configure(self, backend,
             expiration_time=None,
@@ -369,7 +406,7 @@ class CacheRegion(object):
                 gen_value,
                 get_value,
                 expiration_time,
-                self.threaded_creation) as value:
+                self.background_runner) as value:
             return value
 
     def _value(self, value):
