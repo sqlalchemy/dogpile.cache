@@ -82,8 +82,8 @@ class CacheRegion(object):
 
     :param background_runner:  A callable that, when specified, will
      be called by dogpile.lock when there is a stale value present
-     in the cache.  It will be passed the mutex and creator callable
-     and is responsible for invoking the creator and releasing the
+     in the cache.  It will be passed the mutex and gen_value callable
+     and is responsible for invoking gen_value and releasing the
      mutex when finished.  This can be used to defer the computation
      of expensive creator functions to later points in the future by
      way of, for example, a background thread, a long-running queue,
@@ -94,10 +94,10 @@ class CacheRegion(object):
 
         import threading
 
-        def my_background_runner(mutex, creator):
+        def my_background_runner(mutex, gen_value):
             def f():
                 try:
-                    creator()
+                    gen_value()
                 finally:
                     mutex.release()
 
@@ -401,6 +401,7 @@ class CacheRegion(object):
 
         if expiration_time is None:
             expiration_time = self.expiration_time
+
         with Lock(
                 self._mutex(key),
                 gen_value,
