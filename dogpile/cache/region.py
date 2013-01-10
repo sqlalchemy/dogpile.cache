@@ -80,55 +80,66 @@ class CacheRegion(object):
      hash, so that the string length is fixed.  To
      disable all key mangling, set to ``False``.
 
-    :param background_runner:  A callable that, when specified, will
-     be called by dogpile.lock when there is a stale value present
-     in the cache.  It will be passed the mutex and gen_value callable
-     and is responsible for invoking gen_value and releasing the
-     mutex when finished.  This can be used to defer the computation
-     of expensive creator functions to later points in the future by
-     way of, for example, a background thread, a long-running queue,
-     or a task manager system like Celery.
+    :param async_creator_factory:  A callable that, when specified,
+     will be used to produce an async_creator callable for dogpile.lock.
+     That callable, when available, will be called by dogpile.lock when
+     there is a stale value present in the cache.  It will be passed the
+     mutex is responsible releasing that mutex when finished.
+     This can be used to defer the computation of expensive creator
+     functions to later points in the future by way of, for example, a
+     background thread, a long-running queue, or a task manager system
+     like Celery.
 
-     For a specific example, using background_runner, new values can
+     For a specific example using async_creator_factory, new values can
      be created in a background thread like so::
 
         import threading
 
-        def my_background_runner(mutex, gen_value):
-            def f():
-                try:
-                    gen_value()
-                finally:
-                    mutex.release()
+        def async_creator_factory(cache, somekey, creator):
+            ''' Returns an async_creator callable for use by dogpile.core:Lock '''
 
-            thread = threading.Thread(target=f)
-            thread.start()
+            def async_creator(mutex):
+                ''' Used by dogpile.core:Lock when appropriate  '''
+                def runner():
+                    try:
+                        value = creator()
+                        cache.set(somekey, value)
+                    finally:
+                        mutex.release()
+
+                thread = threading.Thread(target=runner)
+                thread.start()
+
+            return async_creator
+
 
         region = make_region(
-            background_runner=my_background_runner,
+            async_creator_factory=async_creator_factory,
         ).configure(
-            "dogpile.cache.memcached",
-            expiration_time=300,
+            'dogpile.cache.memcached',
+            expiration_time=5,
             arguments={
-                "url": "127.0.0.1:11211",
+                'url': '127.0.0.1:11211',
+                'distributed_lock': True,
             }
         )
 
      Remember that the first request for a key with no associated
-     value will always block; background_runner will not be invoked.
+     value will always block; async_creator will not be invoked.
      However, subsequent requests for cached-but-expired values will
      still return promptly.  They will be refreshed by whatever
-     asynchronous means the provided background_runner callable
+     asynchronous means the provided async_creator callable
      implements.
 
-     By default the background_runner is disabled and is set to ``None``.
+     By default the async_creator_factory is disabled and is set
+     to ``None``.
     """
 
     def __init__(self,
             name=None,
             function_key_generator=function_key_generator,
             key_mangler=None,
-            background_runner=None,
+            async_creator_factory=None,
     ):
         """Construct a new :class:`.CacheRegion`."""
         self.function_key_generator = function_key_generator
@@ -137,7 +148,7 @@ class CacheRegion(object):
         else:
             self.key_mangler = None
         self._invalidated = None
-        self.background_runner = background_runner
+        self.async_creator_factory = async_creator_factory
 
     def configure(self, backend,
             expiration_time=None,
@@ -402,12 +413,16 @@ class CacheRegion(object):
         if expiration_time is None:
             expiration_time = self.expiration_time
 
+        async_creator = None
+        if self.async_creator_factory:
+            async_creator = self.async_creator_factory(self, key, creator)
+
         with Lock(
                 self._mutex(key),
                 gen_value,
                 get_value,
                 expiration_time,
-                self.background_runner) as value:
+                async_creator) as value:
             return value
 
     def _value(self, value):
@@ -556,6 +571,7 @@ class CacheRegion(object):
             @wraps(fn)
             def decorate(*arg, **kw):
                 key = key_generator(*arg, **kw)
+                @wraps(fn)
                 def creator():
                     return fn(*arg, **kw)
                 return self.get_or_create(key, creator, expiration_time)
