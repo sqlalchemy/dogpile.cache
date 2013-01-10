@@ -80,41 +80,35 @@ class CacheRegion(object):
      hash, so that the string length is fixed.  To
      disable all key mangling, set to ``False``.
 
-    :param async_creator_factory:  A callable that, when specified,
-     will be used to produce an async_creator callable for dogpile.lock.
-     That callable, when available, will be called by dogpile.lock when
+    :param async_creation_runner:  A callable that, when specified,
+     will be passed to and called by dogpile.lock when
      there is a stale value present in the cache.  It will be passed the
-     mutex is responsible releasing that mutex when finished.
+     mutex and is responsible releasing that mutex when finished.
      This can be used to defer the computation of expensive creator
      functions to later points in the future by way of, for example, a
      background thread, a long-running queue, or a task manager system
      like Celery.
 
-     For a specific example using async_creator_factory, new values can
+     For a specific example using async_creation_runner, new values can
      be created in a background thread like so::
 
         import threading
 
-        def async_creator_factory(cache, somekey, creator):
-            ''' Returns an async_creator callable for use by dogpile.core:Lock '''
+        def async_creation_runner(cache, somekey, creator, mutex):
+            ''' Used by dogpile.core:Lock when appropriate  '''
+            def runner():
+                try:
+                    value = creator()
+                    cache.set(somekey, value)
+                finally:
+                    mutex.release()
 
-            def async_creator(mutex):
-                ''' Used by dogpile.core:Lock when appropriate  '''
-                def runner():
-                    try:
-                        value = creator()
-                        cache.set(somekey, value)
-                    finally:
-                        mutex.release()
-
-                thread = threading.Thread(target=runner)
-                thread.start()
-
-            return async_creator
+            thread = threading.Thread(target=runner)
+            thread.start()
 
 
         region = make_region(
-            async_creator_factory=async_creator_factory,
+            async_creation_runner=async_creation_runner,
         ).configure(
             'dogpile.cache.memcached',
             expiration_time=5,
@@ -128,10 +122,10 @@ class CacheRegion(object):
      value will always block; async_creator will not be invoked.
      However, subsequent requests for cached-but-expired values will
      still return promptly.  They will be refreshed by whatever
-     asynchronous means the provided async_creator callable
+     asynchronous means the provided async_creation_runner callable
      implements.
 
-     By default the async_creator_factory is disabled and is set
+     By default the async_creation_runner is disabled and is set
      to ``None``.
     """
 
@@ -139,7 +133,7 @@ class CacheRegion(object):
             name=None,
             function_key_generator=function_key_generator,
             key_mangler=None,
-            async_creator_factory=None,
+            async_creation_runner=None,
     ):
         """Construct a new :class:`.CacheRegion`."""
         self.function_key_generator = function_key_generator
@@ -148,7 +142,7 @@ class CacheRegion(object):
         else:
             self.key_mangler = None
         self._invalidated = None
-        self.async_creator_factory = async_creator_factory
+        self.async_creation_runner = async_creation_runner
 
     def configure(self, backend,
             expiration_time=None,
@@ -413,9 +407,11 @@ class CacheRegion(object):
         if expiration_time is None:
             expiration_time = self.expiration_time
 
-        async_creator = None
-        if self.async_creator_factory:
-            async_creator = self.async_creator_factory(self, key, creator)
+        if self.async_creation_runner:
+            def async_creator(mutex):
+                return self.async_creation_runner(self, key, creator, mutex)
+        else:
+            async_creator = None
 
         with Lock(
                 self._mutex(key),
