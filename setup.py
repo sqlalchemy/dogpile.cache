@@ -33,7 +33,7 @@ setup(name='dogpile.cache',
       dogpile = dogpile.cache.plugins.mako:MakoPlugin
       """,
       zip_safe=False,
-      install_requires=['dogpile.core>=0.4.0'],
+      install_requires=['dogpile.core>=0.4.1'],
       test_suite='nose.collector',
       tests_require=['nose', 'mock'],
 )

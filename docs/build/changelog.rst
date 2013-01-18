@@ -2,6 +2,17 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.4.2
+
+    .. change::
+        :pullreq: 10
+
+      An "async creator" function can be specified to
+      :class:`.Region` which allows the "creation" function
+      to be called asynchronously or be subsituted for
+      another asynchronous creation scheme.  Courtesy
+      Ralph Bean.
+
     :version: 0.4.1
     :released: Sat Dec 15 2012
 

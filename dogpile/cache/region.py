@@ -127,6 +127,10 @@ class CacheRegion(object):
 
      By default the async_creation_runner is disabled and is set
      to ``None``.
+
+     .. versionadded:: 0.4.2 added the async_creation_runner
+        feature.
+
     """
 
     def __init__(self,
