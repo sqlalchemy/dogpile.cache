@@ -9,7 +9,7 @@ Changelog
         :pullreq: 10
 
       An "async creator" function can be specified to
-      :class:`.Region` which allows the "creation" function
+      :class:`.CacheRegion` which allows the "creation" function
       to be called asynchronously or be subsituted for
       another asynchronous creation scheme.  Courtesy
       Ralph Bean.
