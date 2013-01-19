@@ -6,6 +6,7 @@ Changelog
     :released: Sat Jan 19 2013
 
     .. change::
+        :tags: feature
         :pullreq: 10
 
       An "async creator" function can be specified to
