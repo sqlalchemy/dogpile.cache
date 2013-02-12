@@ -78,7 +78,14 @@ class CacheRegion(object):
      is the SHA1 mangler found at :func:`.sha1_mangle_key`
      which coerces keys into a SHA1
      hash, so that the string length is fixed.  To
-     disable all key mangling, set to ``False``.
+     disable all key mangling, set to ``False``.   Another typical 
+     mangler is the built-in Python function `str` , which can be used
+     to convert keys to strings.  This can be necessary in situations 
+     where `dogpile.cache` is used with a Framework that defaults to 
+     unicode strings ( such as `Pyramid` ) and a backend that requires
+     byte-strings ( such as bsddb or dbm under Python 2.x ).  Passing 
+     unicode arguments into a cached action will create a TypeError 
+     without an appropriate `key_mangler`.
 
     :param async_creation_runner:  A callable that, when specified,
      will be passed to and called by dogpile.lock when
