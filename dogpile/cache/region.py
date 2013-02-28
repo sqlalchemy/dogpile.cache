@@ -349,7 +349,7 @@ class CacheRegion(object):
 
         return value.payload
 
-    def get_or_create(self, key, creator, expiration_time=None):
+    def get_or_create(self, key, creator, expiration_time=None, cache_none=True):
         """Return a cached value based on the given key.
 
         If the value does not exist or is considered to be expired
@@ -387,6 +387,8 @@ class CacheRegion(object):
         :param expiration_time: optional expiration time which will overide
          the expiration time already configured on this :class:`.CacheRegion`
          if not None.   To set no expiration, use the value -1.
+        :param cache_none: If True (the default) also cache when the
+         decorated function returns None.
 
         See also:
 
@@ -408,7 +410,8 @@ class CacheRegion(object):
 
         def gen_value():
             value = self._value(creator())
-            self.backend.set(key, value)
+            if cache_none or value.payload:
+                self.backend.set(key, value)
             return value.payload, value.metadata["ct"]
 
         if expiration_time is None:
@@ -455,7 +458,7 @@ class CacheRegion(object):
 
         self.backend.delete(key)
 
-    def cache_on_arguments(self, namespace=None, expiration_time=None):
+    def cache_on_arguments(self, namespace=None, expiration_time=None, cache_none=True):
         """A function decorator that will cache the return
         value of the function using a key derived from the
         function itself and its arguments.
@@ -568,6 +571,8 @@ class CacheRegion(object):
          being declared.
         :param expiration_time: if not None, will override the normal
          expiration time.
+        :param cache_none: If True (the default) also cache when the
+         decorated function returns None.
         """
         def decorator(fn):
             key_generator = self.function_key_generator(namespace, fn)
@@ -577,7 +582,7 @@ class CacheRegion(object):
                 @wraps(fn)
                 def creator():
                     return fn(*arg, **kw)
-                return self.get_or_create(key, creator, expiration_time)
+                return self.get_or_create(key, creator, expiration_time, cache_none)
 
             def invalidate(*arg, **kw):
                 key = key_generator(*arg, **kw)
