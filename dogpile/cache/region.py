@@ -349,13 +349,16 @@ class CacheRegion(object):
 
         return value.payload
 
-    def get_or_create(self, key, creator, expiration_time=None, cache_none=True):
+    def get_or_create(self, key, creator, expiration_time=None):
         """Return a cached value based on the given key.
 
         If the value does not exist or is considered to be expired
         based on its creation time, the given
         creation function may or may not be used to recreate the value
         and persist the newly generated value in the cache.
+
+        If the creation function returns :const:`NO_VALUE`, nothing is cached.
+        Note that if the returns `None`, `None` will be cached.
 
         Whether or not the function is used depends on if the
         *dogpile lock* can be acquired or not.  If it can't, it means
@@ -387,8 +390,6 @@ class CacheRegion(object):
         :param expiration_time: optional expiration time which will overide
          the expiration time already configured on this :class:`.CacheRegion`
          if not None.   To set no expiration, use the value -1.
-        :param cache_none: If True (the default) also cache when the
-         decorated function returns None.
 
         See also:
 
@@ -410,7 +411,7 @@ class CacheRegion(object):
 
         def gen_value():
             value = self._value(creator())
-            if cache_none or value.payload:
+            if value.payload is not NO_VALUE:
                 self.backend.set(key, value)
             return value.payload, value.metadata["ct"]
 
@@ -458,7 +459,7 @@ class CacheRegion(object):
 
         self.backend.delete(key)
 
-    def cache_on_arguments(self, namespace=None, expiration_time=None, cache_none=True):
+    def cache_on_arguments(self, namespace=None, expiration_time=None):
         """A function decorator that will cache the return
         value of the function using a key derived from the
         function itself and its arguments.
@@ -571,8 +572,6 @@ class CacheRegion(object):
          being declared.
         :param expiration_time: if not None, will override the normal
          expiration time.
-        :param cache_none: If True (the default) also cache when the
-         decorated function returns None.
         """
         def decorator(fn):
             key_generator = self.function_key_generator(namespace, fn)
@@ -582,7 +581,7 @@ class CacheRegion(object):
                 @wraps(fn)
                 def creator():
                     return fn(*arg, **kw)
-                return self.get_or_create(key, creator, expiration_time, cache_none)
+                return self.get_or_create(key, creator, expiration_time)
 
             def invalidate(*arg, **kw):
                 key = key_generator(*arg, **kw)
