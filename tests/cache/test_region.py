@@ -202,6 +202,13 @@ class RegionTest(TestCase):
         eq_(reg.get_or_create("some key", creator), 
                     "some value 2")
 
+    def test_not_cache_NO_VALUE(self):
+        reg = self._region()
+        def creator():
+            return NO_VALUE
+        reg.get_or_create("some key", creator)
+        self.assertNotIn("some key", reg.backend._cache)
+
 class CacheDecoratorTest(TestCase):
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)

@@ -357,6 +357,9 @@ class CacheRegion(object):
         creation function may or may not be used to recreate the value
         and persist the newly generated value in the cache.
 
+        If the creation function returns :const:`NO_VALUE`, nothing is cached.
+        Note that if the returns `None`, `None` will be cached.
+
         Whether or not the function is used depends on if the
         *dogpile lock* can be acquired or not.  If it can't, it means
         a different thread or process is already running a creation
@@ -408,7 +411,8 @@ class CacheRegion(object):
 
         def gen_value():
             value = self._value(creator())
-            self.backend.set(key, value)
+            if value.payload is not NO_VALUE:
+                self.backend.set(key, value)
             return value.payload, value.metadata["ct"]
 
         if expiration_time is None:
