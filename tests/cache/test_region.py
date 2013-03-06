@@ -42,11 +42,11 @@ class RegionTest(TestCase):
         return reg
 
     def test_instance_from_dict(self):
-        my_conf = { 
+        my_conf = {
             'cache.example.backend': 'mock',
             'cache.example.expiration_time': 600,
             'cache.example.arguments.url': '127.0.0.1'
-            } 
+            }
         my_region = make_region()
         my_region.configure_from_config(my_conf, 'cache.example.')
         eq_(my_region.expiration_time, 600)
@@ -69,7 +69,7 @@ class RegionTest(TestCase):
         my_region.configure_from_config(dict(config.items('xyz')), 'cache.example.')
         eq_(my_region.expiration_time, 600)
         assert isinstance(my_region.backend, MockBackend) is True
-        eq_(my_region.backend.arguments, {'url': '127.0.0.1', 
+        eq_(my_region.backend.arguments, {'url': '127.0.0.1',
                             'dogpile_lockfile':False, 'xyz':None})
 
     def test_key_mangler_argument(self):
@@ -175,11 +175,11 @@ class RegionTest(TestCase):
         counter = itertools.count(1)
         def creator():
             return "some value %d" % next(counter)
-        eq_(reg.get_or_create("some key", creator, expiration_time=1), 
+        eq_(reg.get_or_create("some key", creator, expiration_time=1),
                     "some value 1")
         time.sleep(2)
         eq_(reg.get("some key"), "some value 1")
-        eq_(reg.get_or_create("some key", creator, expiration_time=1), 
+        eq_(reg.get_or_create("some key", creator, expiration_time=1),
                     "some value 2")
         eq_(reg.get("some key"), "some value 2")
 
@@ -195,19 +195,36 @@ class RegionTest(TestCase):
         counter = itertools.count(1)
         def creator():
             return "some value %d" % next(counter)
-        eq_(reg.get_or_create("some key", creator), 
+        eq_(reg.get_or_create("some key", creator),
                     "some value 1")
 
         reg.invalidate()
-        eq_(reg.get_or_create("some key", creator), 
+        eq_(reg.get_or_create("some key", creator),
                     "some value 2")
 
-    def test_not_cache_NO_VALUE(self):
+    def test_should_cache_fn(self):
         reg = self._region()
+        values = [1, 2, 3]
         def creator():
-            return NO_VALUE
-        reg.get_or_create("some key", creator)
-        self.assertNotIn("some key", reg.backend._cache)
+            return values.pop(0)
+        should_cache_fn = lambda val: val in (1, 3)
+        ret = reg.get_or_create(
+                    "some key", creator,
+                    should_cache_fn=should_cache_fn)
+        eq_(ret, 1)
+        eq_(reg.backend._cache['some key'][0], 1)
+        reg.invalidate()
+        ret = reg.get_or_create(
+                    "some key", creator,
+                    should_cache_fn=should_cache_fn)
+        eq_(ret, 2)
+        eq_(reg.backend._cache['some key'][0], 1)
+        reg.invalidate()
+        ret = reg.get_or_create(
+                    "some key", creator,
+                    should_cache_fn=should_cache_fn)
+        eq_(ret, 3)
+        eq_(reg.backend._cache['some key'][0], 3)
 
 class CacheDecoratorTest(TestCase):
     def _region(self, init_args={}, config_args={}, backend="mock"):

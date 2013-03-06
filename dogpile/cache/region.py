@@ -342,14 +342,15 @@ class CacheRegion(object):
             if expiration_time is None:
                 expiration_time = self.expiration_time
             if expiration_time is not None and \
-                time.time() - value.metadata["ct"] > expiration_time:
+                  time.time() - value.metadata["ct"] > expiration_time:
                 return NO_VALUE
             elif self._invalidated and value.metadata["ct"] < self._invalidated:
                 return NO_VALUE
 
         return value.payload
 
-    def get_or_create(self, key, creator, expiration_time=None):
+    def get_or_create(self, key, creator, expiration_time=None,
+                                should_cache_fn=None):
         """Return a cached value based on the given key.
 
         If the value does not exist or is considered to be expired
@@ -391,6 +392,25 @@ class CacheRegion(object):
          the expiration time already configured on this :class:`.CacheRegion`
          if not None.   To set no expiration, use the value -1.
 
+        :param should_cache_fn: optional callable function which will receive the
+         value returned by the "creator", and will then return True or False,
+         indicating if the value should actually be cached or not.  If it
+         returns False, the value is still returned, but isn't cached.
+         E.g.::
+
+            def dont_cache_none(value):
+                return value is not None
+
+            value = region.get_or_create("some key",
+                                create_value,
+                                should_cache_fn=dont_cache_none)
+
+         Above, the function returns the value of create_value() if
+         the cache is invalid, however if the return value is None,
+         it won't be cached.
+
+         .. versionadded:: 0.4.3
+
         See also:
 
         :meth:`.CacheRegion.cache_on_arguments` - applies :meth:`.get_or_create`
@@ -410,9 +430,13 @@ class CacheRegion(object):
             return value.payload, value.metadata["ct"]
 
         def gen_value():
-            value = self._value(creator())
-            if value.payload is not NO_VALUE:
+            created_value = creator()
+            value = self._value(created_value)
+
+            if not should_cache_fn or \
+                    should_cache_fn(created_value):
                 self.backend.set(key, value)
+
             return value.payload, value.metadata["ct"]
 
         if expiration_time is None:
@@ -459,7 +483,8 @@ class CacheRegion(object):
 
         self.backend.delete(key)
 
-    def cache_on_arguments(self, namespace=None, expiration_time=None):
+    def cache_on_arguments(self, namespace=None, expiration_time=None,
+                                        should_cache_fn=None):
         """A function decorator that will cache the return
         value of the function using a key derived from the
         function itself and its arguments.
@@ -572,6 +597,10 @@ class CacheRegion(object):
          being declared.
         :param expiration_time: if not None, will override the normal
          expiration time.
+        :param should_cache_fn: passed to :meth:`.CacheRegion.get_or_create`.
+
+          .. versionadded:: 0.4.3
+
         """
         def decorator(fn):
             key_generator = self.function_key_generator(namespace, fn)
@@ -581,7 +610,8 @@ class CacheRegion(object):
                 @wraps(fn)
                 def creator():
                     return fn(*arg, **kw)
-                return self.get_or_create(key, creator, expiration_time)
+                return self.get_or_create(key, creator, expiration_time,
+                                                should_cache_fn)
 
             def invalidate(*arg, **kw):
                 key = key_generator(*arg, **kw)

@@ -2,6 +2,20 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.4.3
+
+    .. change::
+        :tags: feature
+        :pullreq: 13
+
+      :meth:`.CacheRegion.get_or_create` and
+      :meth:`.CacheRegion.cache_on_arguments` now accept a new
+      argument ``should_cache_fn``, receives the value
+      returned by the "creator" and then returns True or
+      False, where True means "cache plus return",
+      False means "return the value but don't cache it."
+
+.. changelog::
     :version: 0.4.2
     :released: Sat Jan 19 2013
 
