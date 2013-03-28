@@ -69,7 +69,9 @@ class MakoPlugin(CacheImpl):
             raise KeyError("No such region '%s'" % region)
 
     def get_and_replace(self, key, creation_function, **kw):
-        return self._get_region(**kw).get_or_create(key, creation_function)
+        expiration_time = kw.pop("timeout", None)
+        return self._get_region(**kw).get_or_create(key, creation_function,
+                                            expiration_time=expiration_time)
 
     def get_or_create(self, key, creation_function, **kw):
         return self.get_and_replace(key, creation_function, **kw)
@@ -78,7 +80,8 @@ class MakoPlugin(CacheImpl):
         self._get_region(**kw).put(key, value)
 
     def get(self, key, **kw):
-        return self._get_region(**kw).get(key)
+        expiration_time = kw.pop("timeout", None)
+        return self._get_region(**kw).get(key, expiration_time=expiration_time)
 
     def invalidate(self, key, **kw):
         self._get_region(**kw).delete(key)

@@ -5,6 +5,14 @@ Changelog
     :version: 0.4.3
 
     .. change::
+        :tags: bug
+
+      Added support for the ``cache_timeout`` Mako
+      argument to the Mako plugin, which will pass
+      the value to the ``expiration_time`` argument
+      of :meth:`.CacheRegion.get_or_create`.
+
+    .. change::
         :tags: feature
         :pullreq: 13
 

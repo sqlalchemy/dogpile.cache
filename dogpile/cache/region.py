@@ -613,6 +613,7 @@ class CacheRegion(object):
                 return self.get_or_create(key, creator, expiration_time,
                                                 should_cache_fn)
 
+
             def invalidate(*arg, **kw):
                 key = key_generator(*arg, **kw)
                 self.delete(key)

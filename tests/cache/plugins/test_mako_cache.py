@@ -8,33 +8,44 @@ except ImportError:
     raise SkipTest("this test suite requires mako templates")
 
 from mako.template import Template
-from dogpile.cache import make_region
 from mako.cache import register_plugin
+import mock
 
 register_plugin("dogpile.cache", "dogpile.cache.plugins.mako_cache", "MakoPlugin")
 
 class TestMakoPlugin(TestCase):
-    def _memory_fixture(self):
+
+    def _mock_fixture(self):
+        reg = mock.MagicMock()
+        reg.get_or_create.return_value = "hello world"
         my_regions = {
-            "myregion": make_region().configure(
-                        "dogpile.cache.memory",
-                    ),
+            "myregion": reg
         }
         return {
             'cache_impl': 'dogpile.cache',
             'cache_args': {'regions': my_regions}
-        }
-    def test_basic(self):
-        x = [0]
-        def nextx():
-            x[0] += 1
-            return x[0]
+        }, reg
 
-        kw = self._memory_fixture()
+    def test_basic(self):
+        kw, reg = self._mock_fixture()
         t = Template(
-            '<%page cached="True" cache_region="myregion"/>${nextx()}',
+            '<%page cached="True" cache_region="myregion"/>hi',
             **kw
         )
+        t.render()
+        eq_(reg.get_or_create.call_count, 1)
 
-        eq_(t.render(nextx=nextx), "1")
-        eq_(t.render(nextx=nextx), "1")
+    def test_timeout(self):
+        kw, reg = self._mock_fixture()
+        t = Template("""
+                <%def name="mydef()" cached="True" cache_region="myregion"
+                        cache_timeout="20">
+                    some content
+                </%def>
+                ${mydef()}
+                """, **kw)
+        t.render()
+        eq_(
+            reg.get_or_create.call_args[1],
+            {"expiration_time": 20}
+        )
