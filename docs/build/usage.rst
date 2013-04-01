@@ -188,3 +188,83 @@ and a "version identifier" as key/values.  If the cache backend requires seriali
 pickle or similar can be used on the tuple - the "metadata" portion will always
 be a small and easily serializable Python structure.
 
+
+Recipes
+=======
+
+Invalidating a group of related keys
+-------------------------------------
+
+This recipe presents a way to track the cache keys related to a particular region,
+for the purposes of invalidating a series of keys that relate to a particular id.
+
+Three cached functions, ``user_fn_one()``, ``user_fn_two()``, ``user_fn_three()``
+each perform a different function based on a ``user_id`` integer value.  The
+region applied to cache them uses a custom key generator which tracks each cache
+key generated, pulling out the integer "id" and replacing with a template.
+
+When all three functions have been called, the key generator is now aware of
+these three keys:  ``user_fn_one_%d``, ``user_fn_two_%d``, and
+``user_fn_three_%d``.   The ``invalidate_user_id()`` function then knows that
+for a particular ``user_id``, it needs to hit all three of those keys
+in order to invalidate everything having to do with that id.
+
+::
+
+  from dogpile.cache import make_region
+  from itertools import count
+
+  user_keys = set()
+  def my_key_generator(namespace, fn):
+      fname = fn.__name__
+      def generate_key(*arg):
+          # generate a key template:
+          # "fname_%d_arg1_arg2_arg3..."
+          key_template = fname + "_" + \
+                              "%d" + \
+                              "_".join(str(s) for s in arg[1:])
+
+          # store key template
+          user_keys.add(key_template)
+
+          # return cache key
+          user_id = arg[0]
+          return key_template % user_id
+
+      return generate_key
+
+  def invalidate_user_id(region, user_id):
+      for key in user_keys:
+          region.delete(key % user_id)
+
+  region = make_region(
+      function_key_generator=my_key_generator
+      ).configure(
+          "dogpile.cache.memory"
+      )
+
+  counter = count()
+
+  @region.cache_on_arguments()
+  def user_fn_one(user_id):
+      return "user fn one: %d, %d" % (next(counter), user_id)
+
+  @region.cache_on_arguments()
+  def user_fn_two(user_id):
+      return "user fn two: %d, %d" % (next(counter), user_id)
+
+  @region.cache_on_arguments()
+  def user_fn_three(user_id):
+      return "user fn three: %d, %d" % (next(counter), user_id)
+
+  print user_fn_one(5)
+  print user_fn_two(5)
+  print user_fn_three(7)
+  print user_fn_two(7)
+
+  invalidate_user_id(region, 5)
+  print "invalidated:"
+  print user_fn_one(5)
+  print user_fn_two(5)
+  print user_fn_three(7)
+  print user_fn_two(7)
