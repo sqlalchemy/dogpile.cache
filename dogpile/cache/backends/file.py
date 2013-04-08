@@ -177,9 +177,22 @@ class DBMBackend(CacheBackend):
                 value = compat.pickle.loads(value)
             return value
 
+    def get_multi(self, keys):
+        values = {}
+        for key in keys:
+            value = self.get(key)
+            if value is not NO_VALUE:
+                values[key] = value
+        return values
+
     def set(self, key, value):
         with self._dbm_file(True) as dbm:
             dbm[key] = compat.pickle.dumps(value)
+
+    def set_multi(self, mapping):
+        with self._dbm_file(True) as dbm:
+            for key,value in mapping:
+                dbm[key] = compat.pickle.dumps(value)
 
     def delete(self, key):
         with self._dbm_file(True) as dbm:
@@ -187,6 +200,14 @@ class DBMBackend(CacheBackend):
                 del dbm[key]
             except KeyError:
                 pass
+
+    def delete_multi(self, keys):
+        with self._dbm_file(True) as dbm:
+            for key in keys:
+                try:
+                    del dbm[key]
+                except KeyError:
+                    pass
 
 class FileLock(object):
     """Use lockfiles to coordinate read/write access to a file.

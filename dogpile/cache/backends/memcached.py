@@ -149,14 +149,29 @@ class GenericMemcachedBackend(CacheBackend):
         else:
             return value
 
+    def get_multi(self, keys):
+        values = self.client.get_multi(keys)
+        if values is None:
+            return NO_VALUE
+        else:
+            return values
+
     def set(self, key, value):
         self.client.set(key,
             value,
             **self.set_arguments
         )
 
+    def set_multi(self, mapping):
+        self.client.set(mapping,
+            **self.set_arguments
+        )
+
     def delete(self, key):
         self.client.delete(key)
+
+    def delete_multi(self, keys):
+        self.client.delete_multi(keys)
 
 class MemcacheArgs(object):
     """Mixin which provides support for the 'time' argument to set(),
