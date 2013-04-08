@@ -100,6 +100,12 @@ class RedisBackend(CacheBackend):
             return NO_VALUE
         return pickle.loads(value)
 
+    def get_multi(self, keys):
+        pipe = self.client.pipeline()
+        for key in keys:
+            pipe.get(key)
+        return dict(zip(keys, pipe.execute()))
+
     def set(self, key, value):
         if self.redis_expiration_time:
             self.client.setex(key, self.redis_expiration_time,
@@ -107,8 +113,24 @@ class RedisBackend(CacheBackend):
         else:
             self.client.set(key, pickle.dumps(value))
 
-    def delete(self, key):
+    def set_multi(self, mapping):
+        pipe = self.client.pipeline()
+        for key,value in mapping:
+            if self.redis_expiration_time:
+                pipe.setex(key, self.redis_expiration_time,
+                        pickle.dumps(value))
+            else:
+                pipe.set(key, pickle.dumps(value))
+        pipe.execute()
+
+    def delete(self, keys):
         self.client.delete(key)
+
+    def delete_multi(self, keys):
+        pipe = self.client.pipeline()
+        for key in keys:
+            pipe.delete(key)
+        pipe.execute()        
 
 class RedisLock(object):
     """Simple distributed lock using Redis.
