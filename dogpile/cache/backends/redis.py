@@ -104,7 +104,13 @@ class RedisBackend(CacheBackend):
         pipe = self.client.pipeline()
         for key in keys:
             pipe.get(key)
-        return dict(zip(keys, pipe.execute()))
+        values = dict(zip(keys, pipe.execute()))
+        for key in keys:
+            if key in values and values[key] is not None:
+                values[key] = pickle.loads(values[key])
+            else:
+                values[key] = NO_VALUE
+        return values        
 
     def set(self, key, value):
         if self.redis_expiration_time:
@@ -115,7 +121,7 @@ class RedisBackend(CacheBackend):
 
     def set_multi(self, mapping):
         pipe = self.client.pipeline()
-        for key,value in mapping:
+        for key,value in mapping.items():
             if self.redis_expiration_time:
                 pipe.setex(key, self.redis_expiration_time,
                         pickle.dumps(value))

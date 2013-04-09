@@ -180,9 +180,7 @@ class DBMBackend(CacheBackend):
     def get_multi(self, keys):
         values = {}
         for key in keys:
-            value = self.get(key)
-            if value is not NO_VALUE:
-                values[key] = value
+            values[key] = self.get(key)
         return values
 
     def set(self, key, value):
@@ -191,7 +189,7 @@ class DBMBackend(CacheBackend):
 
     def set_multi(self, mapping):
         with self._dbm_file(True) as dbm:
-            for key,value in mapping:
+            for key,value in mapping.items():
                 dbm[key] = compat.pickle.dumps(value)
 
     def delete(self, key):

@@ -50,16 +50,14 @@ class MemoryBackend(CacheBackend):
     def get_multi(self, keys):
         values = {}
         for key in keys:
-            value = self._cache.get(key, NO_VALUE)
-            if value is not NO_VALUE:
-                values[key] = value
+            values[key] = self._cache.get(key, NO_VALUE)
         return values
 
     def set(self, key, value):
         self._cache[key] = value
 
     def set_multi(self, mapping):
-        for key,value in mapping:
+        for key,value in mapping.items():
             self._cache[key] = value
 
     def delete(self, key):

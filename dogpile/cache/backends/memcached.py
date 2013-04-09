@@ -151,10 +151,10 @@ class GenericMemcachedBackend(CacheBackend):
 
     def get_multi(self, keys):
         values = self.client.get_multi(keys)
-        if values is None:
-            return NO_VALUE
-        else:
-            return values
+        for key in keys:
+            if not key in values or values[key] is None:
+                values[key] = NO_VALUE
+        return values
 
     def set(self, key, value):
         self.client.set(key,

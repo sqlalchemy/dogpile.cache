@@ -349,6 +349,44 @@ class CacheRegion(object):
 
         return value.payload
 
+
+    def get_multi(self, keys, expiration_time=None, ignore_expiration=False):
+        """Return multiple values from the cache, based on the given keys.
+
+        If the value is not present, the method returns the token
+        ``NO_VALUE``. ``NO_VALUE`` evaluates to False, but is separate from
+        ``None`` to distinguish between a cached value of ``None``.
+
+        By default, the configured expiration time of the
+        :class:`.CacheRegion`, or alternatively the expiration
+        time supplied by the ``expiration_time`` argument,
+        is tested against the creation time of the retrieved
+        value versus the current time (as reported by ``time.time()``).
+        If stale, the cached value is ignored and the ``NO_VALUE``
+        token is returned.  Passing the flag ``ignore_expiration=True``
+        bypasses the expiration time check.    
+
+        """
+        if self.key_mangler:
+            keys = map(lambda key:self.key_mangler(key), keys)
+        values = {}
+        backend_values = self.backend.get_multi(keys)
+        for key,value in backend_values.items():
+            if value is NO_VALUE:
+                values[key] = value
+            elif not ignore_expiration:
+                if expiration_time is None:
+                    expiration_time = self.expiration_time
+                if expiration_time is not None and \
+                      time.time() - value.metadata["ct"] > expiration_time:
+                    values[key] = NO_VALUE
+                elif self._invalidated and value.metadata["ct"] < self._invalidated:
+                    values[key] = NO_VALUE
+            values[key] = value.payload
+
+        return values
+
+
     def get_or_create(self, key, creator, expiration_time=None,
                                 should_cache_fn=None):
         """Return a cached value based on the given key.
@@ -471,6 +509,16 @@ class CacheRegion(object):
         self.backend.set(key, self._value(value))
 
 
+    def set_multi(self, mapping):
+        """Place new values in the cache under the given keys."""
+
+        if self.key_mangler:
+            mapping = dict((self.key_mangler(k), self._value(v)) for k,v in mapping.items())
+        else:
+            mapping = dict((k, self._value(v)) for k,v in mapping.items())
+        self.backend.set_multi(mapping)
+
+
     def delete(self, key):
         """Remove a value from the cache.
 
@@ -482,6 +530,20 @@ class CacheRegion(object):
             key = self.key_mangler(key)
 
         self.backend.delete(key)
+
+
+    def delete_multi(self, keys):
+        """Remove multiple values from the cache.
+
+        This operation is idempotent (can be called multiple times, or on a
+        non-existent key, safely)
+        """
+
+        if self.key_mangler:
+            keys = map(lambda key:self.key_mangler(key), keys)
+
+        self.backend.delete_multi(keys)
+
 
     def cache_on_arguments(self, namespace=None, expiration_time=None,
                                         should_cache_fn=None):
