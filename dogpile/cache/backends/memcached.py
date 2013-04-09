@@ -163,7 +163,7 @@ class GenericMemcachedBackend(CacheBackend):
         )
 
     def set_multi(self, mapping):
-        self.client.set(mapping,
+        self.client.set_multi(mapping,
             **self.set_arguments
         )
 
