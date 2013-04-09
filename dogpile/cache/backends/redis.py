@@ -129,7 +129,7 @@ class RedisBackend(CacheBackend):
                 pipe.set(key, pickle.dumps(value))
         pipe.execute()
 
-    def delete(self, keys):
+    def delete(self, key):
         self.client.delete(key)
 
     def delete_multi(self, keys):
