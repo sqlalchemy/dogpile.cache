@@ -129,8 +129,10 @@ class CacheBackend(object):
 
         The returned value should be a map.
 
+        .. versionadded:: 0.4.4
+
         """
-        raise NotImplementedError()        
+        raise NotImplementedError()
 
     def set(self, key, value): #pragma NO COVERAGE
         """Set a value in the cache.
@@ -152,6 +154,8 @@ class CacheBackend(object):
         "key mangling" function, if any.
         The value will always be an instance
         of :class:`.CachedValue`.
+
+        .. versionadded:: 0.4.4
 
         """
         raise NotImplementedError()
@@ -181,5 +185,8 @@ class CacheBackend(object):
         that is, can be called any number of times
         regardless of whether or not the
         key exists.
+
+        .. versionadded:: 0.4.4
+
         """
         raise NotImplementedError()

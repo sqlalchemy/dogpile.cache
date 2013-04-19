@@ -5,6 +5,15 @@ Changelog
     :version: 0.4.4
 
     .. change::
+        :tags: feature
+        :pullreq: 14
+
+      Full support for multivalue get/set/delete
+      added, using :meth:`.Region.get_multi`,
+      :meth:`.Region.set_multi`, :meth:`.Region.del_multi`,
+      courtesy Marcos Araujo Sobrinho.
+
+    .. change::
         :tags: bug
         :tickets: 27
 
