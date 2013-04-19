@@ -325,3 +325,8 @@ class BMemcachedBackend(GenericMemcachedBackend):
             username=self.username,
             password=self.password
         )
+
+    def delete_multi(self, keys):
+        """python-binary-memcached api does not implements delete_multi"""
+        for key in keys:
+            self.delete(key)
