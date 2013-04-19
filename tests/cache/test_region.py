@@ -52,6 +52,10 @@ class RegionTest(TestCase):
         reg.configure(backend, **config_args)
         return reg
 
+    def test_set_name(self):
+        my_region = make_region(name='my-name')
+        eq_(my_region.name, 'my-name')
+
     def test_instance_from_dict(self):
         my_conf = {
             'cache.example.backend': 'mock',

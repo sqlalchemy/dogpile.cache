@@ -143,6 +143,7 @@ class CacheRegion(object):
             async_creation_runner=None,
     ):
         """Construct a new :class:`.CacheRegion`."""
+        self.name = name
         self.function_key_generator = function_key_generator
         if key_mangler:
             self.key_mangler = key_mangler

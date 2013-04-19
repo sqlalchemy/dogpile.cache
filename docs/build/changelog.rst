@@ -2,6 +2,17 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.4.4
+
+    .. change::
+        :tags: bug
+        :tickets: 27
+
+      Fixed bug where the "name" parameter for
+      :class:`.CacheRegion` was ignored entirely.
+      Courtesy Wichert Akkerman.
+
+.. changelog::
     :version: 0.4.3
     :released: Thu Apr 4 2013
 

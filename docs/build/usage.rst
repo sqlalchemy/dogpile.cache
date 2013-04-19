@@ -138,7 +138,7 @@ backend in the same way as if it were part of the existing sys.path.
 For example, to create a backend called ``DictionaryBackend``, we subclass
 :class:`.CacheBackend`::
 
-    from dogpile.cache import CacheBackend, NO_VALUE
+    from dogpile.cache.api import CacheBackend, NO_VALUE
 
     class DictionaryBackend(CacheBackend):
         def __init__(self, arguments):
