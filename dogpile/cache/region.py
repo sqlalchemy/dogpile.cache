@@ -180,15 +180,11 @@ class CacheRegion(object):
          directly to the constructor of the :class:`.CacheBackend`
          in use, though is typically a dictionary.
          
-        :param wrap:   Optional.  A list of :class:`.proxy.ProxyBackend`
-         classes that will wrap the backend.  Elements in this list can 
-         either be classes that inherit from ProxyBackend (in which case 
-         they will be initialized) or ProxyBackend objects that have 
-         already been initialized elsewhere.  Each element of the list
-         wraps the subsequent elements so wrap[0] will wrap wrap[1] which
-         in turn wraps wrap[2] and so on.  
+        :param wrap:   Optional.  A list of ProxyBackend classes that 
+         will wrap the backend.  Elements in list can either be classes
+         or instances of ProxyBackend
+         """
 
-        """
         if "backend" in self.__dict__:
             raise Exception(
                     "This region is already "
@@ -208,22 +204,27 @@ class CacheRegion(object):
 
         self._lock_registry = NameRegistry(self._create_mutex)
         
-        if wrap:
+        if getattr(wrap,'__iter__', False):
             for wrapper in reversed(wrap):
-                if type(wrapper) == type:
-                    wrapper = wrapper()
+                self.wrap(wrapper)
                 
-                if not issubclass(type(wrapper), ProxyBackend):
-                    raise Exception(
-                            "Type %s is not a valid ProxyBackend"
-                            % type(wrapper)
-                            )
-                    
-                self.backend = wrapper.wrap(self.backend)
-                
-                
-
         return self
+    
+    def wrap(self, proxy):
+        ''' Takes a ProxyBackend instance or class and wraps the
+        attached backend. '''
+        
+        # if we were passed a type rather than an instance then 
+        # initialize it.  
+        if type(proxy) == type:
+            proxy = proxy()
+                
+        if not issubclass(type(proxy), ProxyBackend):
+            raise Exception("Type %s is not a valid ProxyBackend"
+                    % type(proxy))
+                        
+        self.backend = proxy.wrap(self.backend)
+          
     
     def _mutex(self, key):
         return self._lock_registry.get(key)

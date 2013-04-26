@@ -215,9 +215,37 @@ For example, a simple class to log all calls to .set() would look like this::
             log.debug('Setting Cache Key: %s' % key)
             self.proxied.set(key, value)
             
-A backend proxy can be attached to a region in the call to :meth:`.CacheRegion.configure`::
+    
+`.ProxyBackend`s can be be configured to optionally take arguments (as long as the 
+ProxyBackend.__init__() method is called properly.  This class will take a retry 
+count value on creation.  In the event of an exception on delete() it will retry 
+this many times before returning.::
 
+    from dogpile.cache.proxy import ProxyBackend
+    
+    class RetryDeleteProxy(ProxyBackend):
+        def __init__(self, retry_count=5):
+            ProxyBackend.__init__(self)
+            self.retry_count = retry_count
+            
+        def delete(self, key):
+            retries = self.retry_count
+            while retries > 0:
+                retries -= 1
+                try:
+                    self.proxied.delete(key)
+                    return
+                    
+                except:
+                    pass
+                    
+The wrap parameter of the :meth:`.CacheRegion.configure` method can take multiple 
+proxies. It also can take either `.ProxyBackend` classes or instance objects.  
+Putting the two examples above together would look like this::
+ 
     from dogpile.cache import make_region
+    
+    retry_proxy = RetryDeleteProxy(5)
 
     region = make_region().configure(
         'dogpile.cache.pylibmc',
@@ -225,8 +253,18 @@ A backend proxy can be attached to a region in the call to :meth:`.CacheRegion.c
         arguments = {
             'url':["127.0.0.1"],
         },
-        wrap = [ LoggingProxy ] 
+        wrap = [ LoggingProxy, retry_proxy ] 
     )
+    
+In the above example the LoggingProxy would wrap retry_proxy which would in turn
+wrap the real dogpile.cache.pylibmc backend.  
+                
+        
+
+
+
+
+ 
     
 
 

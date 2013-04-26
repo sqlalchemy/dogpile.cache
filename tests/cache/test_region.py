@@ -274,9 +274,8 @@ class ProxyBackendTest(TestCase):
     class UsedKeysProxy(ProxyBackend):
         ''' Keep a counter of hose often we set a particular key'''
         
-        def __init__(self, count, *args, **kwargs):
+        def __init__(self, *args, **kwargs):
             super(ProxyBackendTest.UsedKeysProxy, self).__init__(*args, **kwargs)
-            self.count = count
             self._key_count = defaultdict(lambda: 0)
             
         def setcount(self, key):
@@ -286,6 +285,20 @@ class ProxyBackendTest(TestCase):
             self._key_count[key] += 1
             self.proxied.set(key, value)
             
+    class NeverSetProxy(ProxyBackend):
+        ''' A totally contrived example of a Proxy that we pass arguments to. 
+        Never set a key that matches never_set ''' 
+        
+        def __init__(self, never_set, *args, **kwargs):
+            super(ProxyBackendTest.NeverSetProxy, self).__init__(*args, **kwargs)
+            self.never_set = never_set
+            self._key_count = defaultdict(lambda: 0)
+            
+        def set(self, key, value):
+            if key != self.never_set:
+                self.proxied.set(key, value)
+
+            
 
             
     def _region(self, init_args={}, config_args={}, backend="mock"):
@@ -294,6 +307,10 @@ class ProxyBackendTest(TestCase):
         return reg
     
     def test_counter_proxies(self):
+        # count up the gets and sets and make sure they are passed through
+        # to the backend properly.  Test that methods not overridden
+        # continue to work
+        
         reg = self._region(config_args={"wrap": [ 
             ProxyBackendTest.GetCounterProxy, 
             ProxyBackendTest.SetCounterProxy ]})
@@ -321,9 +338,9 @@ class ProxyBackendTest(TestCase):
             is_(v, NO_VALUE)
             
     def test_instance_proxies(self):
-        ''' Test that we can create an instance of a new proxy and 
-        pass that to make_region instead of the class.  The two instances
-        should not interfere with each other ''' 
+        # Test that we can create an instance of a new proxy and 
+        # pass that to make_region instead of the class.  The two instances
+        # should not interfere with each other  
         proxy_num = ProxyBackendTest.UsedKeysProxy(5)
         proxy_abc = ProxyBackendTest.UsedKeysProxy(5)
         reg_num = self._region(config_args={"wrap": [ proxy_num ]}) 
@@ -345,6 +362,17 @@ class ProxyBackendTest(TestCase):
         eq_(proxy_abc.setcount('a'),2)
         eq_(proxy_abc.setcount('g'),1)
         eq_(proxy_abc.setcount('9'),0)
+        
+    def test_argument_proxies(self):
+        # Test that we can pass an argument to Proxy on creation  
+        proxy = ProxyBackendTest.NeverSetProxy(5)
+        reg = self._region(config_args={"wrap": [ proxy ]}) 
+        for i in xrange(10):
+            reg.set(i,True)
+            
+        # make sure 1 was set, but 5 was not
+        eq_(reg.get(5),NO_VALUE)
+        eq_(reg.get(1),True)
             
         
             
