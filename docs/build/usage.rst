@@ -189,6 +189,48 @@ pickle or similar can be used on the tuple - the "metadata" portion will always
 be a small and easily serializable Python structure.
 
 
+.. _changing_backend_behavior:
+
+Changing Backend Behavior
+=========================
+
+The :class:`.ProxyBackend` is a decorator class provided to easily augment existing 
+backend behavior without having to extend the original class. Using a decorator
+class is also adventageous as it allows us to share the altered behavior between 
+different backends.  
+
+Proxies are added to the :class:`.CacheRegion.` with the :meth:`.CacheRegion.configure`
+method.  Only the overridden methods need to be specified and the real back end can 
+be accessed with the self.proxied method from inside the ProxyBackend.
+
+For example, a simple class to log all calls to .set() would look like this::
+
+    from dogpile.cache.proxy import ProxyBackend
+    
+    import logging
+    log = logging.getLogger(__name__)
+    
+    class LoggingProxy(ProxyBackend):
+        def set(self, key, value)
+            log.debug('Setting Cache Key: %s' % key)
+            self.proxied.set(key, value)
+            
+A backend proxy can be attached to a region in the call to :meth:`.CacheRegion.configure`::
+
+    from dogpile.cache import make_region
+
+    region = make_region().configure(
+        'dogpile.cache.pylibmc',
+        expiration_time = 3600,
+        arguments = {
+            'url':["127.0.0.1"],
+        },
+        wrap = [ LoggingProxy ] 
+    )
+    
+
+
+
 Recipes
 =======
 
