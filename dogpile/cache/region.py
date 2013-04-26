@@ -4,6 +4,7 @@ from dogpile.core.nameregistry import NameRegistry
 from .util import function_key_generator, PluginLoader, \
     memoized_property, coerce_string_conf
 from .api import NO_VALUE, CachedValue
+from .proxy import ProxyBackend
 import time
 from functools import wraps
 import threading
@@ -156,7 +157,8 @@ class CacheRegion(object):
             expiration_time=None,
             arguments=None,
             _config_argument_dict=None,
-            _config_prefix=None
+            _config_prefix=None,
+            wrap=None
         ):
         """Configure a :class:`.CacheRegion`.
 
@@ -177,6 +179,14 @@ class CacheRegion(object):
         :param arguments:   Optional.  The structure here is passed
          directly to the constructor of the :class:`.CacheBackend`
          in use, though is typically a dictionary.
+         
+        :param wrap:   Optional.  A list of :class:`.proxy.ProxyBackend`
+         classes that will wrap the backend.  Elements in this list can 
+         either be classes that inherit from ProxyBackend (in which case 
+         they will be initialized) or ProxyBackend objects that have 
+         already been initialized elsewhere.  Each element of the list
+         wraps the subsequent elements so wrap[0] will wrap wrap[1] which
+         in turn wraps wrap[2] and so on.  
 
         """
         if "backend" in self.__dict__:
@@ -197,9 +207,24 @@ class CacheRegion(object):
             self.key_mangler = self.backend.key_mangler
 
         self._lock_registry = NameRegistry(self._create_mutex)
+        
+        if wrap:
+            for wrapper in reversed(wrap):
+                if type(wrapper) == type:
+                    wrapper = wrapper()
+                
+                if not issubclass(type(wrapper), ProxyBackend):
+                    raise Exception(
+                            "Type %s is not a valid ProxyBackend"
+                            % type(wrapper)
+                            )
+                    
+                self.backend = wrapper.wrap(self.backend)
+                
+                
 
         return self
-
+    
     def _mutex(self, key):
         return self._lock_registry.get(key)
 
