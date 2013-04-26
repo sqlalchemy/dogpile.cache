@@ -149,14 +149,29 @@ class GenericMemcachedBackend(CacheBackend):
         else:
             return value
 
+    def get_multi(self, keys):
+        values = self.client.get_multi(keys)
+        for key in keys:
+            if not key in values or values[key] is None:
+                values[key] = NO_VALUE
+        return values
+
     def set(self, key, value):
         self.client.set(key,
             value,
             **self.set_arguments
         )
 
+    def set_multi(self, mapping):
+        self.client.set_multi(mapping,
+            **self.set_arguments
+        )
+
     def delete(self, key):
         self.client.delete(key)
+
+    def delete_multi(self, keys):
+        self.client.delete_multi(keys)
 
 class MemcacheArgs(object):
     """Mixin which provides support for the 'time' argument to set(),
@@ -310,3 +325,8 @@ class BMemcachedBackend(GenericMemcachedBackend):
             username=self.username,
             password=self.password
         )
+
+    def delete_multi(self, keys):
+        """python-binary-memcached api does not implements delete_multi"""
+        for key in keys:
+            self.delete(key)

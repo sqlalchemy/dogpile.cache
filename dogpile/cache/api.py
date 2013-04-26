@@ -124,6 +124,16 @@ class CacheBackend(object):
         """
         raise NotImplementedError()
 
+    def get_multi(self, keys): #pragma NO COVERAGE
+        """Retrieve multiple values from the cache.
+
+        The returned value should be a map.
+
+        .. versionadded:: 0.4.4
+
+        """
+        raise NotImplementedError()
+
     def set(self, key, value): #pragma NO COVERAGE
         """Set a value in the cache.
 
@@ -132,6 +142,20 @@ class CacheBackend(object):
         "key mangling" function, if any.
         The value will always be an instance
         of :class:`.CachedValue`.
+
+        """
+        raise NotImplementedError()
+
+    def set_multi(self, mapping): #pragma NO COVERAGE
+        """Set multiple values in the cache.
+
+        The key will be whatever was passed
+        to the registry, processed by the
+        "key mangling" function, if any.
+        The value will always be an instance
+        of :class:`.CachedValue`.
+
+        .. versionadded:: 0.4.4
 
         """
         raise NotImplementedError()
@@ -147,5 +171,22 @@ class CacheBackend(object):
         that is, can be called any number of times
         regardless of whether or not the
         key exists.
+        """
+        raise NotImplementedError()
+
+    def delete_multi(self, keys): #pragma NO COVERAGE
+        """Delete multiple values from the cache.
+
+        The key will be whatever was passed
+        to the registry, processed by the
+        "key mangling" function, if any.
+
+        The behavior here should be idempotent,
+        that is, can be called any number of times
+        regardless of whether or not the
+        key exists.
+
+        .. versionadded:: 0.4.4
+
         """
         raise NotImplementedError()

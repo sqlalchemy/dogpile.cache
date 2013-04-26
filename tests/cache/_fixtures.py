@@ -90,6 +90,49 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         reg.set("some key", "some value")
         eq_(reg.get("some key"), "some value")
 
+    def test_region_set_multiple_values(self):
+        reg = self._region()
+        values = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        reg.set_multi(values)
+        eq_(values['key1'], reg.get('key1'))
+        eq_(values['key2'], reg.get('key2'))
+        eq_(values['key3'], reg.get('key3'))
+
+    def test_region_get_multiple_values(self):
+        reg = self._region()
+        key1 = 'value1'
+        key2 = 'value2'
+        key3 = 'value3'
+        reg.set('key1', key1)
+        reg.set('key2', key2)
+        reg.set('key3', key3)
+        values = reg.get_multi(['key1', 'key2', 'key3'])
+        eq_(key1, values['key1'])
+        eq_(key2, values['key2'])
+        eq_(key3, values['key3'])
+
+    def test_region_get_nothing_multiple(self):
+        reg = self._region()
+        values = {'key1': 'value1', 'key3': 'value3', 'key5': 'value5'}
+        reg.set_multi(values)
+        reg_values = reg.get_multi(['key1', 'key2', 'key3', 'key4', 'key5', 'key6'])
+        eq_(reg_values['key1'], values['key1'])
+        eq_(reg_values['key2'], NO_VALUE)
+        eq_(reg_values['key3'], values['key3'])
+        eq_(reg_values['key4'], NO_VALUE)
+        eq_(reg_values['key5'], values['key5'])
+        eq_(reg_values['key6'], NO_VALUE)
+
+    def test_region_delete_multiple(self):
+        reg = self._region()
+        values = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        reg.set_multi(values)
+        reg.delete_multi(['key2', 'key10'])
+        eq_(values['key1'], reg.get('key1'))
+        eq_(NO_VALUE, reg.get('key2'))
+        eq_(values['key3'], reg.get('key3'))
+        eq_(NO_VALUE, reg.get('key10'))
+
     def test_region_set_get_nothing(self):
         reg = self._region()
         eq_(reg.get("some key"), NO_VALUE)

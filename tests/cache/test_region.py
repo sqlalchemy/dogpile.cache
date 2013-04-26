@@ -28,10 +28,21 @@ class MockBackend(CacheBackend):
             return self._cache[key]
         except KeyError:
             return NO_VALUE
+    def get_multi(self, keys):
+        values = {}
+        for key in keys:
+            values[key] = self.get(key)
+        return values
     def set(self, key, value):
         self._cache[key] = value
+    def set_multi(self, mapping):
+        for key,value in mapping.items():
+            self.set(key, value)
     def delete(self, key):
         self._cache.pop(key, None)
+    def delete_multi(self, keys):
+        for key in keys:
+            self.delete(key)
 register_backend("mock", __name__, "MockBackend")
 
 def key_mangler(key):
@@ -232,6 +243,33 @@ class RegionTest(TestCase):
                     should_cache_fn=should_cache_fn)
         eq_(ret, 3)
         eq_(reg.backend._cache['some key'][0], 3)
+
+    def test_should_set_multiple_values(self):
+        reg = self._region()
+        values = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        reg.set_multi(values)
+        eq_(values['key1'], reg.get('key1'))
+        eq_(values['key2'], reg.get('key2'))
+        eq_(values['key3'], reg.get('key3'))
+
+    def test_should_get_multiple_values(self):
+        reg = self._region()
+        values = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        reg.set_multi(values)
+        reg_values = reg.get_multi(['key1', 'key2', 'key3'])
+        eq_(values['key1'], reg_values['key1'])
+        eq_(values['key2'], reg_values['key2'])
+        eq_(values['key3'], reg_values['key3'])
+
+    def test_should_delete_multiple_values(self):
+        reg = self._region()
+        values = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        reg.set_multi(values)
+        reg.delete_multi(['key2', 'key1000'])
+        eq_(values['key1'], reg.get('key1'))
+        eq_(NO_VALUE, reg.get('key2'))
+        eq_(values['key3'], reg.get('key3'))
+
 
 class CacheDecoratorTest(TestCase):
     def _region(self, init_args={}, config_args={}, backend="mock"):
