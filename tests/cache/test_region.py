@@ -291,30 +291,30 @@ class CacheDecoratorTest(TestCase):
         eq_(generate(1, 2), 4)
         generate.invalidate(1, 2)
         eq_(generate(1, 2), 6)
-        
-        
+
+
 class ProxyRegionTest(RegionTest):
     ''' This is exactly the same as the region test above, but it goes through
-    a dummy proxy.  The purpose of this is to make sure the tests  still run 
-    successfully even when there is a proxy ''' 
-    
+    a dummy proxy.  The purpose of this is to make sure the tests  still run
+    successfully even when there is a proxy '''
+
     class MockProxy(ProxyBackend):
-        
-        @property 
+
+        @property
         def _cache(self):
             return self.proxied._cache
-    
-    
+
+
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)
-        config_args['wrap'] = [ ProxyRegionTest.MockProxy ]
+        config_args['wrap'] = [ProxyRegionTest.MockProxy]
         reg.configure(backend,  **config_args)
         return reg
-    
-    
-    
+
+
+
 class ProxyBackendTest(TestCase):
-    
+
     class GetCounterProxy(ProxyBackend):
         counter = 0
         def get(self, key):
@@ -326,119 +326,106 @@ class ProxyBackendTest(TestCase):
         def set(self, key, value):
             ProxyBackendTest.SetCounterProxy.counter += 1
             return self.proxied.set(key, value)
-        
+
     class UsedKeysProxy(ProxyBackend):
         ''' Keep a counter of hose often we set a particular key'''
-        
+
         def __init__(self, *args, **kwargs):
-            super(ProxyBackendTest.UsedKeysProxy, self).__init__(*args, **kwargs)
+            super(ProxyBackendTest.UsedKeysProxy, self).__init__(
+                                        *args, **kwargs)
             self._key_count = defaultdict(lambda: 0)
-            
+
         def setcount(self, key):
-            return self._key_count[key] 
-            
+            return self._key_count[key]
+
         def set(self, key, value):
             self._key_count[key] += 1
             self.proxied.set(key, value)
-            
+
     class NeverSetProxy(ProxyBackend):
-        ''' A totally contrived example of a Proxy that we pass arguments to. 
-        Never set a key that matches never_set ''' 
-        
+        ''' A totally contrived example of a Proxy that we pass arguments to.
+        Never set a key that matches never_set '''
+
         def __init__(self, never_set, *args, **kwargs):
             super(ProxyBackendTest.NeverSetProxy, self).__init__(*args, **kwargs)
             self.never_set = never_set
             self._key_count = defaultdict(lambda: 0)
-            
+
         def set(self, key, value):
             if key != self.never_set:
                 self.proxied.set(key, value)
 
-            
 
-            
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)
         reg.configure(backend, **config_args)
         return reg
-    
+
     def test_counter_proxies(self):
         # count up the gets and sets and make sure they are passed through
         # to the backend properly.  Test that methods not overridden
         # continue to work
-        
-        reg = self._region(config_args={"wrap": [ 
-            ProxyBackendTest.GetCounterProxy, 
-            ProxyBackendTest.SetCounterProxy ]})
+
+        reg = self._region(config_args={"wrap": [
+            ProxyBackendTest.GetCounterProxy,
+            ProxyBackendTest.SetCounterProxy]})
         ProxyBackendTest.GetCounterProxy.counter = 0
         ProxyBackendTest.SetCounterProxy.counter = 0
-        
+
         # set a range of values in the cache
         for i in range(10):
-            reg.set(i,i)
+            reg.set(i, i)
         eq_(ProxyBackendTest.GetCounterProxy.counter, 0)
         eq_(ProxyBackendTest.SetCounterProxy.counter, 10)
 
-        # check that the range of values is still there            
+        # check that the range of values is still there
         for i in range(10):
             v = reg.get(i)
-            eq_(v,i)
+            eq_(v, i)
         eq_(ProxyBackendTest.GetCounterProxy.counter, 10)
         eq_(ProxyBackendTest.SetCounterProxy.counter, 10)
-        
-        # make sure the delete function(not overridden) still 
+
+        # make sure the delete function(not overridden) still
         # executes properly
         for i in range(10):
             reg.delete(i)
             v = reg.get(i)
             is_(v, NO_VALUE)
-            
+
     def test_instance_proxies(self):
-        # Test that we can create an instance of a new proxy and 
+        # Test that we can create an instance of a new proxy and
         # pass that to make_region instead of the class.  The two instances
-        # should not interfere with each other  
+        # should not interfere with each other
         proxy_num = ProxyBackendTest.UsedKeysProxy(5)
         proxy_abc = ProxyBackendTest.UsedKeysProxy(5)
-        reg_num = self._region(config_args={"wrap": [ proxy_num ]}) 
-        reg_abc = self._region(config_args={"wrap": [ proxy_abc ]})
+        reg_num = self._region(config_args={"wrap": [proxy_num]})
+        reg_abc = self._region(config_args={"wrap": [proxy_abc]})
         for i in xrange(10):
-            reg_num.set(i,True)
-            reg_abc.set(chr(ord('a') + i),True)
-            
+            reg_num.set(i, True)
+            reg_abc.set(chr(ord('a') + i), True)
+
         for i in xrange(5):
             reg_num.set(i, True)
             reg_abc.set(chr(ord('a') + i), True)
-        
+
         # make sure proxy_num has the right counts per key
-        eq_(proxy_num.setcount(1),2)
-        eq_(proxy_num.setcount(9),1)
-        eq_(proxy_num.setcount('a'),0)
-        
+        eq_(proxy_num.setcount(1), 2)
+        eq_(proxy_num.setcount(9), 1)
+        eq_(proxy_num.setcount('a'), 0)
+
         # make sure proxy_abc has the right counts per key
-        eq_(proxy_abc.setcount('a'),2)
-        eq_(proxy_abc.setcount('g'),1)
-        eq_(proxy_abc.setcount('9'),0)
-        
+        eq_(proxy_abc.setcount('a'), 2)
+        eq_(proxy_abc.setcount('g'), 1)
+        eq_(proxy_abc.setcount('9'), 0)
+
     def test_argument_proxies(self):
-        # Test that we can pass an argument to Proxy on creation  
+        # Test that we can pass an argument to Proxy on creation
         proxy = ProxyBackendTest.NeverSetProxy(5)
-        reg = self._region(config_args={"wrap": [ proxy ]}) 
+        reg = self._region(config_args={"wrap": [proxy]})
         for i in xrange(10):
-            reg.set(i,True)
-            
+            reg.set(i, True)
+
         # make sure 1 was set, but 5 was not
-        eq_(reg.get(5),NO_VALUE)
-        eq_(reg.get(1),True)
-            
-        
-            
-            
-            
-            
-        
-        
-        
-            
-            
-        
-        
+        eq_(reg.get(5), NO_VALUE)
+        eq_(reg.get(1), True)
+

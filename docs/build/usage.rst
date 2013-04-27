@@ -194,40 +194,42 @@ be a small and easily serializable Python structure.
 Changing Backend Behavior
 =========================
 
-The :class:`.ProxyBackend` is a decorator class provided to easily augment existing 
+The :class:`.ProxyBackend` is a decorator class provided to easily augment existing
 backend behavior without having to extend the original class. Using a decorator
-class is also adventageous as it allows us to share the altered behavior between 
-different backends.  
+class is also adventageous as it allows us to share the altered behavior between
+different backends.
 
-Proxies are added to the :class:`.CacheRegion.` with the :meth:`.CacheRegion.configure`
-method.  Only the overridden methods need to be specified and the real back end can 
-be accessed with the self.proxied method from inside the ProxyBackend.
+Proxies are added to the :class:`.CacheRegion` object using the :meth:`.CacheRegion.configure`
+method.  Only the overridden methods need to be specified and the real backend can
+be accessed with the ``self.proxied`` object from inside the :class:`.ProxyBackend`.
 
-For example, a simple class to log all calls to .set() would look like this::
+For example, a simple class to log all calls to ``.set()`` would look like this::
 
     from dogpile.cache.proxy import ProxyBackend
-    
+
     import logging
     log = logging.getLogger(__name__)
-    
+
     class LoggingProxy(ProxyBackend):
-        def set(self, key, value)
+        def set(self, key, value):
             log.debug('Setting Cache Key: %s' % key)
             self.proxied.set(key, value)
-            
-    
-`.ProxyBackend`s can be be configured to optionally take arguments (as long as the 
-ProxyBackend.__init__() method is called properly.  This class will take a retry 
-count value on creation.  In the event of an exception on delete() it will retry 
-this many times before returning.::
+
+
+:class:`.ProxyBackend` can be be configured to optionally take arguments (as long as the
+:meth:`.ProxyBackend.__init__` method is called properly, either directly
+or via ``super()``.  In the example
+below, the ``RetryDeleteProxy`` class accepts a ``retry_count`` parameter
+on initialization.  In the event of an exception on delete(), it will retry
+this many times before returning::
 
     from dogpile.cache.proxy import ProxyBackend
-    
+
     class RetryDeleteProxy(ProxyBackend):
         def __init__(self, retry_count=5):
-            ProxyBackend.__init__(self)
+            super(RetryDeleteProxy, self).__init__()
             self.retry_count = retry_count
-            
+
         def delete(self, key):
             retries = self.retry_count
             while retries > 0:
@@ -235,16 +237,17 @@ this many times before returning.::
                 try:
                     self.proxied.delete(key)
                     return
-                    
+
                 except:
                     pass
-                    
-The wrap parameter of the :meth:`.CacheRegion.configure` method can take multiple 
-proxies. It also can take either `.ProxyBackend` classes or instance objects.  
+
+The ``wrap`` parameter of the :meth:`.CacheRegion.configure` accepts a list
+which can contain any combination of instantiated proxy objects
+as well as uninstantiated proxy classes.
 Putting the two examples above together would look like this::
- 
+
     from dogpile.cache import make_region
-    
+
     retry_proxy = RetryDeleteProxy(5)
 
     region = make_region().configure(
@@ -253,21 +256,15 @@ Putting the two examples above together would look like this::
         arguments = {
             'url':["127.0.0.1"],
         },
-        wrap = [ LoggingProxy, retry_proxy ] 
+        wrap = [ LoggingProxy, retry_proxy ]
     )
-    
-In the above example the LoggingProxy would wrap retry_proxy which would in turn
-wrap the real dogpile.cache.pylibmc backend.  
-                
-        
 
+In the above example, the ``LoggingProxy`` object would be instantated by the
+:class:`.CacheRegion` and applied to wrap requests on behalf of
+the ``retry_proxy`` instance; that proxy in turn wraps
+requests on behalf of the original dogpile.cache.pylibmc backend.
 
-
-
- 
-    
-
-
+.. versionadded:: 0.4.4  Added support for the :class:`.ProxyBackend` class.
 
 Recipes
 =======

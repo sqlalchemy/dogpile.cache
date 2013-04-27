@@ -176,13 +176,21 @@ class CacheRegion(object):
          method) will call upon the value creation function after this
          time period has passed since the last generation.
 
-        :param arguments:   Optional.  The structure here is passed
+        :param arguments: Optional.  The structure here is passed
          directly to the constructor of the :class:`.CacheBackend`
          in use, though is typically a dictionary.
-         
-        :param wrap:   Optional.  A list of ProxyBackend classes that 
-         will wrap the backend.  Elements in list can either be classes
-         or instances of ProxyBackend
+
+        :param wrap: Optional.  A list of :class:`.ProxyBackend`
+         classes and/or instances, each of which will be applied
+         in a chain to ultimately wrap the original backend,
+         so that custom functionality augmentation can be applied.
+
+         .. versionadded:: 0.4.4
+
+         .. seealso::
+
+            :ref:`changing_backend_behavior`
+
          """
 
         if "backend" in self.__dict__:
@@ -203,29 +211,29 @@ class CacheRegion(object):
             self.key_mangler = self.backend.key_mangler
 
         self._lock_registry = NameRegistry(self._create_mutex)
-        
+
         if getattr(wrap,'__iter__', False):
             for wrapper in reversed(wrap):
                 self.wrap(wrapper)
-                
+
         return self
-    
+
     def wrap(self, proxy):
         ''' Takes a ProxyBackend instance or class and wraps the
         attached backend. '''
-        
-        # if we were passed a type rather than an instance then 
-        # initialize it.  
+
+        # if we were passed a type rather than an instance then
+        # initialize it.
         if type(proxy) == type:
             proxy = proxy()
-                
+
         if not issubclass(type(proxy), ProxyBackend):
             raise Exception("Type %s is not a valid ProxyBackend"
                     % type(proxy))
-                        
+
         self.backend = proxy.wrap(self.backend)
-          
-    
+
+
     def _mutex(self, key):
         return self._lock_registry.get(key)
 

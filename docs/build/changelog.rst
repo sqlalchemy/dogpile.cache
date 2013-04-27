@@ -6,6 +6,15 @@ Changelog
 
     .. change::
         :tags: feature
+        :tickets: 26
+
+      Added support for simple augmentation of existing
+      backends using the :class:`.ProxyBackend` class.
+      Thanks to Tim Hanus for the great effort with
+      development, testing, and documentation.
+
+    .. change::
+        :tags: feature
         :pullreq: 14
 
       Full support for multivalue get/set/delete
