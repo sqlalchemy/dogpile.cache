@@ -293,7 +293,25 @@ class CacheDecoratorTest(TestCase):
         eq_(generate(1, 2), 6)
         
         
+class ProxyRegionTest(RegionTest):
+    ''' This is exactly the same as the region test above, but it goes through
+    a dummy proxy.  The purpose of this is to make sure the tests  still run 
+    successfully even when there is a proxy ''' 
+    
+    class MockProxy(ProxyBackend):
         
+        @property 
+        def _cache(self):
+            return self.proxied._cache
+    
+    
+    def _region(self, init_args={}, config_args={}, backend="mock"):
+        reg = CacheRegion(**init_args)
+        config_args['wrap'] = [ ProxyRegionTest.MockProxy ]
+        reg.configure(backend,  **config_args)
+        return reg
+    
+    
     
 class ProxyBackendTest(TestCase):
     

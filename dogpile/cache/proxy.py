@@ -10,7 +10,7 @@ base backend.
 
 from .api import CacheBackend
 
-class ProxyBackend(object):
+class ProxyBackend(CacheBackend):
     """A decorator class for altering the functionality of backends 
 
     Basic usage::
@@ -59,15 +59,31 @@ class ProxyBackend(object):
         assert(isinstance(backend, CacheBackend) or isinstance(backend, ProxyBackend))
         self.proxied = backend
         return self
+    
+    #
+    # Delegate any functions that are not already overridden to 
+    # the proxies backend
+    #
+    def get(self, key):
+        return self.proxied.get(key)
+    
+    def set(self, key, value):
+        self.proxied.set(key,value)
+        
+    def delete(self,key): 
+        self.proxied.delete(key)
 
-    def __getattr__(self, name):
-        ''' If a method is not already defined or overridden within this class 
-        then delegate this call to the next proxy or backend '''   
-        if self.proxied and getattr(self.proxied, name):
-            setattr(self, name, getattr(self.proxied, name))
-            return getattr(self.proxied, name)
-        else:
-            raise AttributeError
+    def get_multi(self, keys):
+        return self.proxied.get_multi(keys)
+
+    def set_multi(self, keys):
+        self.proxied.set_multi(keys)
+        
+    def delete_multi(self, keys):
+        self.proxied.delete_multi(keys)
+
+    def get_mutex(self, key):
+        return self.proxied.get_mutex(key)        
         
  
         
