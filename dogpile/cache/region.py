@@ -715,11 +715,21 @@ class CacheRegion(object):
          being declared.
         :param expiration_time: if not None, will override the normal
          expiration time.
+        
+         May be specified as a callable, taking no arguments, that
+         returns a value to be used as the ``expiration_time``. This callable
+         will be called whenever the decorated function itself is called, in
+         caching or retrieving. Thus, this can be used to
+         determine a *dynamic* expiration time for the cached function
+         result.  Example use cases include "cache the result until the
+         end of the day, week or time period" and "cache until a certain date
+         or time passes".
         :param should_cache_fn: passed to :meth:`.CacheRegion.get_or_create`.
 
           .. versionadded:: 0.4.3
 
         """
+        expiration_time_is_callable = callable(expiration_time)
         def decorator(fn):
             key_generator = self.function_key_generator(namespace, fn)
             @wraps(fn)
@@ -728,9 +738,10 @@ class CacheRegion(object):
                 @wraps(fn)
                 def creator():
                     return fn(*arg, **kw)
-                return self.get_or_create(key, creator, expiration_time,
-                                                should_cache_fn)
-
+                timeout = expiration_time_is_callable and \
+                        expiration_time() or expiration_time
+                return self.get_or_create(key, creator, timeout,
+                                          should_cache_fn)
 
             def invalidate(*arg, **kw):
                 key = key_generator(*arg, **kw)
