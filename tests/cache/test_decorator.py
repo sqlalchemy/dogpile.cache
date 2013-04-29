@@ -57,6 +57,12 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         time.sleep(.3)
         eq_(go(1, 2), (3, 1, 2))
 
+    def test_decorator_expire_callable_zero(self):
+        go = self._fixture(expiration_time=lambda: 0)
+        eq_(go(1, 2), (1, 1, 2))
+        eq_(go(1, 2), (2, 1, 2))
+        eq_(go(1, 2), (3, 1, 2))
+
     def test_explicit_expire(self):
         go = self._fixture(expiration_time=1)
         eq_(go(1, 2), (1, 1, 2))

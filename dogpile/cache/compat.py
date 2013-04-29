@@ -2,6 +2,7 @@ import sys
 
 
 py3k = sys.version_info >= (3, 0)
+py32 = sys.version_info >= (3, 2)
 jython = sys.platform.startswith('java')
 
 
@@ -16,6 +17,12 @@ if py3k: # pragma: no cover
     text_type = str
     string_type = str
 
+    if py32:
+        callable = callable
+    else:
+        def callable(fn):
+            return hasattr(fn, '__call__')
+
     import configparser
     import io
 else:
@@ -25,6 +32,8 @@ else:
 
     import ConfigParser as configparser
     import StringIO as io
+
+    callable = callable
 
 if py3k or jython:
     import pickle

@@ -6,6 +6,15 @@ Changelog
 
     .. change::
         :tags: feature
+        :tickets: 20
+
+      The ``expiration_time`` argument passed to
+      :meth:`.CacheRegion.cache_on_arguments`
+      may be a callable, to return a dynamic
+      timeout value.  Courtesy David Beitey.
+
+    .. change::
+        :tags: feature
         :tickets: 26
 
       Added support for simple augmentation of existing

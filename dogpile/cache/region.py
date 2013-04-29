@@ -5,6 +5,7 @@ from .util import function_key_generator, PluginLoader, \
     memoized_property, coerce_string_conf
 from .api import NO_VALUE, CachedValue
 from .proxy import ProxyBackend
+from . import compat
 import time
 from functools import wraps
 import threading
@@ -715,7 +716,7 @@ class CacheRegion(object):
          being declared.
         :param expiration_time: if not None, will override the normal
          expiration time.
-        
+
          May be specified as a callable, taking no arguments, that
          returns a value to be used as the ``expiration_time``. This callable
          will be called whenever the decorated function itself is called, in
@@ -724,12 +725,17 @@ class CacheRegion(object):
          result.  Example use cases include "cache the result until the
          end of the day, week or time period" and "cache until a certain date
          or time passes".
+
+         .. versionchanged:: 0.4.4
+            ``expiration_time`` may be passed as a callable to
+            :meth:`.CacheRegion.cache_on_arguments`.
+
         :param should_cache_fn: passed to :meth:`.CacheRegion.get_or_create`.
 
           .. versionadded:: 0.4.3
 
         """
-        expiration_time_is_callable = callable(expiration_time)
+        expiration_time_is_callable = compat.callable(expiration_time)
         def decorator(fn):
             key_generator = self.function_key_generator(namespace, fn)
             @wraps(fn)
@@ -738,8 +744,8 @@ class CacheRegion(object):
                 @wraps(fn)
                 def creator():
                     return fn(*arg, **kw)
-                timeout = expiration_time_is_callable and \
-                        expiration_time() or expiration_time
+                timeout = expiration_time() if expiration_time_is_callable \
+                            else expiration_time
                 return self.get_or_create(key, creator, timeout,
                                           should_cache_fn)
 
