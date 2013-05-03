@@ -6,7 +6,8 @@ from .util import function_key_generator, PluginLoader, \
 from .api import NO_VALUE, CachedValue
 from .proxy import ProxyBackend
 from . import compat
-import time
+import time, datetime
+from numbers import Number
 from functools import wraps
 import threading
 
@@ -207,7 +208,14 @@ class CacheRegion(object):
             )
         else:
             self.backend = backend_cls(arguments or {})
-        self.expiration_time = expiration_time
+
+        if not expiration_time or isinstance(expiration_time, Number):
+            self.expiration_time = expiration_time 
+        elif isinstance(expiration_time, datetime.timedelta):
+            self.expiration_time = int(expiration_time.total_seconds())
+        else:
+            raise Exception('expiration_time is not a number or timedelta.')
+
         if self.key_mangler is None:
             self.key_mangler = self.backend.key_mangler
 
