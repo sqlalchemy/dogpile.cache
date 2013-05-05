@@ -292,6 +292,27 @@ class CacheDecoratorTest(TestCase):
         generate.invalidate(1, 2)
         eq_(generate(1, 2), 6)
 
+    def test_reentrant_call(self):
+        reg = self._region(backend="dogpile.cache.memory")
+
+        counter = itertools.count(1)
+
+        # if these two classes get the same namespace,
+        # you get a reentrant deadlock.
+        class Foo(object):
+            @classmethod
+            @reg.cache_on_arguments(namespace="foo")
+            def generate(cls, x, y):
+                return next(counter) + x + y
+
+        class Bar(object):
+            @classmethod
+            @reg.cache_on_arguments(namespace="bar")
+            def generate(cls, x, y):
+                return Foo.generate(x, y)
+
+        eq_(Bar.generate(1, 2), 4)
+
 
 class ProxyRegionTest(RegionTest):
     ''' This is exactly the same as the region test above, but it goes through
