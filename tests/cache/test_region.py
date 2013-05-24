@@ -4,7 +4,7 @@ from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
 from dogpile.cache import make_region, register_backend, CacheRegion, util
 from dogpile.cache.proxy import ProxyBackend
 from . import eq_, is_, assert_raises_message, io, configparser
-import time
+import time, datetime
 import itertools
 from collections import defaultdict
 import operator
@@ -89,6 +89,23 @@ class RegionTest(TestCase):
         assert isinstance(my_region.backend, MockBackend) is True
         eq_(my_region.backend.arguments, {'url': '127.0.0.1',
                             'dogpile_lockfile':False, 'xyz':None})
+
+    def test_datetime_expiration_time(self):
+        my_region = make_region()
+        my_region.configure(
+            backend='mock', 
+            expiration_time=datetime.timedelta(days=1, hours=8)
+        )
+        eq_(my_region.expiration_time, 32*60*60)
+
+    def test_reject_invalid_expiration_time(self):
+        my_region = make_region()
+        
+        assert_raises_message(
+            Exception,
+            "expiration_time is not a number or timedelta.",
+            my_region.configure, 'mock', 'one hour'
+        )
 
     def test_key_mangler_argument(self):
         reg = self._region(init_args={"key_mangler":key_mangler})
