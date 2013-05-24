@@ -6,7 +6,8 @@ from .util import function_key_generator, PluginLoader, \
 from .api import NO_VALUE, CachedValue
 from .proxy import ProxyBackend
 from . import compat
-import time, datetime
+import time
+import datetime
 from numbers import Number
 from functools import wraps
 import threading
@@ -172,7 +173,14 @@ class CacheRegion(object):
          the class from the ``dogpile.cache`` entrypoint.
 
         :param expiration_time:   Optional.  The expiration time passed
-         to the dogpile system.  The :meth:`.CacheRegion.get_or_create`
+         to the dogpile system.  May be passed as an integer number
+         of seconds, or as a ``datetime.timedelta`` value.
+
+         .. versionadded 0.4.4
+            ``expiration_time`` may be optionally passed as a
+            ``datetime.timedelta`` value.
+
+         The :meth:`.CacheRegion.get_or_create`
          method as well as the :meth:`.CacheRegion.cache_on_arguments`
          decorator (though note:  **not** the :meth:`.CacheRegion.get`
          method) will call upon the value creation function after this
@@ -210,7 +218,7 @@ class CacheRegion(object):
             self.backend = backend_cls(arguments or {})
 
         if not expiration_time or isinstance(expiration_time, Number):
-            self.expiration_time = expiration_time 
+            self.expiration_time = expiration_time
         elif isinstance(expiration_time, datetime.timedelta):
             self.expiration_time = int(expiration_time.total_seconds())
         else:

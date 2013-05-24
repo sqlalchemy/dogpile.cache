@@ -6,6 +6,15 @@ Changelog
 
     .. change::
         :tags: feature
+        :tickets: 13
+
+      :meth:`.CacheRegion.configure` accepts an
+      optional ``datetime.timedelta`` object
+      for the ``expiration_time`` argument as well
+      as an integer, courtesy Jack Lutz.
+
+    .. change::
+        :tags: feature
         :tickets: 20
 
       The ``expiration_time`` argument passed to
