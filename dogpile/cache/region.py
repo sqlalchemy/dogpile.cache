@@ -2,7 +2,7 @@ from __future__ import with_statement
 from dogpile.core import Lock, NeedRegenerationException
 from dogpile.core.nameregistry import NameRegistry
 from .util import function_key_generator, PluginLoader, \
-    memoized_property, coerce_string_conf
+    memoized_property, coerce_string_conf, function_multi_key_generator
 from .api import NO_VALUE, CachedValue
 from .proxy import ProxyBackend
 from . import compat
@@ -461,9 +461,6 @@ class CacheRegion(object):
         creation function may or may not be used to recreate the value
         and persist the newly generated value in the cache.
 
-        If the creation function returns :const:`NO_VALUE`, nothing is cached.
-        Note that if the returns `None`, `None` will be cached.
-
         Whether or not the function is used depends on if the
         *dogpile lock* can be acquired or not.  If it can't, it means
         a different thread or process is already running a creation
@@ -491,6 +488,7 @@ class CacheRegion(object):
          function, if present.
 
         :param creator: function which creates a new value.
+
         :param expiration_time: optional expiration time which will overide
          the expiration time already configured on this :class:`.CacheRegion`
          if not None.   To set no expiration, use the value -1.
@@ -514,10 +512,12 @@ class CacheRegion(object):
 
          .. versionadded:: 0.4.3
 
-        See also:
+        .. seealso::
 
-        :meth:`.CacheRegion.cache_on_arguments` - applies :meth:`.get_or_create`
-        to any function using a decorator.
+            :meth:`.CacheRegion.cache_on_arguments` - applies
+            :meth:`.get_or_create` to any function using a decorator.
+
+            :meth:`.CacheRegion.get_or_create_multi` - multiple key/value version
 
         """
         if self.key_mangler:
@@ -558,6 +558,115 @@ class CacheRegion(object):
                 expiration_time,
                 async_creator) as value:
             return value
+
+    def get_or_create_multi(self, keys, creator, expiration_time=None,
+                                should_cache_fn=None):
+        """Return a sequence of cached values based on a sequence of keys.
+
+        The behavior for generation of values based on keys corresponds
+        to that of :meth:`.Region.get_or_create`, with the exception that
+        the ``creator()`` function may be asked to generate any subset of
+        the given keys.   The list of keys to be generated is passed to
+        ``creator()``, and ``creator()`` should return the generated values
+        as a sequence corresponding to the order of the keys.
+
+        The method uses the same approach as :meth:`.Region.get_multi`
+        and :meth:`.Region.set_multi` to get and set values from the
+        backend.
+
+        :param keys: Sequence of keys to be retrieved.
+
+        :param creator: function which accepts a sequence of keys and
+         returns a sequence of new values.
+
+        :param expiration_time: optional expiration time which will overide
+         the expiration time already configured on this :class:`.CacheRegion`
+         if not None.   To set no expiration, use the value -1.
+
+        :param should_cache_fn: optional callable function which will receive
+         each value returned by the "creator", and will then return True or False,
+         indicating if the value should actually be cached or not.  If it
+         returns False, the value is still returned, but isn't cached.
+
+        .. versionadded:: 0.5.0
+
+        .. seealso::
+
+
+            :meth:`.CacheRegion.cache_multi_on_arguments`
+
+            :meth:`.CacheRegion.get_or_create`
+
+        """
+
+        def get_value(key):
+            value = values.get(key, NO_VALUE)
+            if value is NO_VALUE or \
+                value.metadata['v'] != value_version or \
+                    (self._invalidated and
+                    value.metadata["ct"] < self._invalidated):
+                return value.payload, 0
+            else:
+                return value.payload, value.metadata["ct"]
+
+        def gen_value():
+            raise NotImplementedError()
+
+        def async_creator(key, mutex):
+            mutexes[key] = mutex
+
+        if expiration_time is None:
+            expiration_time = self.expiration_time
+
+        mutexes = {}
+
+        sorted_unique_keys = sorted(set(keys))
+
+        if self.key_mangler:
+            mangled_keys = [self.key_mangler(k) for k in sorted_unique_keys]
+        else:
+            mangled_keys = sorted_unique_keys
+
+        orig_to_mangled = dict(zip(sorted_unique_keys, mangled_keys))
+
+        values = self.backend.get_multi(mangled_keys)
+
+        for orig_key, mangled_key in orig_to_mangled.items():
+            with Lock(
+                    self._mutex(mangled_key),
+                    gen_value,
+                    lambda: get_value(mangled_key),
+                    expiration_time,
+                    async_creator=lambda mutex:
+                            async_creator(orig_key, mutex)):
+                pass
+        try:
+            if mutexes:
+                # sort the keys, the idea is to prevent deadlocks.
+                # though haven't been able to simulate one anyway.
+                keys_to_get = sorted(mutexes)
+                new_values = creator(*keys_to_get)
+
+                values_w_created = dict(
+                    (orig_to_mangled[k], self._value(v))
+                    for k, v in zip(keys_to_get, new_values)
+                )
+
+                if not should_cache_fn:
+                    self.backend.set_multi(values_w_created)
+                else:
+                    self.backend.set_multi(dict(
+                        (k, v)
+                        for k, v in values_w_created.items()
+                        if should_cache_fn(v[0])
+                    ))
+
+                values.update(values_w_created)
+            return [values[orig_to_mangled[k]].payload for k in keys]
+        finally:
+            for mutex in mutexes.values():
+                mutex.release()
+
 
     def _value(self, value):
         """Return a :class:`.CachedValue` given a value."""
@@ -730,6 +839,7 @@ class CacheRegion(object):
          associated with classes - note that the decorator itself
          can't see the parent class on a function as the class is
          being declared.
+
         :param expiration_time: if not None, will override the normal
          expiration time.
 
@@ -749,6 +859,12 @@ class CacheRegion(object):
         :param should_cache_fn: passed to :meth:`.CacheRegion.get_or_create`.
 
           .. versionadded:: 0.4.3
+
+        .. seealso::
+
+            :meth:`.CacheRegion.cache_multi_on_arguments`
+
+            :meth:`.CacheRegion.get_or_create`
 
         """
         expiration_time_is_callable = compat.callable(expiration_time)
@@ -778,6 +894,122 @@ class CacheRegion(object):
 
             return decorate
         return decorator
+
+    def cache_multi_on_arguments(self, namespace=None, expiration_time=None,
+                                        should_cache_fn=None):
+        """A function decorator that will cache multiple return
+        values from the function using a sequence of keys derived from the
+        function itself and the arguments passed to it.
+
+        This method is the "multiple key" analogue to the
+        :meth:`.CacheRegion.cache_on_arguments` method.
+
+        Example::
+
+            @someregion.cache_multi_on_arguments()
+            def generate_something(*keys):
+                return [
+                    somedatabase.query(key)
+                    for key in keys
+                ]
+
+        The decorated function can be called normally.  The decorator
+        will produce a list of cache keys using a mechanism similar to that
+        of :meth:`.CacheRegion.cache_on_arguments`, combining the name
+        of the function with the optional namespace and with the string form
+        of each key.  It will then consult the cache using the same mechanism as that
+        of :meth:`.CacheRegion.get_multi` to retrieve all current values;
+        the originally passed keys corresponding to those values which
+        aren't generated or need regeneration will
+        be assembled into a new argument list, and the decorated function
+        is then called with that subset of arguments.
+
+        The returned result is a list::
+
+            result = generate_something("key1", "key2", "key3")
+
+        The decorator internally makes use of the
+        :meth:`.CacheRegion.get_or_create_multi` method to access the
+        cache and conditionally call the function.  See that
+        method for additional behavioral details.
+
+        Unlike the :meth:`.CacheRegion.cache_on_arguments`
+        method, :meth:`.CacheRegion.cache_multi_on_arguments` works only
+        with a single function signature, one which takes a simple list of keys as
+        arguments.
+
+        Like :meth:`.CacheRegion.cache_on_arguments`, the decorated function
+        is also provided with a ``set()`` method, which here accepts a
+        mapping of keys and values to set in the cache::
+
+            generate_something.set({"k1": "value1",
+                                    "k2": "value2", "k3": "value3"})
+
+        as well as an ``invalidate()`` method, which has the effect of deleting
+        the given sequence of keys using the same mechanism as that of
+        :meth:`.CacheRegion.delete_multi`::
+
+            generate_something.invalidate("k1", "k2", "k3")
+
+        Parameters passed to :meth:`.CacheRegion.cache_multi_on_arguments`
+        have the same meaning as those passed to
+        :meth:`.CacheRegion.cache_on_arguments`.
+
+        :param namespace: optional string argument which will be
+         established as part of each cache key.
+
+        :param expiration_time: if not None, will override the normal
+         expiration time.  May be passed as an integer or a
+         callable.
+
+        :param should_cache_fn: passed to :meth:`.CacheRegion.get_or_create_multi`.
+
+        .. versionadded:: 0.5.0
+
+        .. seealso::
+
+            :meth:`.CacheRegion.cache_on_arguments`
+
+            :meth:`.CacheRegion.get_or_create_multi`
+
+        """
+        expiration_time_is_callable = compat.callable(expiration_time)
+        def decorator(fn):
+            key_generator = function_multi_key_generator(namespace, fn)
+            @wraps(fn)
+            def decorate(*arg, **kw):
+                cache_keys = arg
+                keys = key_generator(*arg, **kw)
+                key_lookup = dict(zip(keys, cache_keys))
+                @wraps(fn)
+                def creator(*keys_to_create):
+                    return fn(*[key_lookup[k] for k in keys_to_create])
+
+                timeout = expiration_time() if expiration_time_is_callable \
+                            else expiration_time
+                return self.get_or_create_multi(keys, creator, timeout,
+                                          should_cache_fn)
+
+            def invalidate(*arg):
+                keys = key_generator(*arg)
+                self.delete_multi(keys)
+
+            def set_(mapping):
+                keys = list(mapping)
+                gen_keys = key_generator(*keys)
+                self.set_multi(dict(
+                        (gen_key, mapping[key])
+                        for gen_key, key
+                        in zip(gen_keys, keys))
+                    )
+
+            decorate.set = set_
+            decorate.invalidate = invalidate
+
+            return decorate
+        return decorator
+
+
 
 def make_region(*arg, **kw):
     """Instantiate a new :class:`.CacheRegion`.

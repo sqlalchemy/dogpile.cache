@@ -6,7 +6,10 @@ import itertools
 import time
 from nose import SkipTest
 from threading import Thread, Lock
+from dogpile.cache.compat import thread
 from unittest import TestCase
+import random
+import collections
 
 class _GenericBackendFixture(object):
     @classmethod
@@ -169,6 +172,50 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
             t.join()
         assert len(canary) > 3
         assert False not in canary
+
+    def test_threaded_get_multi(self):
+        reg = self._region(config_args={"expiration_time": .25})
+        locks = dict((str(i), Lock()) for i in range(11))
+
+        canary = collections.defaultdict(list)
+        def creator(*keys):
+            assert keys
+            ack = [locks[key].acquire(False) for key in keys]
+
+            #print(
+            #        ("%s " % thread.get_ident()) + \
+            #        ", ".join(sorted("%s=%s" % (key, acq)
+            #                    for acq, key in zip(ack, keys)))
+            #    )
+
+            for acq, key in zip(ack, keys):
+                canary[key].append(acq)
+
+            time.sleep(.5)
+
+            for acq, key in zip(ack, keys):
+                if acq:
+                    locks[key].release()
+            return ["some value %s" % k for k in keys]
+        def f():
+            for x in range(5):
+                reg.get_or_create_multi(
+                    [str(random.randint(1, 10))
+                        for i in range(random.randint(1, 5))],
+                            creator)
+                time.sleep(.5)
+        f()
+        return
+        threads = [Thread(target=f) for i in range(5)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert sum([len(v) for v in canary.values()]) > 10
+        for l in canary.values():
+            assert False not in l
+
 
     def test_region_delete(self):
         reg = self._region()

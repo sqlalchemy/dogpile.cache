@@ -93,14 +93,14 @@ class RegionTest(TestCase):
     def test_datetime_expiration_time(self):
         my_region = make_region()
         my_region.configure(
-            backend='mock', 
+            backend='mock',
             expiration_time=datetime.timedelta(days=1, hours=8)
         )
         eq_(my_region.expiration_time, 32*60*60)
 
     def test_reject_invalid_expiration_time(self):
         my_region = make_region()
-        
+
         assert_raises_message(
             Exception,
             "expiration_time is not a number or timedelta.",
@@ -164,6 +164,13 @@ class RegionTest(TestCase):
             return "some value"
         eq_(reg.get_or_create("some key", creator), "some value")
 
+    def test_multi_creator(self):
+        reg = self._region()
+        def creator(*keys):
+            return ["some value %s" % key for key in keys]
+        eq_(reg.get_or_create_multi(["k3", "k2", "k5"], creator),
+                    ['some value k3', 'some value k2', 'some value k5'])
+
     def test_remove(self):
         reg = self._region()
         reg.set("some key", "some value")
@@ -182,6 +189,20 @@ class RegionTest(TestCase):
         eq_(reg.get("some key", ignore_expiration=True), "some value 1")
         eq_(reg.get_or_create("some key", creator), "some value 2")
         eq_(reg.get("some key"), "some value 2")
+
+    def test_expire_multi(self):
+        reg = self._region(config_args={"expiration_time":1})
+        counter = itertools.count(1)
+        def creator(*keys):
+            return ["some value %s %d" % (key, next(counter)) for key in keys]
+        eq_(reg.get_or_create_multi(["k3", "k2", "k5"], creator),
+                    ['some value k3 2', 'some value k2 1', 'some value k5 3'])
+        time.sleep(2)
+        is_(reg.get("k2"), NO_VALUE)
+        eq_(reg.get("k2", ignore_expiration=True), "some value k2 1")
+        eq_(reg.get_or_create_multi(["k3", "k2"], creator),
+                    ['some value k3 5', 'some value k2 4'])
+        eq_(reg.get("k2"), "some value k2 4")
 
     def test_expire_on_get(self):
         reg = self._region(config_args={"expiration_time":.5})
@@ -261,6 +282,31 @@ class RegionTest(TestCase):
         eq_(ret, 3)
         eq_(reg.backend._cache['some key'][0], 3)
 
+    def test_should_cache_fn_multi(self):
+        reg = self._region()
+        values = [1, 2, 3]
+        def creator(*keys):
+            v = values.pop(0)
+            return [v for k in keys]
+        should_cache_fn = lambda val: val in (1, 3)
+        ret = reg.get_or_create_multi(
+                    [1, 2], creator,
+                    should_cache_fn=should_cache_fn)
+        eq_(ret, [1, 1])
+        eq_(reg.backend._cache[1][0], 1)
+        reg.invalidate()
+        ret = reg.get_or_create_multi(
+                    [1, 2], creator,
+                    should_cache_fn=should_cache_fn)
+        eq_(ret, [2, 2])
+        eq_(reg.backend._cache[1][0], 1)
+        reg.invalidate()
+        ret = reg.get_or_create_multi(
+                    [1, 2], creator,
+                    should_cache_fn=should_cache_fn)
+        eq_(ret, [3, 3])
+        eq_(reg.backend._cache[1][0], 3)
+
     def test_should_set_multiple_values(self):
         reg = self._region()
         values = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
@@ -329,6 +375,51 @@ class CacheDecoratorTest(TestCase):
                 return Foo.generate(x, y)
 
         eq_(Bar.generate(1, 2), 4)
+
+    def test_multi(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments()
+        def generate(*args):
+            return ["%d %d" % (arg, next(counter)) for arg in args]
+
+        eq_(generate(2, 8, 10), ['2 2', '8 3', '10 1'])
+        eq_(generate(2, 9, 10), ['2 2', '9 4', '10 1'])
+
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), ['2 5', '7 6', '10 1'])
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), ['2 5', 18, 15])
+
+    def test_multi_namespace(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments(namespace="foo")
+        def generate(*args):
+            return ["%d %d" % (arg, next(counter)) for arg in args]
+
+        eq_(generate(2, 8, 10), ['2 2', '8 3', '10 1'])
+        eq_(generate(2, 9, 10), ['2 2', '9 4', '10 1'])
+
+        eq_(
+            sorted(list(reg.backend._cache)),
+            [
+            'tests.cache.test_region:generate|foo|10',
+            'tests.cache.test_region:generate|foo|2',
+            'tests.cache.test_region:generate|foo|8',
+            'tests.cache.test_region:generate|foo|9']
+        )
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), ['2 5', '7 6', '10 1'])
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), ['2 5', 18, 15])
+
 
 
 class ProxyRegionTest(RegionTest):
@@ -438,11 +529,11 @@ class ProxyBackendTest(TestCase):
         proxy_abc = ProxyBackendTest.UsedKeysProxy(5)
         reg_num = self._region(config_args={"wrap": [proxy_num]})
         reg_abc = self._region(config_args={"wrap": [proxy_abc]})
-        for i in xrange(10):
+        for i in range(10):
             reg_num.set(i, True)
             reg_abc.set(chr(ord('a') + i), True)
 
-        for i in xrange(5):
+        for i in range(5):
             reg_num.set(i, True)
             reg_abc.set(chr(ord('a') + i), True)
 
@@ -460,7 +551,7 @@ class ProxyBackendTest(TestCase):
         # Test that we can pass an argument to Proxy on creation
         proxy = ProxyBackendTest.NeverSetProxy(5)
         reg = self._region(config_args={"wrap": [proxy]})
-        for i in xrange(10):
+        for i in range(10):
             reg.set(i, True)
 
         # make sure 1 was set, but 5 was not

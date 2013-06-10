@@ -110,7 +110,7 @@ class RedisBackend(CacheBackend):
                 values[key] = pickle.loads(values[key])
             else:
                 values[key] = NO_VALUE
-        return values        
+        return values
 
     def set(self, key, value):
         if self.redis_expiration_time:
@@ -136,7 +136,7 @@ class RedisBackend(CacheBackend):
         pipe = self.client.pipeline()
         for key in keys:
             pipe.delete(key)
-        pipe.execute()        
+        pipe.execute()
 
 class RedisLock(object):
     """Simple distributed lock using Redis.

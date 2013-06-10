@@ -25,6 +25,7 @@ if py3k: # pragma: no cover
 
     import configparser
     import io
+    import _thread as thread
 else:
     string_types = basestring,
     text_type = unicode
@@ -34,6 +35,8 @@ else:
     import StringIO as io
 
     callable = callable
+    import thread
+
 
 if py3k or jython:
     import pickle

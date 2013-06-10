@@ -2,7 +2,17 @@
 Changelog
 ==============
 .. changelog::
-    :version: 0.4.4
+    :version: 0.5.0
+
+    .. change::
+        :tags: feature
+        :tickets: 33
+
+      Added new methods :meth:`.CacheRegion.get_or_create_multi`
+      and :meth:`.CacheRegion.cache_multi_on_arguments`, which
+      make use of the :meth:`.CacheRegion.get_multi` and similar
+      functions to store and retrieve multiple keys at once while
+      maintaining dogpile semantics for each.
 
     .. change::
         :tags: feature
