@@ -12,7 +12,7 @@ from dogpile.cache.compat import pickle
 
 redis = None
 
-__all__ = 'RedisBackend'
+__all__ = 'RedisBackend',
 
 
 class RedisBackend(CacheBackend):
@@ -56,17 +56,24 @@ class RedisBackend(CacheBackend):
      cache expiration.  By default no expiration is set.
 
     :param distributed_lock: boolean, when True, will use a
-     redis-lock as the dogpile lock (see :class:`.RedisLock`).
+     redis-lock as the dogpile lock.
      Use this when multiple
      processes will be talking to the same redis instance.
      When left at False, dogpile will coordinate on a regular
      threading mutex.
 
     :param lock_timeout: integer, number of seconds after acquiring a lock that
-     Redis should expire it.
+     Redis should expire it.  This argument is only valid when
+     ``distributed_lock`` is ``True``.
+
+     .. versionadded:: 0.5.0
 
     :param lock_sleep: integer, number of seconds to sleep when failed to
-     acquire a lock.
+     acquire a lock.  This argument is only valid when
+     ``distributed_lock`` is ``True``.
+
+     .. versionadded:: 0.5.0
+
     """
 
     def __init__(self, arguments):
