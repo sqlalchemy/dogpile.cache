@@ -110,21 +110,21 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         reg.set('key2', key2)
         reg.set('key3', key3)
         values = reg.get_multi(['key1', 'key2', 'key3'])
-        eq_(key1, values['key1'])
-        eq_(key2, values['key2'])
-        eq_(key3, values['key3'])
+        eq_(
+            [key1, key2, key3], values
+        )
 
     def test_region_get_nothing_multiple(self):
         reg = self._region()
         values = {'key1': 'value1', 'key3': 'value3', 'key5': 'value5'}
         reg.set_multi(values)
         reg_values = reg.get_multi(['key1', 'key2', 'key3', 'key4', 'key5', 'key6'])
-        eq_(reg_values['key1'], values['key1'])
-        eq_(reg_values['key2'], NO_VALUE)
-        eq_(reg_values['key3'], values['key3'])
-        eq_(reg_values['key4'], NO_VALUE)
-        eq_(reg_values['key5'], values['key5'])
-        eq_(reg_values['key6'], NO_VALUE)
+        eq_(
+            reg_values,
+            ["value1", NO_VALUE, "value3", NO_VALUE,
+                "value5", NO_VALUE
+            ]
+        )
 
     def test_region_delete_multiple(self):
         reg = self._region()
@@ -273,7 +273,7 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
 
         ac = mutex.acquire()
         assert ac
-        ac2 = mutex.acquire(wait=False)
+        ac2 = mutex.acquire(False)
         assert not ac2
         mutex.release()
         ac3 = mutex.acquire()
@@ -313,12 +313,12 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
             m2 = backend.get_mutex("bar")
             try:
                 m1.acquire()
-                assert m2.acquire(wait=False)
-                assert not m2.acquire(wait=False)
+                assert m2.acquire(False)
+                assert not m2.acquire(False)
                 m2.release()
 
-                assert m2.acquire(wait=False)
-                assert not m2.acquire(wait=False)
+                assert m2.acquire(False)
+                assert not m2.acquire(False)
                 m2.release()
             finally:
                 m1.release()

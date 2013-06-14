@@ -48,10 +48,10 @@ class MemoryBackend(CacheBackend):
         return self._cache.get(key, NO_VALUE)
 
     def get_multi(self, keys):
-        values = {}
-        for key in keys:
-            values[key] = self._cache.get(key, NO_VALUE)
-        return values
+        return [
+            self._cache.get(key, NO_VALUE)
+            for key in keys
+        ]
 
     def set(self, key, value):
         self._cache[key] = value

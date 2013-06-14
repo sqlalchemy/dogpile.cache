@@ -192,7 +192,7 @@ class CacheRegion(object):
          to the dogpile system.  May be passed as an integer number
          of seconds, or as a ``datetime.timedelta`` value.
 
-         .. versionadded 0.4.4
+         .. versionadded 0.5.0
             ``expiration_time`` may be optionally passed as a
             ``datetime.timedelta`` value.
 
@@ -211,7 +211,7 @@ class CacheRegion(object):
          in a chain to ultimately wrap the original backend,
          so that custom functionality augmentation can be applied.
 
-         .. versionadded:: 0.4.4
+         .. versionadded:: 0.5.0
 
          .. seealso::
 
@@ -435,8 +435,21 @@ class CacheRegion(object):
     def get_multi(self, keys, expiration_time=None, ignore_expiration=False):
         """Return multiple values from the cache, based on the given keys.
 
-        If the value is not present, the method returns the token
-        ``NO_VALUE``. ``NO_VALUE`` evaluates to False, but is separate from
+        Returns values as a list matching the keys given.
+
+        E.g.::
+
+            values = region.get_multi(["one", "two", "three"])
+
+        To convert values to a dictionary, use ``zip()``::
+
+            keys = ["one", "two", "three"]
+            values = region.get_multi(keys)
+            dictionary = dict(zip(keys, values))
+
+        Keys which aren't present in the list are returned as
+        the ``NO_VALUE`` token.  ``NO_VALUE`` evaluates to False,
+        but is separate from
         ``None`` to distinguish between a cached value of ``None``.
 
         By default, the configured expiration time of the
@@ -448,25 +461,24 @@ class CacheRegion(object):
         token is returned.  Passing the flag ``ignore_expiration=True``
         bypasses the expiration time check.
 
-        .. versionadded:: 0.4.4
+        .. versionadded:: 0.5.0
 
         """
         if self.key_mangler:
             keys = map(lambda key: self.key_mangler(key), keys)
-        values = {}
+
         backend_values = self.backend.get_multi(keys)
 
         _unexpired_value_fn = self._unexpired_value_fn(
                             expiration_time, ignore_expiration)
-        values = dict(
-                    (key, value.payload if value is not NO_VALUE else value)
-                    for key, value in
+        return [
+                    value.payload if value is not NO_VALUE else value
+                    for value in
                     (
-                        (key, _unexpired_value_fn(value))
-                        for key, value in backend_values.items()
+                        _unexpired_value_fn(value) for value in
+                        backend_values
                     )
-                )
-        return values
+                ]
 
     def get_or_create(self, key, creator, expiration_time=None,
                                 should_cache_fn=None):
@@ -645,7 +657,7 @@ class CacheRegion(object):
 
         orig_to_mangled = dict(zip(sorted_unique_keys, mangled_keys))
 
-        values = self.backend.get_multi(mangled_keys)
+        values = dict(zip(mangled_keys, self.backend.get_multi(mangled_keys)))
 
         for orig_key, mangled_key in orig_to_mangled.items():
             with Lock(
@@ -702,7 +714,7 @@ class CacheRegion(object):
     def set_multi(self, mapping):
         """Place new values in the cache under the given keys.
 
-        .. versionadded:: 0.4.4
+        .. versionadded:: 0.5.0
 
         """
 
@@ -733,7 +745,7 @@ class CacheRegion(object):
         This operation is idempotent (can be called multiple times, or on a
         non-existent key, safely)
 
-        .. versionadded:: 0.4.4
+        .. versionadded:: 0.5.0
 
         """
 
@@ -868,7 +880,7 @@ class CacheRegion(object):
          end of the day, week or time period" and "cache until a certain date
          or time passes".
 
-         .. versionchanged:: 0.4.4
+         .. versionchanged:: 0.5.0
             ``expiration_time`` may be passed as a callable to
             :meth:`.CacheRegion.cache_on_arguments`.
 

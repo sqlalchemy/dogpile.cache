@@ -178,10 +178,7 @@ class DBMBackend(CacheBackend):
             return value
 
     def get_multi(self, keys):
-        values = {}
-        for key in keys:
-            values[key] = self.get(key)
-        return values
+        return [self.get(key) for key in keys]
 
     def set(self, key, value):
         with self._dbm_file(True) as dbm:
