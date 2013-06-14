@@ -6,6 +6,13 @@ Changelog
 
     .. change::
         :tags: feature
+
+      Now using the ``Lock`` included with the Python
+      ``redis`` backend, which adds ``lock_timeout``
+      and ``lock_sleep`` arguments to the :class:`.RedisBackend`.
+
+    .. change::
+        :tags: feature
         :tickets: 33
 
       Added new methods :meth:`.CacheRegion.get_or_create_multi`

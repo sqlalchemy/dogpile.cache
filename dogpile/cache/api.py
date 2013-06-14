@@ -127,9 +127,10 @@ class CacheBackend(object):
     def get_multi(self, keys): #pragma NO COVERAGE
         """Retrieve multiple values from the cache.
 
-        The returned value should be a map.
+        The returned value should be a list, corresponding
+        to the list of keys given.
 
-        .. versionadded:: 0.4.4
+        .. versionadded:: 0.5.0
 
         """
         raise NotImplementedError()
@@ -155,7 +156,7 @@ class CacheBackend(object):
         The value will always be an instance
         of :class:`.CachedValue`.
 
-        .. versionadded:: 0.4.4
+        .. versionadded:: 0.5.0
 
         """
         raise NotImplementedError()
@@ -186,7 +187,7 @@ class CacheBackend(object):
         regardless of whether or not the
         key exists.
 
-        .. versionadded:: 0.4.4
+        .. versionadded:: 0.5.0
 
         """
         raise NotImplementedError()

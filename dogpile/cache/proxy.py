@@ -6,7 +6,7 @@ Provides a utility and a decorator class that allow for modifying the behavior
 of different backends without altering the class itself or having to extend the
 base backend.
 
-.. versionadded:: 0.4.4  Added support for the :class:`.ProxyBackend` class.
+.. versionadded:: 0.5.0  Added support for the :class:`.ProxyBackend` class.
 
 """
 
@@ -50,7 +50,7 @@ class ProxyBackend(CacheBackend):
     the next proxy in the chain that a method can be
     delegated towards.
 
-    .. versionadded:: 0.4.4
+    .. versionadded:: 0.5.0
 
     """
 
