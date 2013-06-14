@@ -29,10 +29,10 @@ class MockBackend(CacheBackend):
         except KeyError:
             return NO_VALUE
     def get_multi(self, keys):
-        values = {}
-        for key in keys:
-            values[key] = self.get(key)
-        return values
+        return [
+            self.get(key) for key in keys
+        ]
+
     def set(self, key, value):
         self._cache[key] = value
     def set_multi(self, mapping):
@@ -320,9 +320,10 @@ class RegionTest(TestCase):
         values = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
         reg.set_multi(values)
         reg_values = reg.get_multi(['key1', 'key2', 'key3'])
-        eq_(values['key1'], reg_values['key1'])
-        eq_(values['key2'], reg_values['key2'])
-        eq_(values['key3'], reg_values['key3'])
+        eq_(
+            reg_values,
+            ["value1", "value2", "value3"]
+        )
 
     def test_should_delete_multiple_values(self):
         reg = self._region()
