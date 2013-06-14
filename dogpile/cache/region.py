@@ -68,12 +68,26 @@ class CacheRegion(object):
                         [kw[k] for k in namespace] +
                         [str(x) for x in arg]
                     )
+            return generate_key
+
 
      Where the decorator might be used as::
 
         @my_region.cache_on_arguments(namespace=('x', 'y'))
         def my_function(a, b, **kw):
             return my_data()
+    :param function_multi_key_generator: Optional.
+     Similar to ``function_key_generator`` parameter, but it's used in
+     :meth:`.CacheRegion.cache_multi_on_arguments`. Generated function
+     should return list of keys. For example::
+
+        def my_multi_key_generator(namespace, fn):
+            namespace = fn.__name__ + (namespace or '')
+
+            def generate_keys(*args):
+                return [namespace + ':' + str(a) for a in args]
+
+            return generate_keys
 
     :param key_mangler: Function which will be used on all incoming
      keys before passing to the backend.  Defaults to ``None``,
@@ -143,12 +157,14 @@ class CacheRegion(object):
     def __init__(self,
             name=None,
             function_key_generator=function_key_generator,
+            function_multi_key_generator=function_multi_key_generator,
             key_mangler=None,
             async_creation_runner=None,
     ):
         """Construct a new :class:`.CacheRegion`."""
         self.name = name
         self.function_key_generator = function_key_generator
+        self.function_multi_key_generator = function_multi_key_generator
         if key_mangler:
             self.key_mangler = key_mangler
         else:
@@ -975,7 +991,7 @@ class CacheRegion(object):
         """
         expiration_time_is_callable = compat.callable(expiration_time)
         def decorator(fn):
-            key_generator = function_multi_key_generator(namespace, fn)
+            key_generator = self.function_multi_key_generator(namespace, fn)
             @wraps(fn)
             def decorate(*arg, **kw):
                 cache_keys = arg
