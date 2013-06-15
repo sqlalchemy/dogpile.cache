@@ -395,6 +395,75 @@ class CacheDecoratorTest(TestCase):
         generate.set({7: 18, 10: 15})
         eq_(generate(2, 7, 10), ['2 5', 18, 15])
 
+    def test_multi_asdict(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments(asdict=True)
+        def generate(*args):
+            return dict(
+                    [(arg, "%d %d" % (arg, next(counter))) for arg in args]
+                    )
+
+        eq_(generate(2, 8, 10), {2: '2 2', 8: '8 3', 10: '10 1'})
+        eq_(generate(2, 9, 10), {2: '2 2', 9: '9 4', 10: '10 1'})
+
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), {2: '2 5', 7: '7 6', 10: '10 1'})
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: '2 5', 7: 18, 10: 15})
+
+    def test_multi_asdict_keys_missing(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments(asdict=True)
+        def generate(*args):
+            return dict(
+                    [(arg, "%d %d" % (arg, next(counter)))
+                        for arg in args if arg != 10]
+                    )
+
+        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 2'})
+        eq_(generate(2, 9, 10), {2: '2 1', 9: '9 3'})
+
+        assert reg.get(10) is NO_VALUE
+
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), {2: '2 4', 7: '7 5'})
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: '2 4', 7: 18, 10: 15})
+
+    def test_multi_asdict_keys_missing_existing_cache_fn(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments(asdict=True,
+                            should_cache_fn=lambda v: not v.startswith('8 '))
+        def generate(*args):
+            return dict(
+                    [(arg, "%d %d" % (arg, next(counter)))
+                        for arg in args if arg != 10]
+                    )
+
+        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 2'})
+        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 3'})
+        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 4'})
+        eq_(generate(2, 9, 10), {2: '2 1', 9: '9 5'})
+
+        assert reg.get(10) is NO_VALUE
+
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), {2: '2 6', 7: '7 7'})
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: '2 6', 7: 18, 10: 15})
+
     def test_multi_namespace(self):
         reg = self._region()
 

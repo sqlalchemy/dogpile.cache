@@ -76,6 +76,7 @@ class CacheRegion(object):
         @my_region.cache_on_arguments(namespace=('x', 'y'))
         def my_function(a, b, **kw):
             return my_data()
+
     :param function_multi_key_generator: Optional.
      Similar to ``function_key_generator`` parameter, but it's used in
      :meth:`.CacheRegion.cache_multi_on_arguments`. Generated function
@@ -924,7 +925,8 @@ class CacheRegion(object):
         return decorator
 
     def cache_multi_on_arguments(self, namespace=None, expiration_time=None,
-                                        should_cache_fn=None):
+                                        should_cache_fn=None,
+                                        asdict=False):
         """A function decorator that will cache multiple return
         values from the function using a sequence of keys derived from the
         function itself and the arguments passed to it.
@@ -991,6 +993,18 @@ class CacheRegion(object):
          callable.
 
         :param should_cache_fn: passed to :meth:`.CacheRegion.get_or_create_multi`.
+         This function is given a value as returned by the creator, and only
+         if it returns True will that value be placed in the cache.
+
+        :param asdict: if ``True``, the decorated function should return
+         its result as a dictionary of keys->values, and the final result
+         of calling the decorated function will also be a dictionary.
+         If left at its default value of ``False``, the decorated function
+         should return its result as a list of values, and the final
+         result of calling the decorated function will also be a list.
+
+         When ``asdict==True`` if the dictionary returned by the decorated
+         function is missing keys, those keys will not be cached.
 
         .. versionadded:: 0.5.0
 
@@ -1015,8 +1029,29 @@ class CacheRegion(object):
 
                 timeout = expiration_time() if expiration_time_is_callable \
                             else expiration_time
-                return self.get_or_create_multi(keys, creator, timeout,
+
+                if asdict:
+                    def dict_create(*keys):
+                        d_values = creator(*keys)
+                        return [d_values.get(key_lookup[k], NO_VALUE) for k in keys]
+
+                    def wrap_cache_fn(value):
+                        if value is NO_VALUE:
+                            return False
+                        elif not should_cache_fn:
+                            return True
+                        else:
+                            return should_cache_fn(value)
+
+                    result = self.get_or_create_multi(keys, dict_create, timeout,
+                                         wrap_cache_fn)
+                    result = dict((k, v) for k, v in zip(cache_keys, result)
+                                        if v is not NO_VALUE)
+                else:
+                    result = self.get_or_create_multi(keys, creator, timeout,
                                           should_cache_fn)
+
+                return result
 
             def invalidate(*arg):
                 keys = key_generator(*arg)

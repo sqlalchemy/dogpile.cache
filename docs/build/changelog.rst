@@ -13,7 +13,7 @@ Changelog
 
     .. change::
         :tags: feature
-        :tickets: 33
+        :tickets: 33, 35
 
       Added new methods :meth:`.CacheRegion.get_or_create_multi`
       and :meth:`.CacheRegion.cache_multi_on_arguments`, which
