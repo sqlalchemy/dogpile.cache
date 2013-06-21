@@ -5,6 +5,11 @@ Changelog
     :version: 0.5.0
 
     .. change::
+        :tags: misc
+
+      Source repository has been moved to git.
+
+    .. change::
         :tags: bug
 
       The Redis backend now uses ``pickle.HIGHEST_PROTOCOL`` when

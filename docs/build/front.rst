@@ -7,8 +7,9 @@ Information about the dogpile.cache project.
 Project Homepage
 ================
 
-dogpile.cache is hosted on `Bitbucket <http://bitbucket.org>`_ - the lead project page is at https://bitbucket.org/zzzeek/dogpile.cache.  Source
-code is tracked here using `Mercurial <http://mercurial.selenic.com/>`_.
+dogpile.cache is hosted on `Bitbucket <http://bitbucket.org>`_ - the lead project page is at https://bitbucket.org/zzzeek/dogpile.cache.  Source code is tracked here using Git.
+
+.. versionchanged:: 0.5.0 Moved source repository to git.
 
 Releases and project status are available on Pypi at http://pypi.python.org/pypi/dogpile.cache.
 
