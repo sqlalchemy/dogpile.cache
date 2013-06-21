@@ -7,6 +7,12 @@ Changelog
     .. change::
         :tags: bug
 
+      The Redis backend now uses ``pickle.HIGHEST_PROTOCOL`` when
+      producing pickles.  Courtesy Lx Yu.
+
+    .. change::
+        :tags: bug
+
       :meth:`.CacheRegion.cache_on_arguments` can now accept
       non-ascii unicode arguments and correctly produce a concatenated
       cache key.  Courtesy Lx Yu.
