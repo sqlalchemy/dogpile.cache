@@ -23,6 +23,9 @@ if py3k: # pragma: no cover
         def callable(fn):
             return hasattr(fn, '__call__')
 
+    def u(s):
+        return s
+
     import configparser
     import io
     import _thread as thread
@@ -31,8 +34,12 @@ else:
     text_type = unicode
     string_type = str
 
+    def u(s):
+        return unicode(s, "utf-8")
+
     import ConfigParser as configparser
     import StringIO as io
+
 
     callable = callable
     import thread

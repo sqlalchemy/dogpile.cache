@@ -1,8 +1,10 @@
+#! coding: utf-8
+
 from ._fixtures import _GenericBackendFixture
 from . import eq_
 from unittest import TestCase
 import time
-from dogpile.cache import util
+from dogpile.cache import util, compat
 import itertools
 from dogpile.cache.api import NO_VALUE
 
@@ -112,6 +114,18 @@ class KeyGenerationTest(TestCase):
 
         eq_(gen(1, 2), "tests.cache.test_decorator:one|mynamespace|1 2")
         eq_(gen(None, 5), "tests.cache.test_decorator:one|mynamespace|None 5")
+
+    def test_unicode_key(self):
+        decorate, canary = self._keygen_decorator("mynamespace")
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        eq_(gen(compat.u('méil'), compat.u('drôle')),
+                compat.u("tests.cache.test_decorator:one|mynamespace|1 2"))
+
 
 class CacheDecoratorTest(_GenericBackendFixture, TestCase):
     backend = "mock"
