@@ -35,6 +35,15 @@ Changelog
       maintaining dogpile semantics for each.
 
     .. change::
+      :tags: feature
+      :tickets: 36
+
+      Added a method ``refresh()`` to functions decorated by
+      :meth:`.CacheRegion.cache_on_arguments` and
+      :meth:`.CacheRegion.cache_multi_on_arguments`, to complement
+      ``invalidate()`` and ``set()``.
+
+    .. change::
         :tags: feature
         :tickets: 13
 

@@ -14,13 +14,25 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
     def _fixture(self, namespace=None, expiration_time=None):
         reg = self._region(config_args={"expiration_time":.25})
 
-        counter = [0]
+        counter = itertools.count(1)
         @reg.cache_on_arguments(namespace=namespace,
                             expiration_time=expiration_time)
         def go(a, b):
-            counter[0] +=1
-            return counter[0], a, b
+            val = next(counter)
+            return val, a, b
         return go
+
+    def _multi_fixture(self, namespace=None, expiration_time=None):
+        reg = self._region(config_args={"expiration_time":.25})
+
+        counter = itertools.count(1)
+        @reg.cache_multi_on_arguments(namespace=namespace,
+                            expiration_time=expiration_time)
+        def go(*args):
+            val = next(counter)
+            return ["%d %s" % (val, arg) for arg in args]
+        return go
+
 
     def test_decorator(self):
         go = self._fixture()
@@ -84,6 +96,30 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         eq_(go(1, 2), (3, 1, 2))
         go.set(0, 1, 3)
         eq_(go(1, 3), 0)
+
+    def test_explicit_set_multi(self):
+        go = self._multi_fixture(expiration_time=1)
+        eq_(go(1, 2), ['1 1', '1 2'])
+        eq_(go(1, 2), ['1 1', '1 2'])
+        go.set({1: '1 5', 2: '1 6'})
+        eq_(go(1, 2), ['1 5', '1 6'])
+
+    def test_explicit_refresh(self):
+        go = self._fixture(expiration_time=1)
+        eq_(go(1, 2), (1, 1, 2))
+        eq_(go.refresh(1, 2), (2, 1, 2))
+        eq_(go(1, 2), (2, 1, 2))
+        eq_(go(1, 2), (2, 1, 2))
+        eq_(go.refresh(1, 2), (3, 1, 2))
+        eq_(go(1, 2), (3, 1, 2))
+
+    def test_explicit_refresh_multi(self):
+        go = self._multi_fixture(expiration_time=1)
+        eq_(go(1, 2), ['1 1', '1 2'])
+        eq_(go(1, 2), ['1 1', '1 2'])
+        eq_(go.refresh(1, 2), ['2 1', '2 2'])
+        eq_(go(1, 2), ['2 1', '2 2'])
+        eq_(go(1, 2), ['2 1', '2 2'])
 
 class KeyGenerationTest(TestCase):
     def _keygen_decorator(self, namespace=None):

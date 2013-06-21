@@ -779,14 +779,14 @@ class CacheRegion(object):
 
             result = generate_something(5, 6)
 
-        The function is also given an attribute ``invalidate``, which
+        The function is also given an attribute ``invalidate()``, which
         provides for invalidation of the value.  Pass to ``invalidate()``
         the same arguments you'd pass to the function itself to represent
         a particular value::
 
             generate_something.invalidate(5, 6)
 
-        Another attribute ``set`` is added to provide extra caching
+        Another attribute ``set()`` is added to provide extra caching
         possibilities relative to the function.   This is a convenience
         method for :meth:`.CacheRegion.set` which will store a given
         value directly without calling the decorated function.
@@ -800,7 +800,16 @@ class CacheRegion(object):
         if the function were to produce the value ``3`` as the value to be
         cached.
 
-        .. versionadded:: 0.4.1 Added set() method to decorated function.
+        .. versionadded:: 0.4.1 Added ``set()`` method to decorated function.
+
+        Similar to ``set()`` is ``refresh()``.   This attribute will
+        invoke the decorated function and populate a new value into
+        the cache with the new value, as well as returning that value::
+
+            newvalue = generate_something.refresh(5, 6)
+
+        .. versionadded:: 0.5.0 Added ``refresh()`` method to decorated
+           function.
 
         The default key generation will use the name
         of the function, the module name for the function,
@@ -918,8 +927,15 @@ class CacheRegion(object):
                 key = key_generator(*arg, **kw)
                 self.set(key, value)
 
+            def refresh(*arg, **kw):
+                key = key_generator(*arg, **kw)
+                value = fn(*arg, **kw)
+                self.set(key, value)
+                return value
+
             decorate.set = set_
             decorate.invalidate = invalidate
+            decorate.refresh = refresh
 
             return decorate
         return decorator
@@ -975,11 +991,16 @@ class CacheRegion(object):
             generate_something.set({"k1": "value1",
                                     "k2": "value2", "k3": "value3"})
 
-        as well as an ``invalidate()`` method, which has the effect of deleting
+        an ``invalidate()`` method, which has the effect of deleting
         the given sequence of keys using the same mechanism as that of
         :meth:`.CacheRegion.delete_multi`::
 
             generate_something.invalidate("k1", "k2", "k3")
+
+        and finally a ``refresh()`` method, which will call the creation
+        function, cache the new values, and return them::
+
+            values = generate_something.refresh("k1", "k2", "k3")
 
         Parameters passed to :meth:`.CacheRegion.cache_multi_on_arguments`
         have the same meaning as those passed to
@@ -1066,8 +1087,17 @@ class CacheRegion(object):
                         in zip(gen_keys, keys))
                     )
 
+            def refresh(*arg):
+                keys = key_generator(*arg)
+                values = fn(*arg)
+                self.set_multi(
+                            dict(zip(keys, values))
+                        )
+                return values
+
             decorate.set = set_
             decorate.invalidate = invalidate
+            decorate.refresh = refresh
 
             return decorate
         return decorator
