@@ -3,7 +3,8 @@ from . import eq_
 from unittest import TestCase
 import time
 from dogpile.cache import util
-import inspect
+import itertools
+from dogpile.cache.api import NO_VALUE
 
 class DecoratorTest(_GenericBackendFixture, TestCase):
     backend = "dogpile.cache.memory"
@@ -111,5 +112,161 @@ class KeyGenerationTest(TestCase):
 
         eq_(gen(1, 2), "tests.cache.test_decorator:one|mynamespace|1 2")
         eq_(gen(None, 5), "tests.cache.test_decorator:one|mynamespace|None 5")
+
+class CacheDecoratorTest(_GenericBackendFixture, TestCase):
+    backend = "mock"
+    #def _region(self, init_args={}, config_args={}, backend="mock"):
+    #    reg = CacheRegion(**init_args)
+    #    reg.configure(backend, **config_args)
+    #    return reg
+
+    def test_cache_arg(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_on_arguments()
+        def generate(x, y):
+            return next(counter) + x + y
+
+        eq_(generate(1, 2), 4)
+        eq_(generate(2, 1), 5)
+        eq_(generate(1, 2), 4)
+        generate.invalidate(1, 2)
+        eq_(generate(1, 2), 6)
+
+    def test_reentrant_call(self):
+        reg = self._region(backend="dogpile.cache.memory")
+
+        counter = itertools.count(1)
+
+        # if these two classes get the same namespace,
+        # you get a reentrant deadlock.
+        class Foo(object):
+            @classmethod
+            @reg.cache_on_arguments(namespace="foo")
+            def generate(cls, x, y):
+                return next(counter) + x + y
+
+        class Bar(object):
+            @classmethod
+            @reg.cache_on_arguments(namespace="bar")
+            def generate(cls, x, y):
+                return Foo.generate(x, y)
+
+        eq_(Bar.generate(1, 2), 4)
+
+    def test_multi(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments()
+        def generate(*args):
+            return ["%d %d" % (arg, next(counter)) for arg in args]
+
+        eq_(generate(2, 8, 10), ['2 2', '8 3', '10 1'])
+        eq_(generate(2, 9, 10), ['2 2', '9 4', '10 1'])
+
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), ['2 5', '7 6', '10 1'])
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), ['2 5', 18, 15])
+
+    def test_multi_asdict(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments(asdict=True)
+        def generate(*args):
+            return dict(
+                    [(arg, "%d %d" % (arg, next(counter))) for arg in args]
+                    )
+
+        eq_(generate(2, 8, 10), {2: '2 2', 8: '8 3', 10: '10 1'})
+        eq_(generate(2, 9, 10), {2: '2 2', 9: '9 4', 10: '10 1'})
+
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), {2: '2 5', 7: '7 6', 10: '10 1'})
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: '2 5', 7: 18, 10: 15})
+
+    def test_multi_asdict_keys_missing(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments(asdict=True)
+        def generate(*args):
+            return dict(
+                    [(arg, "%d %d" % (arg, next(counter)))
+                        for arg in args if arg != 10]
+                    )
+
+        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 2'})
+        eq_(generate(2, 9, 10), {2: '2 1', 9: '9 3'})
+
+        assert reg.get(10) is NO_VALUE
+
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), {2: '2 4', 7: '7 5'})
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: '2 4', 7: 18, 10: 15})
+
+    def test_multi_asdict_keys_missing_existing_cache_fn(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments(asdict=True,
+                            should_cache_fn=lambda v: not v.startswith('8 '))
+        def generate(*args):
+            return dict(
+                    [(arg, "%d %d" % (arg, next(counter)))
+                        for arg in args if arg != 10]
+                    )
+
+        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 2'})
+        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 3'})
+        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 4'})
+        eq_(generate(2, 9, 10), {2: '2 1', 9: '9 5'})
+
+        assert reg.get(10) is NO_VALUE
+
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), {2: '2 6', 7: '7 7'})
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: '2 6', 7: 18, 10: 15})
+
+    def test_multi_namespace(self):
+        reg = self._region()
+
+        counter = itertools.count(1)
+
+        @reg.cache_multi_on_arguments(namespace="foo")
+        def generate(*args):
+            return ["%d %d" % (arg, next(counter)) for arg in args]
+
+        eq_(generate(2, 8, 10), ['2 2', '8 3', '10 1'])
+        eq_(generate(2, 9, 10), ['2 2', '9 4', '10 1'])
+
+        eq_(
+            sorted(list(reg.backend._cache)),
+            [
+            'tests.cache.test_decorator:generate|foo|10',
+            'tests.cache.test_decorator:generate|foo|2',
+            'tests.cache.test_decorator:generate|foo|8',
+            'tests.cache.test_decorator:generate|foo|9']
+        )
+        generate.invalidate(2)
+        eq_(generate(2, 7, 10), ['2 5', '7 6', '10 1'])
+
+        generate.set({7: 18, 10: 15})
+        eq_(generate(2, 7, 10), ['2 5', 18, 15])
 
 

@@ -41,7 +41,7 @@ class _GenericBackendFixture(object):
 
     _keys = set()
 
-    def _region(self, region_args={}, config_args={}):
+    def _region(self, backend=None, region_args={}, config_args={}):
         _region_args = self.region_args.copy()
         _region_args.update(**region_args)
         _config_args = self.config_args.copy()
@@ -58,7 +58,7 @@ class _GenericBackendFixture(object):
         self._region_inst.key_mangler = _store_keys
 
 
-        reg.configure(self.backend, **_config_args)
+        reg.configure(backend or self.backend, **_config_args)
         return reg
 
     def _backend(self):
@@ -339,3 +339,39 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
             reg.get_or_create("foo", create_foo),
             "foobar"
         )
+
+class MockMutex(object):
+    def __init__(self, key):
+        self.key = key
+    def acquire(self, blocking=True):
+        return True
+    def release(self):
+        return
+
+class MockBackend(CacheBackend):
+    def __init__(self, arguments):
+        self.arguments = arguments
+        self._cache = {}
+    def get_mutex(self, key):
+        return MockMutex(key)
+    def get(self, key):
+        try:
+            return self._cache[key]
+        except KeyError:
+            return NO_VALUE
+    def get_multi(self, keys):
+        return [
+            self.get(key) for key in keys
+        ]
+
+    def set(self, key, value):
+        self._cache[key] = value
+    def set_multi(self, mapping):
+        for key,value in mapping.items():
+            self.set(key, value)
+    def delete(self, key):
+        self._cache.pop(key, None)
+    def delete_multi(self, keys):
+        for key in keys:
+            self.delete(key)
+register_backend("mock", __name__, "MockBackend")
