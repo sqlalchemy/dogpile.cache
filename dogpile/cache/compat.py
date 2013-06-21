@@ -26,6 +26,9 @@ if py3k: # pragma: no cover
     def u(s):
         return s
 
+    def ue(s):
+        return s
+
     import configparser
     import io
     import _thread as thread
@@ -36,6 +39,9 @@ else:
 
     def u(s):
         return unicode(s, "utf-8")
+
+    def ue(s):
+        return unicode(s, "unicode_escape")
 
     import ConfigParser as configparser
     import StringIO as io

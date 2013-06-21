@@ -5,6 +5,13 @@ Changelog
     :version: 0.5.0
 
     .. change::
+        :tags: bug
+
+      :meth:`.CacheRegion.cache_on_arguments` can now accept
+      non-ascii unicode arguments and correctly produce a concatenated
+      cache key.  Courtesy Lx Yu.
+
+    .. change::
         :tags: feature
 
       Now using the ``Lock`` included with the Python

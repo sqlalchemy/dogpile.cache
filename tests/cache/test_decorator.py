@@ -93,6 +93,13 @@ class KeyGenerationTest(TestCase):
             return fn
         return decorate, canary
 
+    def _multi_keygen_decorator(self, namespace=None):
+        canary = []
+        def decorate(fn):
+            canary.append(util.function_multi_key_generator(namespace, fn))
+            return fn
+        return decorate, canary
+
     def test_keygen_fn(self):
         decorate, canary = self._keygen_decorator()
 
@@ -103,6 +110,19 @@ class KeyGenerationTest(TestCase):
 
         eq_(gen(1, 2), "tests.cache.test_decorator:one|1 2")
         eq_(gen(None, 5), "tests.cache.test_decorator:one|None 5")
+
+    def test_multi_keygen_fn(self):
+        decorate, canary = self._multi_keygen_decorator()
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        eq_(gen(1, 2), [
+                "tests.cache.test_decorator:one|1",
+                "tests.cache.test_decorator:one|2"
+            ])
 
     def test_keygen_fn_namespace(self):
         decorate, canary = self._keygen_decorator("mynamespace")
@@ -124,15 +144,26 @@ class KeyGenerationTest(TestCase):
         gen = canary[0]
 
         eq_(gen(compat.u('méil'), compat.u('drôle')),
-                compat.u("tests.cache.test_decorator:one|mynamespace|1 2"))
+                compat.ue("tests.cache.test_decorator:"
+                        "one|mynamespace|m\xe9il dr\xf4le"))
+
+    def test_unicode_key_multi(self):
+        decorate, canary = self._multi_keygen_decorator("mynamespace")
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        eq_(gen(compat.u('méil'), compat.u('drôle')),
+            [
+                compat.ue('tests.cache.test_decorator:one|mynamespace|m\xe9il'),
+                compat.ue('tests.cache.test_decorator:one|mynamespace|dr\xf4le')
+            ])
 
 
 class CacheDecoratorTest(_GenericBackendFixture, TestCase):
     backend = "mock"
-    #def _region(self, init_args={}, config_args={}, backend="mock"):
-    #    reg = CacheRegion(**init_args)
-    #    reg.configure(backend, **config_args)
-    #    return reg
 
     def test_cache_arg(self):
         reg = self._region()
