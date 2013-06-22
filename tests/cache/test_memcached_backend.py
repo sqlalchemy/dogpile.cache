@@ -97,7 +97,7 @@ class MockPylibmcBackend(PylibmcBackend):
         pass
 
     def _create_client(self):
-        return MockClient(self.url, 
+        return MockClient(self.url,
                         binary=self.binary,
                         behaviors=self.behaviors
                     )
@@ -136,18 +136,18 @@ class PylibmcArgsTest(TestCase):
         eq_(backend._create_client().arg[0], ["foo"])
 
     def test_behaviors(self):
-        backend = MockPylibmcBackend(arguments={'url':"foo", 
+        backend = MockPylibmcBackend(arguments={'url':"foo",
                                     "behaviors":{"q":"p"}})
         eq_(backend._create_client().kw["behaviors"], {"q": "p"})
 
     def test_set_time(self):
-        backend = MockPylibmcBackend(arguments={'url':"foo", 
+        backend = MockPylibmcBackend(arguments={'url':"foo",
                                 "memcached_expire_time":20})
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"time":20}])
 
     def test_set_min_compress_len(self):
-        backend = MockPylibmcBackend(arguments={'url':"foo", 
+        backend = MockPylibmcBackend(arguments={'url':"foo",
                                 "min_compress_len":20})
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"min_compress_len":20}])
@@ -159,13 +159,13 @@ class PylibmcArgsTest(TestCase):
 
 class MemcachedArgstest(TestCase):
     def test_set_time(self):
-        backend = MockMemcacheBackend(arguments={'url':"foo", 
+        backend = MockMemcacheBackend(arguments={'url':"foo",
                                 "memcached_expire_time":20})
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"time":20}])
 
     def test_set_min_compress_len(self):
-        backend = MockMemcacheBackend(arguments={'url':"foo", 
+        backend = MockMemcacheBackend(arguments={'url':"foo",
                                 "min_compress_len":20})
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"min_compress_len":20}])
@@ -187,7 +187,7 @@ class LocalThreadTest(TestCase):
         self._test_client_cleanup(10)
 
     def _test_client_cleanup(self, count):
-        backend = MockGenericMemcachedBackend(arguments={'url':'foo'})
+        backend = MockGenericMemcachedBackend(arguments={'url': 'foo'})
         canary = []
 
         def f():
