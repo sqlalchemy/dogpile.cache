@@ -15,7 +15,7 @@ setup(name='dogpile.cache',
       description="A caching front-end based on the Dogpile lock.",
       long_description=open(readme).read(),
       classifiers=[
-      'Development Status :: 3 - Alpha',
+      'Development Status :: 4 - Beta',
       'Intended Audience :: Developers',
       'License :: OSI Approved :: BSD License',
       'Programming Language :: Python',
