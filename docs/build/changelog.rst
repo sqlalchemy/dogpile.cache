@@ -18,9 +18,10 @@ Changelog
     .. change::
         :tags: bug
 
-      :meth:`.CacheRegion.cache_on_arguments` can now accept
-      non-ascii unicode arguments and correctly produce a concatenated
-      cache key.  Courtesy Lx Yu.
+      :meth:`.CacheRegion.cache_on_arguments` now has a new argument
+      ``to_str``, defaults to ``str()``.  Can be replaced with ``unicode()``
+      or other functions to support caching of functions that
+      accept non-unicode arguments.  Initial patch courtesy Lx Yu.
 
     .. change::
         :tags: feature

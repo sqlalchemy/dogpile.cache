@@ -1,7 +1,7 @@
 #! coding: utf-8
 
 from ._fixtures import _GenericBackendFixture
-from . import eq_
+from . import eq_, requires_py3k
 from unittest import TestCase
 import time
 from dogpile.cache import util, compat
@@ -122,17 +122,17 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         eq_(go(1, 2), ['2 1', '2 2'])
 
 class KeyGenerationTest(TestCase):
-    def _keygen_decorator(self, namespace=None):
+    def _keygen_decorator(self, namespace=None, **kw):
         canary = []
         def decorate(fn):
-            canary.append(util.function_key_generator(namespace, fn))
+            canary.append(util.function_key_generator(namespace, fn, **kw))
             return fn
         return decorate, canary
 
-    def _multi_keygen_decorator(self, namespace=None):
+    def _multi_keygen_decorator(self, namespace=None, **kw):
         canary = []
         def decorate(fn):
-            canary.append(util.function_multi_key_generator(namespace, fn))
+            canary.append(util.function_multi_key_generator(namespace, fn, **kw))
             return fn
         return decorate, canary
 
@@ -171,8 +171,19 @@ class KeyGenerationTest(TestCase):
         eq_(gen(1, 2), "tests.cache.test_decorator:one|mynamespace|1 2")
         eq_(gen(None, 5), "tests.cache.test_decorator:one|mynamespace|None 5")
 
-    def test_unicode_key(self):
+    def test_key_isnt_unicode_bydefault(self):
         decorate, canary = self._keygen_decorator("mynamespace")
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        assert isinstance(gen('foo'), str)
+
+    def test_unicode_key(self):
+        decorate, canary = self._keygen_decorator("mynamespace",
+                                        to_str=compat.text_type)
 
         @decorate
         def one(a, b):
@@ -184,7 +195,8 @@ class KeyGenerationTest(TestCase):
                         "one|mynamespace|m\xe9il dr\xf4le"))
 
     def test_unicode_key_multi(self):
-        decorate, canary = self._multi_keygen_decorator("mynamespace")
+        decorate, canary = self._multi_keygen_decorator("mynamespace",
+                                        to_str=compat.text_type)
 
         @decorate
         def one(a, b):
@@ -197,6 +209,21 @@ class KeyGenerationTest(TestCase):
                 compat.ue('tests.cache.test_decorator:one|mynamespace|dr\xf4le')
             ])
 
+    @requires_py3k
+    def test_unicode_key_by_default(self):
+        decorate, canary = self._keygen_decorator("mynamespace",
+                                        to_str=compat.text_type)
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        assert isinstance(gen('méil'), str)
+
+        eq_(gen('méil', 'drôle'),
+                "tests.cache.test_decorator:"
+                        "one|mynamespace|m\xe9il dr\xf4le")
 
 class CacheDecoratorTest(_GenericBackendFixture, TestCase):
     backend = "mock"

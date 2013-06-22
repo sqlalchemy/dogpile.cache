@@ -55,7 +55,7 @@ class PluginLoader(object):
         self.impls[name] = load
 
 
-def function_key_generator(namespace, fn):
+def function_key_generator(namespace, fn, to_str=compat.string_type):
     """Return a function that generates a string
     key, based on a given function as well as
     arguments to the returned function itself.
@@ -82,10 +82,11 @@ def function_key_generator(namespace, fn):
                     "function does not accept keyword arguments.")
         if has_self:
             args = args[1:]
-        return namespace + "|" + " ".join(map(compat.text_type, args))
+
+        return namespace + "|" + " ".join(map(to_str, args))
     return generate_key
 
-def function_multi_key_generator(namespace, fn):
+def function_multi_key_generator(namespace, fn, to_str=compat.string_type):
 
     if namespace is None:
         namespace = '%s:%s' % (fn.__module__, fn.__name__)
@@ -101,7 +102,7 @@ def function_multi_key_generator(namespace, fn):
                     "function does not accept keyword arguments.")
         if has_self:
             args = args[1:]
-        return [namespace + "|" + key for key in map(compat.text_type, args)]
+        return [namespace + "|" + key for key in map(to_str, args)]
     return generate_keys
 
 def sha1_mangle_key(key):

@@ -1,5 +1,7 @@
 import re
-
+from nose import SkipTest
+from functools import wraps
+from dogpile.cache import compat
 
 def eq_(a, b, msg=None):
     """Assert a == b, with repr messaging on failure."""
@@ -21,3 +23,12 @@ def assert_raises_message(except_cls, msg, callable_, *args, **kwargs):
         assert re.search(msg, str(e)), "%r !~ %s" % (msg, e)
 
 from dogpile.cache.compat import configparser, io
+
+
+def requires_py3k(fn):
+    @wraps(fn)
+    def wrap(*arg, **kw):
+        if compat.py2k:
+            raise SkipTest("Python 3 required")
+        return fn(*arg, **kw)
+    return wrap

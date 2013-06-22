@@ -1,6 +1,7 @@
 import sys
 
 
+py2k = sys.version_info < (3, 0)
 py3k = sys.version_info >= (3, 0)
 py32 = sys.version_info >= (3, 2)
 jython = sys.platform.startswith('java')

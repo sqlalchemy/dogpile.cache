@@ -39,7 +39,7 @@ class CacheRegion(object):
      return a new function that generates the key based on
      the given arguments.  Such as::
 
-        def my_key_generator(namespace, fn):
+        def my_key_generator(namespace, fn, **kw):
             fname = fn.__name__
             def generate_key(*arg):
                 return namespace + "_" + fname + "_".join(str(s) for s in arg)
@@ -82,7 +82,7 @@ class CacheRegion(object):
      :meth:`.CacheRegion.cache_multi_on_arguments`. Generated function
      should return list of keys. For example::
 
-        def my_multi_key_generator(namespace, fn):
+        def my_multi_key_generator(namespace, fn, **kw):
             namespace = fn.__name__ + (namespace or '')
 
             def generate_keys(*args):
@@ -756,8 +756,10 @@ class CacheRegion(object):
         self.backend.delete_multi(keys)
 
 
-    def cache_on_arguments(self, namespace=None, expiration_time=None,
-                                        should_cache_fn=None):
+    def cache_on_arguments(self, namespace=None,
+                                    expiration_time=None,
+                                    should_cache_fn=None,
+                                    to_str=compat.string_type):
         """A function decorator that will cache the return
         value of the function using a key derived from the
         function itself and its arguments.
@@ -898,6 +900,15 @@ class CacheRegion(object):
 
           .. versionadded:: 0.4.3
 
+        :param to_str: callable, will be called on each function argument
+         in order to convert to a string.  Defaults to ``str()``.  If the
+         function accepts non-ascii unicode arguments on Python 2.x, the
+         ``unicode()`` builtin can be substituted, but note this will
+         produce unicode cache keys which may require key mangling before
+         reaching the cache.
+
+          .. versionadded:: 0.5.0
+
         .. seealso::
 
             :meth:`.CacheRegion.cache_multi_on_arguments`
@@ -907,7 +918,12 @@ class CacheRegion(object):
         """
         expiration_time_is_callable = compat.callable(expiration_time)
         def decorator(fn):
-            key_generator = self.function_key_generator(namespace, fn)
+            if to_str is compat.string_type:
+                # backwards compatible
+                key_generator = self.function_key_generator(namespace, fn)
+            else:
+                key_generator = self.function_key_generator(namespace, fn,
+                                    to_str=to_str)
             @wraps(fn)
             def decorate(*arg, **kw):
                 key = key_generator(*arg, **kw)
@@ -942,7 +958,7 @@ class CacheRegion(object):
 
     def cache_multi_on_arguments(self, namespace=None, expiration_time=None,
                                         should_cache_fn=None,
-                                        asdict=False):
+                                        asdict=False, to_str=compat.string_type):
         """A function decorator that will cache multiple return
         values from the function using a sequence of keys derived from the
         function itself and the arguments passed to it.
@@ -1027,6 +1043,13 @@ class CacheRegion(object):
          When ``asdict==True`` if the dictionary returned by the decorated
          function is missing keys, those keys will not be cached.
 
+        :param to_str: callable, will be called on each function argument
+         in order to convert to a string.  Defaults to ``str()``.  If the
+         function accepts non-ascii unicode arguments on Python 2.x, the
+         ``unicode()`` builtin can be substituted, but note this will
+         produce unicode cache keys which may require key mangling before
+         reaching the cache.
+
         .. versionadded:: 0.5.0
 
         .. seealso::
@@ -1038,7 +1061,8 @@ class CacheRegion(object):
         """
         expiration_time_is_callable = compat.callable(expiration_time)
         def decorator(fn):
-            key_generator = self.function_multi_key_generator(namespace, fn)
+            key_generator = self.function_multi_key_generator(namespace, fn,
+                                            to_str=to_str)
             @wraps(fn)
             def decorate(*arg, **kw):
                 cache_keys = arg
