@@ -898,7 +898,7 @@ class CacheRegion(object):
 
         :param should_cache_fn: passed to :meth:`.CacheRegion.get_or_create`.
 
-          .. versionadded:: 0.4.3
+         .. versionadded:: 0.4.3
 
         :param to_str: callable, will be called on each function argument
          in order to convert to a string.  Defaults to ``str()``.  If the
@@ -907,7 +907,7 @@ class CacheRegion(object):
          produce unicode cache keys which may require key mangling before
          reaching the cache.
 
-          .. versionadded:: 0.5.0
+         .. versionadded:: 0.5.0
 
         .. seealso::
 
