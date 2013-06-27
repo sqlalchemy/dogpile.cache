@@ -1114,10 +1114,16 @@ class CacheRegion(object):
             def refresh(*arg):
                 keys = key_generator(*arg)
                 values = fn(*arg)
-                self.set_multi(
-                            dict(zip(keys, values))
-                        )
-                return values
+                if asdict:
+                    self.set_multi(
+                                dict(zip(keys, [values[a] for a in arg]))
+                            )
+                    return values
+                else:
+                    self.set_multi(
+                                dict(zip(keys, values))
+                            )
+                    return values
 
             decorate.set = set_
             decorate.invalidate = invalidate

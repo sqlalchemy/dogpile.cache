@@ -302,6 +302,13 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         generate.set({7: 18, 10: 15})
         eq_(generate(2, 7, 10), {2: '2 5', 7: 18, 10: 15})
 
+        eq_(
+            generate.refresh(2, 7),
+            {2: '2 7', 7: '7 8'}
+        )
+        eq_(generate(2, 7, 10), {2: '2 7', 10: 15, 7: '7 8'})
+
+
     def test_multi_asdict_keys_missing(self):
         reg = self._region()
 

@@ -2,6 +2,15 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.5.1
+
+    .. change::
+        :tags: bug
+
+      The ``refresh()`` method on :meth:`.CacheRegion.get_or_create_multi`
+      now supports the ``asdict`` flag.
+
+.. changelog::
     :version: 0.5.0
     :released: Fri Jun 21 2013
 
