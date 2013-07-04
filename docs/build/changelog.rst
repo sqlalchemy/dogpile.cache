@@ -40,7 +40,7 @@ Changelog
       ``to_str``, defaults to ``str()``.  Can be replaced with ``unicode()``
       or other functions to support caching of functions that
       accept non-unicode arguments.  Initial patch courtesy Lx Yu.
-/
+
     .. change::
         :tags: feature
 
