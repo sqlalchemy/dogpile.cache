@@ -14,7 +14,7 @@ def coerce_string_conf(d):
             continue
 
         v = v.strip()
-        if re.match(r'^\d+$', v):
+        if re.match(r'^[-+]?\d+$', v):
             result[k] = int(v)
         elif v.lower() in ('false', 'true'):
             result[k] = v.lower() == 'true'

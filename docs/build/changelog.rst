@@ -7,6 +7,14 @@ Changelog
     .. change::
         :tags: bug
 
+      The :func:`.util.coerce_string_conf` method now correctly coerces
+      negative integers and those with a leading + sign. This previously
+      prevented configuring a :class:`.CacheRegion` with an ``expiration_time``
+      of ``'-1'``. Courtesy David Beitey.
+
+    .. change::
+        :tags: bug
+
       The ``refresh()`` method on :meth:`.CacheRegion.get_or_create_multi`
       now supports the ``asdict`` flag.
 
@@ -32,7 +40,7 @@ Changelog
       ``to_str``, defaults to ``str()``.  Can be replaced with ``unicode()``
       or other functions to support caching of functions that
       accept non-unicode arguments.  Initial patch courtesy Lx Yu.
-
+/
     .. change::
         :tags: feature
 
