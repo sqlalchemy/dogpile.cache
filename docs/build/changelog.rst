@@ -5,6 +5,13 @@ Changelog
     :version: 0.5.1
 
     .. change::
+        :tags: bug, redis, py3k
+        :tickets: 39
+
+      Fixed an errant ``u''`` causing incompatibility in Python3.2
+      in the Redis backend, courtesy Jimmey Mabey.
+
+    .. change::
         :tags: bug
 
       The :func:`.util.coerce_string_conf` method now correctly coerces
