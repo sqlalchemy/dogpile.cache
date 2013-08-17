@@ -8,7 +8,7 @@ Provides backends for talking to `Redis <http://redis.io>`_.
 
 from __future__ import absolute_import
 from dogpile.cache.api import CacheBackend, NO_VALUE
-from dogpile.cache.compat import pickle
+from dogpile.cache.compat import pickle, u
 
 redis = None
 
@@ -105,7 +105,7 @@ class RedisBackend(CacheBackend):
 
     def get_mutex(self, key):
         if self.distributed_lock:
-            return self.client.lock(u"_lock{}".format(key), self.lock_timeout,
+            return self.client.lock(u('_lock{}').format(key), self.lock_timeout,
                                     self.lock_sleep)
         else:
             return None
