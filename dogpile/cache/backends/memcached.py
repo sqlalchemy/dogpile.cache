@@ -218,7 +218,7 @@ class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
      ``pylibmc.Client``.
     :param behaviors: a dictionary which will be passed to
      ``pylibmc.Client`` as the ``behaviors`` parameter.
-    :param min_compres_len: Integer, will be passed as the
+    :param min_compress_len: Integer, will be passed as the
      ``min_compress_len`` parameter to the ``pylibmc.Client.set``
      method.
 
