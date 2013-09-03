@@ -1,6 +1,7 @@
 from __future__ import with_statement
 from dogpile.core import Lock, NeedRegenerationException
 from dogpile.core.nameregistry import NameRegistry
+from . import exception
 from .util import function_key_generator, PluginLoader, \
     memoized_property, coerce_string_conf, function_multi_key_generator
 from .api import NO_VALUE, CachedValue
@@ -221,7 +222,7 @@ class CacheRegion(object):
          """
 
         if "backend" in self.__dict__:
-            raise Exception(
+            raise exception.RegionAlreadyConfigured(
                     "This region is already "
                     "configured with backend: %s"
                     % self.backend)
@@ -239,7 +240,8 @@ class CacheRegion(object):
         elif isinstance(expiration_time, datetime.timedelta):
             self.expiration_time = int(expiration_time.total_seconds())
         else:
-            raise Exception('expiration_time is not a number or timedelta.')
+            raise exception.ValidationError(
+                'expiration_time is not a number or timedelta.')
 
         if self.key_mangler is None:
             self.key_mangler = self.backend.key_mangler
@@ -262,8 +264,8 @@ class CacheRegion(object):
             proxy = proxy()
 
         if not issubclass(type(proxy), ProxyBackend):
-            raise Exception("Type %s is not a valid ProxyBackend"
-                    % type(proxy))
+            raise TypeError("Type %s is not a valid ProxyBackend"
+                            % type(proxy))
 
         self.backend = proxy.wrap(self.backend)
 
@@ -346,7 +348,13 @@ class CacheRegion(object):
 
     @memoized_property
     def backend(self):
-        raise Exception("No backend is configured on this region.")
+        raise exception.RegionNotConfigured(
+            "No backend is configured on this region.")
+
+    @property
+    def is_configured(self):
+        """Public property that reports if the backend has been configured."""
+        return 'backend' in self.__dict__
 
     def get(self, key, expiration_time=None, ignore_expiration=False):
         """Return a value from the cache, based on the given key.
