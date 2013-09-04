@@ -129,7 +129,10 @@ class RedisBackend(CacheBackend):
             self.client.set(key, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
 
     def set_multi(self, mapping):
-        mapping = dict((k, pickle.dumps(v)) for k, v in mapping.items())
+        mapping = dict(
+            (k, pickle.dumps(v, pickle.HIGHEST_PROTOCOL))
+            for k, v in mapping.items()
+        )
 
         if not self.redis_expiration_time:
             self.client.mset(mapping)
