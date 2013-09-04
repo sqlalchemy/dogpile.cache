@@ -5,6 +5,14 @@ Changelog
     :version: 0.5.1
 
     .. change::
+        :tags: bug
+
+      Erroneously missed when the same change was made for ``set()``
+      in 0.5.0, the Redis backend now uses ``pickle.HIGHEST_PROTOCOL``
+      for the ``set_multi()`` method as well when producing pickles.
+      Courtesy Łukasz Fidosz.
+
+    .. change::
         :tags: bug, redis, py3k
         :tickets: 39
 
