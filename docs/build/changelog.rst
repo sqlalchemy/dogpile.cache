@@ -5,6 +5,16 @@ Changelog
     :version: 0.5.1
 
     .. change::
+        :tags: feature
+        :tickets: 40
+
+      New dogpile-specific exception classes have been added, so that
+      issues like "region already configured", "region unconfigured",
+      raise dogpile-specific exceptions.  Other exception classes have
+      been made more specific.  Also added new accessor
+      :attr:`.CacheRegion.is_configured`. Pullreq courtesy Morgan Fainberg.
+
+    .. change::
         :tags: bug
 
       Erroneously missed when the same change was made for ``set()``

@@ -353,7 +353,12 @@ class CacheRegion(object):
 
     @property
     def is_configured(self):
-        """Public property that reports if the backend has been configured."""
+        """Return True if the backend has been configured via the
+        :meth:`.CacheRegion.configure` method already.
+
+        .. versionadded:: 0.5.1
+
+        """
         return 'backend' in self.__dict__
 
     def get(self, key, expiration_time=None, ignore_expiration=False):
