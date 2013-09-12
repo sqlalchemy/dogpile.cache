@@ -1,6 +1,7 @@
 import pprint
 from unittest import TestCase
 from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
+from dogpile.cache import exception
 from dogpile.cache import make_region, register_backend, CacheRegion, util
 from dogpile.cache.proxy import ProxyBackend
 from . import eq_, is_, assert_raises_message, io, configparser
@@ -68,7 +69,7 @@ class RegionTest(TestCase):
         my_region = make_region()
 
         assert_raises_message(
-            Exception,
+            exception.ValidationError,
             "expiration_time is not a number or timedelta.",
             my_region.configure, 'mock', 'one hour'
         )
@@ -99,18 +100,20 @@ class RegionTest(TestCase):
         reg = CacheRegion()
         reg.configure("mock")
         assert_raises_message(
-            Exception,
+            exception.RegionAlreadyConfigured,
             "This region is already configured",
             reg.configure, "mock"
         )
+        eq_(reg.is_configured, True)
 
     def test_no_config(self):
         reg = CacheRegion()
         assert_raises_message(
-            Exception,
+            exception.RegionNotConfigured,
             "No backend is configured on this region.",
             getattr, reg, "backend"
         )
+        eq_(reg.is_configured, False)
 
     def test_set_get_value(self):
         reg = self._region()
