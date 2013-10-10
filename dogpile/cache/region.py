@@ -171,7 +171,8 @@ class CacheRegion(object):
             self.key_mangler = key_mangler
         else:
             self.key_mangler = None
-        self._invalidated = None
+        self._hard_invalidated = None
+        self._soft_invalidated = None
         self.async_creation_runner = async_creation_runner
 
     def configure(self, backend,
@@ -291,7 +292,7 @@ class CacheRegion(object):
         else:
             return self._LockWrapper()
 
-    def invalidate(self):
+    def invalidate(self, hard=True):
         """Invalidate this :class:`.CacheRegion`.
 
         Invalidation works by setting a current timestamp
@@ -304,13 +305,36 @@ class CacheRegion(object):
         local to this instance of :class:`.CacheRegion`.
 
         Once set, the invalidation time is honored by
-        the :meth:`.CacheRegion.get_or_create` and
+        the :meth:`.CacheRegion.get_or_create`,
+        :meth:`.CacheRegion.get_or_create_multi` and
         :meth:`.CacheRegion.get` methods.
+
+        The method
+        supports both "hard" and "soft" invalidation options.  With "hard"
+        invalidation, :meth:`.CacheRegion.get_or_create` will force an immediate
+        regeneration of the value which all getters will wait for.  With
+        "soft" invalidation, subsequent getters will return the "old" value until
+        the new one is available.
+
+        Usage of "soft" invalidation requires that the region or the method
+        is given a non-None expiration time.
 
         .. versionadded:: 0.3.0
 
+        :param hard: if True, cache values will all require immediate
+         regeneration; dogpile logic won't be used.  If False, the
+         creation time of existing values will be pushed back before
+         the expiration time so that a return+regen will be invoked.
+
+         .. versionadded:: 0.5.1
+
         """
-        self._invalidated = time.time()
+        if hard:
+            self._hard_invalidated = time.time()
+            self._soft_invalidated = None
+        else:
+            self._hard_invalidated = None
+            self._soft_invalidated = time.time()
 
     def configure_from_config(self, config_dict, prefix):
         """Configure from a configuration dictionary
@@ -432,14 +456,15 @@ class CacheRegion(object):
 
             current_time = time.time()
 
+            invalidated = self._hard_invalidated or self._soft_invalidated
             def value_fn(value):
                 if value is NO_VALUE:
                     return value
                 elif expiration_time is not None and \
                       current_time - value.metadata["ct"] > expiration_time:
                     return NO_VALUE
-                elif self._invalidated and \
-                        value.metadata["ct"] < self._invalidated:
+                elif invalidated and \
+                        value.metadata["ct"] < invalidated:
                     return NO_VALUE
                 else:
                     return value
@@ -569,10 +594,15 @@ class CacheRegion(object):
             value = self.backend.get(key)
             if value is NO_VALUE or \
                 value.metadata['v'] != value_version or \
-                    (self._invalidated and
-                    value.metadata["ct"] < self._invalidated):
+                    (self._hard_invalidated and
+                    value.metadata["ct"] < self._hard_invalidated):
                 raise NeedRegenerationException()
-            return value.payload, value.metadata["ct"]
+            ct = value.metadata["ct"]
+            if self._soft_invalidated:
+                if ct < self._soft_invalidated:
+                    ct = time.time() - expiration_time
+
+            return value.payload, ct
 
         def gen_value():
             created_value = creator()
@@ -586,6 +616,11 @@ class CacheRegion(object):
 
         if expiration_time is None:
             expiration_time = self.expiration_time
+
+        if expiration_time is None and self._soft_invalidated:
+            raise exception.DogpileCacheException(
+                    "Non-None expiration time required "
+                    "for soft invalidation")
 
         if self.async_creation_runner:
             def async_creator(mutex):
@@ -643,13 +678,22 @@ class CacheRegion(object):
 
         def get_value(key):
             value = values.get(key, NO_VALUE)
+
             if value is NO_VALUE or \
                 value.metadata['v'] != value_version or \
-                    (self._invalidated and
-                    value.metadata["ct"] < self._invalidated):
+                    (self._hard_invalidated and
+                    value.metadata["ct"] < self._hard_invalidated):
+                # dogpile.core understands a 0 here as
+                # "the value is not available", e.g.
+                # _has_value() will return False.
                 return value.payload, 0
             else:
-                return value.payload, value.metadata["ct"]
+                ct = value.metadata["ct"]
+                if self._soft_invalidated:
+                    if ct < self._soft_invalidated:
+                        ct = time.time() - expiration_time
+
+                return value.payload, ct
 
         def gen_value():
             raise NotImplementedError()
@@ -659,6 +703,11 @@ class CacheRegion(object):
 
         if expiration_time is None:
             expiration_time = self.expiration_time
+
+        if expiration_time is None and self._soft_invalidated:
+            raise exception.DogpileCacheException(
+                    "Non-None expiration time required "
+                    "for soft invalidation")
 
         mutexes = {}
 

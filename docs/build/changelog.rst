@@ -6,6 +6,18 @@ Changelog
 
     .. change::
         :tags: feature
+        :tickets: 38
+
+      The :meth:`.CacheRegion.invalidate` method now supports an option
+      ``hard=True|False``.  A "hard" invalidation, equivalent to the
+      existing functionality of :meth:`.CacheRegion.invalidate`, means
+      :meth:`.CacheRegion.get_or_create` will not return the "old" value at
+      all, forcing all getters to regenerate or wait for a regeneration.
+      "soft" invalidation means that getters can continue to return the
+      old value until a new one is generated.
+
+    .. change::
+        :tags: feature
         :tickets: 40
 
       New dogpile-specific exception classes have been added, so that
