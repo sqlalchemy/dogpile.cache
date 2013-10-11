@@ -52,7 +52,7 @@ Changelog
     .. change::
         :tags: bug
 
-      The ``refresh()`` method on :meth:`.CacheRegion.get_or_create_multi`
+      The ``refresh()`` method on :meth:`.CacheRegion.cache_multi_on_arguments`
       now supports the ``asdict`` flag.
 
 .. changelog::
