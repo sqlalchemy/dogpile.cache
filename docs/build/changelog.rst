@@ -2,6 +2,19 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.5.2
+
+    .. change::
+        :tags: feature
+        :tickets: 44
+
+      Added a new argument ``lock_factory`` to the :class:`.DBMBackend`
+      implementation.  This allows for drop-in replacement of the default
+      :class:`.FileLock` backend, which builds on ``os.flock()`` and only
+      supports Unix platforms.  A new abstract base :class:`.AbstractFileLock`
+      has been added to provide a common base for custom lock implementations.
+
+.. changelog::
     :version: 0.5.1
     :released: Thu Oct 10 2013
 

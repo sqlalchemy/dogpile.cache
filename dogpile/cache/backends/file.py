@@ -14,7 +14,7 @@ from dogpile.cache import util
 import os
 import fcntl
 
-__all__ = 'DBMBackend', 'FileLock'
+__all__ = 'DBMBackend', 'FileLock', 'AbstractFileLock'
 
 class DBMBackend(CacheBackend):
     """A file-backend using a dbm file to store keys.
@@ -48,8 +48,12 @@ class DBMBackend(CacheBackend):
     concurrent writes, the other is to coordinate
     value creation (i.e. the dogpile lock).  By default,
     these lockfiles use the ``flock()`` system call
-    for locking; this is only available on Unix
-    platforms.
+    for locking; this is **only available on Unix
+    platforms**.   An alternative lock implementation, such as one
+    which is based on threads or uses a third-party system
+    such as `portalocker <https://pypi.python.org/pypi/portalocker>`_,
+    can be dropped in using the ``lock_factory`` argument
+    in conjunction with the :class:`.AbstractFileLock` base class.
 
     Currently, the dogpile lock is against the entire
     DBM file, not per key.   This means there can
@@ -80,6 +84,51 @@ class DBMBackend(CacheBackend):
      suffix ".dogpile.lock" to the DBM filename. If
      False, then dogpile.cache uses the default dogpile
      lock, a plain thread-based mutex.
+    :param lock_factory: a function or class which provides
+     for a read/write lock.  Defaults to :class:`.FileLock`.
+     Custom implementations need to implement context-manager
+     based ``read()`` and ``write()`` functions - the
+     :class:`.AbstractFileLock` class is provided as a base class
+     which provides these methods based on individual read/write lock
+     functions.  E.g. to replace the lock with the dogpile.core
+     :class:`.ReadWriteMutex`::
+
+        from dogpile.core.readwrite_lock import ReadWriteMutex
+        from dogpile.cache.backends.file import AbstractFileLock
+
+        class MutexLock(AbstractFileLock):
+            def __init__(self, filename):
+                self.mutex = ReadWriteMutex()
+
+            def acquire_read_lock(self, wait):
+                return self.mutex.acquire_read_lock(wait)
+
+            def acquire_write_lock(self, wait):
+                return self.mutex.acquire_write_lock(wait)
+
+            def release_read_lock(self):
+                return self.mutex.release_read_lock()
+
+            def release_write_lock(self):
+                return self.mutex.release_write_lock(wait)
+
+        from dogpile.cache import make_region
+
+        region = make_region().configure(
+            "dogpile.cache.dbm",
+            expiration_time=300,
+            arguments={
+                "filename": "file.dbm",
+                "lock_factory": MutexLock
+            }
+        )
+
+     While the included :class:`.FileLock` uses ``os.flock()``, a
+     windows-compatible implementation can be built using a library
+     such as `portalocker <https://pypi.python.org/pypi/portalocker>`_.
+
+     .. versionadded:: 0.5.2
+
 
 
     """
@@ -89,6 +138,7 @@ class DBMBackend(CacheBackend):
                         )
         dir_, filename = os.path.split(self.filename)
 
+        self.lock_factory = arguments.get("lock_factory", FileLock)
         self._rw_lock = self._init_lock(
                                 arguments.get('rw_lockfile'),
                                 ".rw.lock", dir_, filename)
@@ -108,9 +158,9 @@ class DBMBackend(CacheBackend):
 
     def _init_lock(self, argument, suffix, basedir, basefile, wrapper=None):
         if argument is None:
-            lock = FileLock(os.path.join(basedir, basefile + suffix))
+            lock = self.lock_factory(os.path.join(basedir, basefile + suffix))
         elif argument is not False:
-            lock = FileLock(
+            lock = self.lock_factory(
                         os.path.abspath(
                             os.path.normpath(argument)
                         ))
@@ -204,7 +254,129 @@ class DBMBackend(CacheBackend):
                 except KeyError:
                     pass
 
-class FileLock(object):
+class AbstractFileLock(object):
+    """Coordinate read/write access to a file.
+
+    typically is a file-based lock but doesn't necessarily have to be.
+
+    The default implementation here is :class:`.FileLock`.
+
+    Implementations should provide the following methods::
+
+        * __init__()
+        * acquire_read_lock()
+        * acquire_write_lock()
+        * release_read_lock()
+        * release_write_lock()
+
+    The ``__init__()`` method accepts a single argument "filename", which
+    may be used as the "lock file", for those implementations that use a lock
+    file.
+
+    Note that multithreaded environments must provide a thread-safe
+    version of this lock.  The recommended approach for file-descriptor-based
+    locks is to use a Python ``threading.local()`` so that a unique file descriptor
+    is held per thread.  See the source code of :class:`.FileLock` for an
+    implementation example.
+
+
+    """
+
+    def __init__(self, filename):
+        """Constructor, is given the filename of a potential lockfile.
+
+        The usage of this filename is optional and no file is
+        created by default.
+
+        Raises ``NotImplementedError`` by default, must be
+        implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    def acquire(self, wait=True):
+        """Acquire the "write" lock.
+
+        This is a direct call to :meth:`.AbstractFileLock.acquire_write_lock`.
+
+        """
+        return self.acquire_write_lock(wait)
+
+    def release(self):
+        """Release the "write" lock.
+
+        This is a direct call to :meth:`.AbstractFileLock.release_write_lock`.
+
+        """
+        self.release_write_lock()
+
+    @contextmanager
+    def read(self):
+        """Provide a context manager for the "read" lock.
+
+        This method makes use of :meth:`.AbstractFileLock.acquire_read_lock`
+        and :meth:`.AbstractFileLock.release_read_lock`
+
+        """
+
+        self.acquire_read_lock(True)
+        try:
+            yield
+        finally:
+            self.release_read_lock()
+
+    @contextmanager
+    def write(self):
+        """Provide a context manager for the "write" lock.
+
+        This method makes use of :meth:`.AbstractFileLock.acquire_write_lock`
+        and :meth:`.AbstractFileLock.release_write_lock`
+
+        """
+
+        self.acquire_write_lock(True)
+        try:
+            yield
+        finally:
+            self.release_write_lock()
+
+    @property
+    def is_open(self):
+        """optional method."""
+        raise NotImplementedError()
+
+    def acquire_read_lock(self, wait):
+        """Acquire a 'reader' lock.
+
+        Raises ``NotImplementedError`` by default, must be
+        implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    def acquire_write_lock(self, wait):
+        """Acquire a 'write' lock.
+
+        Raises ``NotImplementedError`` by default, must be
+        implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    def release_read_lock(self):
+        """Release a 'reader' lock.
+
+        Raises ``NotImplementedError`` by default, must be
+        implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    def release_write_lock(self):
+        """Release a 'writer' lock.
+
+        Raises ``NotImplementedError`` by default, must be
+        implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+class FileLock(AbstractFileLock):
     """Use lockfiles to coordinate read/write access to a file.
 
     Only works on Unix systems, using
@@ -216,31 +388,9 @@ class FileLock(object):
         self._filedescriptor = compat.threading.local()
         self.filename = filename
 
-    def acquire(self, wait=True):
-        return self.acquire_write_lock(wait)
-
-    def release(self):
-        self.release_write_lock()
-
     @property
     def is_open(self):
         return hasattr(self._filedescriptor, 'fileno')
-
-    @contextmanager
-    def read(self):
-        self.acquire_read_lock(True)
-        try:
-            yield
-        finally:
-            self.release_read_lock()
-
-    @contextmanager
-    def write(self):
-        self.acquire_write_lock(True)
-        try:
-            yield
-        finally:
-            self.release_write_lock()
 
     def acquire_read_lock(self, wait):
         return self._acquire(wait, os.O_RDONLY, fcntl.LOCK_SH)
