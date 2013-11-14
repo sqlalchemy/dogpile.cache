@@ -12,7 +12,6 @@ from contextlib import contextmanager
 from dogpile.cache import compat
 from dogpile.cache import util
 import os
-import fcntl
 
 __all__ = 'DBMBackend', 'FileLock', 'AbstractFileLock'
 
@@ -388,15 +387,20 @@ class FileLock(AbstractFileLock):
         self._filedescriptor = compat.threading.local()
         self.filename = filename
 
+    @util.memoized_property
+    def _module(self):
+        import fcntl
+        return fcntl
+
     @property
     def is_open(self):
         return hasattr(self._filedescriptor, 'fileno')
 
     def acquire_read_lock(self, wait):
-        return self._acquire(wait, os.O_RDONLY, fcntl.LOCK_SH)
+        return self._acquire(wait, os.O_RDONLY, self._module.LOCK_SH)
 
     def acquire_write_lock(self, wait):
-        return self._acquire(wait, os.O_WRONLY, fcntl.LOCK_EX)
+        return self._acquire(wait, os.O_WRONLY, self._module.LOCK_EX)
 
     def release_read_lock(self):
         self._release()
@@ -409,8 +413,8 @@ class FileLock(AbstractFileLock):
         fileno = os.open(self.filename, wrflag)
         try:
             if not wait:
-                lockflag |= fcntl.LOCK_NB
-            fcntl.flock(fileno, lockflag)
+                lockflag |= self._module.LOCK_NB
+            self._module.flock(fileno, lockflag)
         except IOError:
             os.close(fileno)
             if not wait:
@@ -430,6 +434,6 @@ class FileLock(AbstractFileLock):
         except AttributeError:
             return
         else:
-            fcntl.flock(fileno, fcntl.LOCK_UN)
+            self._module.flock(fileno, self._module.LOCK_UN)
             os.close(fileno)
             del self._filedescriptor.fileno
