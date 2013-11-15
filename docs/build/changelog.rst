@@ -5,6 +5,12 @@ Changelog
     :version: 0.5.2
 
     .. change::
+        :tags: bug
+
+      Added py2.6 compatibility for unsupported ``total_seconds()`` call
+      in region.py
+
+    .. change::
         :tags: feature
         :tickets: 44
 

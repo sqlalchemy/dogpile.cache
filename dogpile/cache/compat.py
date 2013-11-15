@@ -4,8 +4,8 @@ import sys
 py2k = sys.version_info < (3, 0)
 py3k = sys.version_info >= (3, 0)
 py32 = sys.version_info >= (3, 2)
+py27 = sys.version_info >= (2, 7)
 jython = sys.platform.startswith('java')
-
 
 try:
     import threading
@@ -56,3 +56,12 @@ if py3k or jython:
     import pickle
 else:
     import cPickle as pickle
+
+
+def timedelta_total_seconds(td):
+    if py27:
+        return td.total_seconds()
+    else:
+        return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 1e6) / 1e6
+
+

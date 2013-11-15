@@ -239,7 +239,7 @@ class CacheRegion(object):
         if not expiration_time or isinstance(expiration_time, Number):
             self.expiration_time = expiration_time
         elif isinstance(expiration_time, datetime.timedelta):
-            self.expiration_time = int(expiration_time.total_seconds())
+            self.expiration_time = int(compat.timedelta_total_seconds(expiration_time))
         else:
             raise exception.ValidationError(
                 'expiration_time is not a number or timedelta.')
