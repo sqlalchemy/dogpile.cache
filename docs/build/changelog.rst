@@ -26,6 +26,8 @@ Changelog
       :class:`.FileLock` backend, which builds on ``os.flock()`` and only
       supports Unix platforms.  A new abstract base :class:`.AbstractFileLock`
       has been added to provide a common base for custom lock implementations.
+      The documentation points to an example thread-based rw lock which is
+      now tested on Windows.
 
 .. changelog::
     :version: 0.5.1

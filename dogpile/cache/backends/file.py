@@ -100,16 +100,18 @@ class DBMBackend(CacheBackend):
                 self.mutex = ReadWriteMutex()
 
             def acquire_read_lock(self, wait):
-                return self.mutex.acquire_read_lock(wait)
+                ret = self.mutex.acquire_read_lock(wait)
+                return wait or ret
 
             def acquire_write_lock(self, wait):
-                return self.mutex.acquire_write_lock(wait)
+                ret = self.mutex.acquire_write_lock(wait)
+                return wait or ret
 
             def release_read_lock(self):
                 return self.mutex.release_read_lock()
 
             def release_write_lock(self):
-                return self.mutex.release_write_lock(wait)
+                return self.mutex.release_write_lock()
 
         from dogpile.cache import make_region
 
