@@ -15,8 +15,8 @@ class DBMBackendTest(_GenericBackendTest):
     backend = "dogpile.cache.dbm"
 
     config_args = {
-        "arguments":{
-            "filename":"test.dbm"
+        "arguments": {
+            "filename": "test.dbm"
         }
     }
 
@@ -24,10 +24,10 @@ class DBMBackendNoLockTest(_GenericBackendTest):
     backend = "dogpile.cache.dbm"
 
     config_args = {
-        "arguments":{
-            "filename":"test.dbm",
-            "rw_lockfile":False,
-            "dogpile_lockfile":False,
+        "arguments": {
+            "filename": "test.dbm",
+            "rw_lockfile": False,
+            "dogpile_lockfile": False,
         }
     }
 
@@ -36,8 +36,8 @@ class DBMMutexTest(_GenericMutexTest):
     backend = "dogpile.cache.dbm"
 
     config_args = {
-        "arguments":{
-            "filename":"test.dbm"
+        "arguments": {
+            "filename": "test.dbm"
         }
     }
 
