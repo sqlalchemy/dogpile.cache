@@ -1,7 +1,7 @@
 #! coding: utf-8
 
 from ._fixtures import _GenericBackendFixture
-from . import eq_, requires_py3k
+from . import eq_, requires_py3k, winsleep
 from unittest import TestCase
 import time
 from dogpile.cache import util, compat
@@ -75,7 +75,9 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
     def test_decorator_expire_callable_zero(self):
         go = self._fixture(expiration_time=lambda: 0)
         eq_(go(1, 2), (1, 1, 2))
+        winsleep()
         eq_(go(1, 2), (2, 1, 2))
+        winsleep()
         eq_(go(1, 2), (3, 1, 2))
 
     def test_explicit_expire(self):

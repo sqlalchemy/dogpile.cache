@@ -600,7 +600,7 @@ class CacheRegion(object):
             ct = value.metadata["ct"]
             if self._soft_invalidated:
                 if ct < self._soft_invalidated:
-                    ct = time.time() - expiration_time
+                    ct = time.time() - expiration_time - .0001
 
             return value.payload, ct
 
@@ -691,7 +691,7 @@ class CacheRegion(object):
                 ct = value.metadata["ct"]
                 if self._soft_invalidated:
                     if ct < self._soft_invalidated:
-                        ct = time.time() - expiration_time
+                        ct = time.time() - expiration_time - .0001
 
                 return value.payload, ct
 

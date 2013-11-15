@@ -4,7 +4,7 @@ from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
 from dogpile.cache import exception
 from dogpile.cache import make_region, register_backend, CacheRegion, util
 from dogpile.cache.proxy import ProxyBackend
-from . import eq_, is_, assert_raises_message, io, configparser
+from . import eq_, is_, assert_raises_message, io, configparser, winsleep
 import time, datetime
 import itertools
 from collections import defaultdict
@@ -212,6 +212,7 @@ class RegionTest(TestCase):
     def test_hard_invalidate_get(self):
         reg = self._region()
         reg.set("some key", "some value")
+        time.sleep(.1)
         reg.invalidate()
         is_(reg.get("some key"), NO_VALUE)
 
@@ -223,6 +224,7 @@ class RegionTest(TestCase):
         eq_(reg.get_or_create("some key", creator),
                     "some value 1")
 
+        time.sleep(.1)
         reg.invalidate()
         eq_(reg.get_or_create("some key", creator),
                     "some value 2")
@@ -230,6 +232,7 @@ class RegionTest(TestCase):
     def test_soft_invalidate_get(self):
         reg = self._region(config_args={"expiration_time": 1})
         reg.set("some key", "some value")
+        time.sleep(.1)
         reg.invalidate(hard=False)
         is_(reg.get("some key"), NO_VALUE)
 
@@ -241,6 +244,7 @@ class RegionTest(TestCase):
         eq_(reg.get_or_create("some key", creator),
                     "some value 1")
 
+        time.sleep(.1)
         reg.invalidate(hard=False)
         eq_(reg.get_or_create("some key", creator),
                     "some value 2")
@@ -254,6 +258,7 @@ class RegionTest(TestCase):
         ret = reg.get_or_create_multi(
                     [1, 2], creator)
         eq_(ret, [1, 1])
+        time.sleep(.1)
         reg.invalidate(hard=False)
         ret = reg.get_or_create_multi(
                     [1, 2], creator)
@@ -288,6 +293,7 @@ class RegionTest(TestCase):
                     should_cache_fn=should_cache_fn)
         eq_(ret, 1)
         eq_(reg.backend._cache['some key'][0], 1)
+        time.sleep(.1)
         reg.invalidate()
         ret = reg.get_or_create(
                     "some key", creator,
@@ -314,12 +320,14 @@ class RegionTest(TestCase):
                     should_cache_fn=should_cache_fn)
         eq_(ret, [1, 1])
         eq_(reg.backend._cache[1][0], 1)
+        time.sleep(.1)
         reg.invalidate()
         ret = reg.get_or_create_multi(
                     [1, 2], creator,
                     should_cache_fn=should_cache_fn)
         eq_(ret, [2, 2])
         eq_(reg.backend._cache[1][0], 1)
+        time.sleep(.1)
         reg.invalidate()
         ret = reg.get_or_create_multi(
                     [1, 2], creator,

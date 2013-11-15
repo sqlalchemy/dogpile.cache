@@ -7,6 +7,13 @@ Changelog
     .. change::
         :tags: bug
 
+      Fixes to routines on Windows, including that default unit tests pass,
+      and an adjustment to the "soft expiration" feature to ensure the
+      expiration works given windows time.time() behavior.
+
+    .. change::
+        :tags: bug
+
       Added py2.6 compatibility for unsupported ``total_seconds()`` call
       in region.py
 

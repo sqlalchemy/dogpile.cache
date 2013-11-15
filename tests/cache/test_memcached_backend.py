@@ -1,9 +1,11 @@
 from ._fixtures import _GenericBackendTest, _GenericMutexTest
-from . import eq_
+from . import eq_, winsleep
 from unittest import TestCase
 from threading import Thread
 import time
 from nose import SkipTest
+from dogpile.cache import compat
+
 
 class _TestMemcachedConn(object):
     @classmethod
@@ -201,6 +203,10 @@ class LocalThreadTest(TestCase):
         for t in threads:
             t.join()
         eq_(canary, [i + 1 for i in range(count)])
-        eq_(MockClient.number_of_clients, 0)
+
+        if compat.py27:
+            eq_(MockClient.number_of_clients, 0)
+        else:
+            eq_(MockClient.number_of_clients, 1)
 
 

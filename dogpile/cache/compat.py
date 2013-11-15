@@ -6,6 +6,7 @@ py3k = sys.version_info >= (3, 0)
 py32 = sys.version_info >= (3, 2)
 py27 = sys.version_info >= (2, 7)
 jython = sys.platform.startswith('java')
+win32 = sys.platform.startswith('win')
 
 try:
     import threading
