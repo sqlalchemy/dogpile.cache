@@ -173,7 +173,9 @@ Our new backend would be usable in a region like this::
 
     from dogpile.cache import make_region
 
-    region = make_region("dictionary")
+    region = make_region("myregion")
+
+    region.configure("dictionary")
 
     data = region.set("somekey", "somevalue")
 
