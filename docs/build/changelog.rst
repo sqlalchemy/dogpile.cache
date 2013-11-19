@@ -2,6 +2,16 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.5.3
+
+    .. change::
+        :tags: bug
+        :pullreq: 9
+
+      Fixed a format call in the redis backend which would otherwise fail
+      on Python 2.6; courtesy Jeff Dairiki.
+
+.. changelog::
     :version: 0.5.2
     :released: Fri Nov 15 2013
 
