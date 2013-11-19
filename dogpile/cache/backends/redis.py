@@ -105,8 +105,8 @@ class RedisBackend(CacheBackend):
 
     def get_mutex(self, key):
         if self.distributed_lock:
-            return self.client.lock(u('_lock{}').format(key), self.lock_timeout,
-                                    self.lock_sleep)
+            return self.client.lock(u('_lock{0}').format(key),
+                                    self.lock_timeout, self.lock_sleep)
         else:
             return None
 
