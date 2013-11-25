@@ -587,6 +587,7 @@ class CacheRegion(object):
             :meth:`.CacheRegion.get_or_create_multi` - multiple key/value version
 
         """
+        orig_key = key
         if self.key_mangler:
             key = self.key_mangler(key)
 
@@ -624,7 +625,7 @@ class CacheRegion(object):
 
         if self.async_creation_runner:
             def async_creator(mutex):
-                return self.async_creation_runner(self, key, creator, mutex)
+                return self.async_creation_runner(self, orig_key, creator, mutex)
         else:
             async_creator = None
 
