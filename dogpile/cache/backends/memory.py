@@ -55,23 +55,23 @@ class MemoryBackend(CacheBackend):
         value = self._cache.get(key, NO_VALUE)
         if value is not NO_VALUE :
             if self.is_pickle :
-                value = pickle.loads( value )
+                value = pickle.loads(value)
         return value 
 
     def get_multi(self, keys):
         values = []
         for key in keys :
-            values.append( self.get( key ) )
+            values.append(self.get(key))
         return values
 
     def set(self, key, value):
         if self.is_pickle :
-            value = pickle.dumps( value )
+            value = pickle.dumps(value)
         self._cache[key] = value
 
     def set_multi(self, mapping):
         for key,value in mapping.items():
-            self.set( key , value )
+            self.set(key, value)
 
     def delete(self, key):
         self._cache.pop(key, None)
