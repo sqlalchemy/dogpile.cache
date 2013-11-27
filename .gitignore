@@ -1,5 +1,5 @@
 *.pyc
-build/
+/build
 dist/
 docs/build/output/
 *.orig
