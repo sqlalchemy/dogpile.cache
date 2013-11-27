@@ -5,6 +5,16 @@ Changelog
     :version: 0.5.3
 
     .. change::
+        :tags: feature
+        :pullreq: 11
+
+      Added a new variant on :class:`.MemoryBackend`, :class:`.MemoryPickleBackend`.
+      This backend applies ``pickle.dumps()`` and ``pickle.loads()`` to cached
+      values upon set and get, so that similar copy-on-cache behavior as that
+      of other backends is employed, guarding cached values against subsequent
+      in-memory state changes.  Pullreq courtesy Jonathan Vanasco.
+
+    .. change::
         :tags: bug
         :pullreq: 9
 
