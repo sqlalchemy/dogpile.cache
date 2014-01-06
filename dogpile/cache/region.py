@@ -1192,6 +1192,10 @@ class CacheRegion(object):
                         in zip(gen_keys, keys))
                     )
 
+            def get(*arg):
+                keys = key_generator(*arg)
+                return self.get_multi(keys)
+
             def refresh(*arg):
                 keys = key_generator(*arg)
                 values = fn(*arg)
@@ -1209,6 +1213,7 @@ class CacheRegion(object):
             decorate.set = set_
             decorate.invalidate = invalidate
             decorate.refresh = refresh
+            decorate.get = get
 
             return decorate
         return decorator
