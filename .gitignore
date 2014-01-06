@@ -6,5 +6,6 @@ docs/build/output/
 alembic.ini
 tox.ini
 .venv
-.egg-info
+*.egg
+*.egg-info
 .coverage
