@@ -875,6 +875,20 @@ class CacheRegion(object):
         .. versionadded:: 0.5.0 Added ``refresh()`` method to decorated
            function.
 
+        Lastly, a ``get()`` attribute returns either the value cached
+        for the given key, or else the token ``NO_VALUE``.  So for the example above,
+
+            generate_something.get(5, 6)
+
+        would return ``newvalue``, whereas
+
+            generate_something(99, 100)
+
+        would return ``NO_VALUE``.
+
+        .. versionadded:: 0.5.3 Added ``get()`` method to decorated
+        function.
+
         The default key generation will use the name
         of the function, the module name for the function,
         the arguments passed, as well as an optional "namespace"
@@ -1005,6 +1019,10 @@ class CacheRegion(object):
                 key = key_generator(*arg, **kw)
                 self.set(key, value)
 
+            def get(*arg, **kw):
+                key = key_generator(*arg, **kw)
+                return self.get(key)
+
             def refresh(*arg, **kw):
                 key = key_generator(*arg, **kw)
                 value = fn(*arg, **kw)
@@ -1014,6 +1032,7 @@ class CacheRegion(object):
             decorate.set = set_
             decorate.invalidate = invalidate
             decorate.refresh = refresh
+            decorate.get = get
 
             return decorate
         return decorator
@@ -1205,4 +1224,3 @@ def make_region(*arg, **kw):
 
     """
     return CacheRegion(*arg, **kw)
-

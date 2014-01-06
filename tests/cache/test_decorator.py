@@ -99,6 +99,14 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         go.set(0, 1, 3)
         eq_(go(1, 3), 0)
 
+    def test_explicit_get(self):
+        go = self._fixture(expiration_time=1)
+        eq_(go(1, 2), (1, 1, 2))
+        eq_(go.get(1, 2), (1, 1, 2))
+        eq_(go.get(2, 1), NO_VALUE)
+        eq_(go(2, 1), (2, 2, 1))
+        eq_(go.get(2, 1), (2, 2, 1))
+
     def test_explicit_set_multi(self):
         go = self._multi_fixture(expiration_time=1)
         eq_(go(1, 2), ['1 1', '1 2'])
@@ -385,5 +393,3 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
 
         generate.set({7: 18, 10: 15})
         eq_(generate(2, 7, 10), ['2 5', 18, 15])
-
-
