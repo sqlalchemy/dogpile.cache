@@ -6,6 +6,16 @@ Changelog
 
     .. change::
         :tags: feature
+        :tickets: 55
+
+      Added a ``get()`` method to complement the ``set()``, ``invalidate()``
+      and ``refresh()`` methods established on functions decorated by
+      :meth:`.CacheRegion.cache_on_arguments` and
+      :meth:`.CacheRegion.cache_multi_on_arguments`.  Pullreq courtesy
+      Eric Hanchrow.
+
+    .. change::
+        :tags: feature
         :pullreq: 11
 
       Added a new variant on :class:`.MemoryBackend`, :class:`.MemoryPickleBackend`.

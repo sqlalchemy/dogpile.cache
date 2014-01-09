@@ -875,19 +875,14 @@ class CacheRegion(object):
         .. versionadded:: 0.5.0 Added ``refresh()`` method to decorated
            function.
 
-        Lastly, a ``get()`` attribute returns either the value cached
-        for the given key, or else the token ``NO_VALUE``.  So for the example above,
+        Lastly, the ``get()`` method returns either the value cached
+        for the given key, or the token ``NO_VALUE`` if no such key
+        exists::
 
-            generate_something.get(5, 6)
-
-        would return ``newvalue``, whereas
-
-            generate_something(99, 100)
-
-        would return ``NO_VALUE``.
+            value = generate_something.get(5, 6)
 
         .. versionadded:: 0.5.3 Added ``get()`` method to decorated
-        function.
+           function.
 
         The default key generation will use the name
         of the function, the module name for the function,
@@ -1088,16 +1083,24 @@ class CacheRegion(object):
             generate_something.set({"k1": "value1",
                                     "k2": "value2", "k3": "value3"})
 
-        an ``invalidate()`` method, which has the effect of deleting
+        ...an ``invalidate()`` method, which has the effect of deleting
         the given sequence of keys using the same mechanism as that of
         :meth:`.CacheRegion.delete_multi`::
 
             generate_something.invalidate("k1", "k2", "k3")
 
-        and finally a ``refresh()`` method, which will call the creation
+        ...a ``refresh()`` method, which will call the creation
         function, cache the new values, and return them::
 
             values = generate_something.refresh("k1", "k2", "k3")
+
+        ...and a ``get()`` method, which will return values
+        based on the given arguments::
+
+            values = generate_something.get("k1", "k2", "k3")
+
+        .. versionadded:: 0.5.3 Added ``get()`` method to decorated
+           function.
 
         Parameters passed to :meth:`.CacheRegion.cache_multi_on_arguments`
         have the same meaning as those passed to
