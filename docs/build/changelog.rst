@@ -16,6 +16,7 @@ Changelog
 
     .. change::
         :tags: feature
+        :tickets: 51
         :pullreq: 11
 
       Added a new variant on :class:`.MemoryBackend`, :class:`.MemoryPickleBackend`.
