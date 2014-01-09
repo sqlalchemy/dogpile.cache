@@ -5,6 +5,13 @@ Changelog
     :version: 0.5.3
 
     .. change::
+        :tags: bug, py3k
+
+      Fixed bug where the :meth:`.Region.get_multi` method wasn't calling
+      the backend correctly in Py3K (e.g. was passing a destructive ``map()``
+      object) which would cause this method to fail on the memcached backend.
+
+    .. change::
         :tags: feature
         :tickets: 55
 

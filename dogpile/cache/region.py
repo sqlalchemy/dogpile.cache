@@ -504,7 +504,7 @@ class CacheRegion(object):
 
         """
         if self.key_mangler:
-            keys = map(lambda key: self.key_mangler(key), keys)
+            keys = list(map(lambda key: self.key_mangler(key), keys))
 
         backend_values = self.backend.get_multi(keys)
 
@@ -813,7 +813,7 @@ class CacheRegion(object):
         """
 
         if self.key_mangler:
-            keys = map(lambda key: self.key_mangler(key), keys)
+            keys = list(map(lambda key: self.key_mangler(key), keys))
 
         self.backend.delete_multi(keys)
 
