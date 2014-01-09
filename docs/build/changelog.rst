@@ -5,6 +5,17 @@ Changelog
     :version: 0.5.3
 
     .. change::
+        :tags: bug
+        :pullreq: 10
+
+      Fixed bug where the key_mangler would get in the way of usage of the
+      async_creation_runner feature within the :meth:`.Region.get_or_create`
+      method, by sending in the mangled key instead of the original key.  The
+      "mangled" key is only supposed to be exposed within the backend storage,
+      not the creation function which sends the key back into the :meth:`.Region.set`,
+      which does the mangling itself.  Pull request courtesy Ryan Kolak.
+
+    .. change::
         :tags: bug, py3k
 
       Fixed bug where the :meth:`.Region.get_multi` method wasn't calling
