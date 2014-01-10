@@ -15,6 +15,8 @@ def coerce_string_conf(d):
         v = v.strip()
         if re.match(r'^[-+]?\d+$', v):
             result[k] = int(v)
+        elif re.match(r'^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$', v):
+            result[k] = float(v)
         elif v.lower() in ('false', 'true'):
             result[k] = v.lower() == 'true'
         elif v == 'None':
