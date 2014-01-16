@@ -2,6 +2,20 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.5.4
+
+    .. change::
+    	:tags: bug
+    	:tickets: 57
+    	:pullreq: 13
+
+      The :func:`.coerce_string_conf` function, which is used by
+      :meth:`.Region.configure_from_config`, will now recognize floating point
+      values when parsing conf strings and deliver them as such; this supports
+      non-integer values such as Redis ``lock_sleep``.  Pullreq courtesy
+      Jeff Dairiki.
+
+.. changelog::
     :version: 0.5.3
     :released: Wed Jan 8 2014
 
