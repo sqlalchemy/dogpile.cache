@@ -5,6 +5,19 @@ Changelog
     :version: 0.5.4
 
     .. change::
+      :tags: feature
+
+      Added support for tests to run via py.test.
+
+    .. change::
+      :tags: bug
+      :pullreq: 15
+
+      Repaired the entry point for Mako templates; the name of the entrypoint
+      itself was wrong vs. what was in the docs, but beyond that the entrypoint
+      would load the wrong module name.  Pull request courtesy zoomorph.
+
+    .. change::
     	:tags: bug
     	:tickets: 57
     	:pullreq: 13
