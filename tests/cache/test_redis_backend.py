@@ -89,6 +89,14 @@ class RedisConnectionTest(TestCase):
             }
         self._test_helper(MockStrictRedis, arguments)
 
+    def test_connect_with_socket_timeout(self, MockStrictRedis):
+        arguments = {
+            'host': '127.0.0.1',
+            'port': 6379,
+            'socket_timeout': 0.5
+            }
+        self._test_helper(MockStrictRedis, arguments)
+
     def test_connect_with_url(self, MockStrictRedis):
         arguments = {
             'url': 'redis://redis:password@127.0.0.1:6379/0'
