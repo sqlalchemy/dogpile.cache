@@ -74,6 +74,8 @@ class RedisBackend(CacheBackend):
 
      .. versionadded:: 0.5.0
 
+    :param connection_pool: ``redis.ConnectionPool`` object, default is ``None``
+
     """
 
     def __init__(self, arguments):
@@ -89,6 +91,7 @@ class RedisBackend(CacheBackend):
         self.lock_sleep = arguments.get('lock_sleep', 0.1)
 
         self.redis_expiration_time = arguments.pop('redis_expiration_time', 0)
+        self.connection_pool = arguments.get('connection_pool', None)
         self.client = self._create_client()
 
     def _imports(self):
@@ -97,7 +100,9 @@ class RedisBackend(CacheBackend):
         import redis
 
     def _create_client(self):
-        if self.url is not None:
+        if self.connection_pool is not None:
+            return redis.StrictRedis(connection_pool=self.connection_pool)
+        elif self.url is not None:
             return redis.StrictRedis.from_url(url=self.url)
         else:
             return redis.StrictRedis(host=self.host, password=self.password,
