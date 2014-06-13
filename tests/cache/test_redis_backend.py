@@ -2,7 +2,7 @@ from dogpile.cache.region import _backend_loader
 from ._fixtures import _GenericBackendTest, _GenericMutexTest
 from unittest import TestCase
 from nose import SkipTest
-from mock import patch
+from mock import patch, Mock
 
 class _TestRedisConn(object):
     @classmethod
@@ -93,9 +93,21 @@ class RedisConnectionTest(TestCase):
         arguments = {
             'host': '127.0.0.1',
             'port': 6379,
-            'socket_timeout': 0.5
+            'socket_timeout': 0.5,
+            'password': None,
+            'db': 0,
             }
         self._test_helper(MockStrictRedis, arguments)
+
+    def test_connect_with_connection_pool(self, MockStrictRedis):
+        pool = Mock()
+        arguments = {
+            'connection_pool': pool,
+            'socket_timeout': 0.5
+            }
+        expected_args = {'connection_pool': pool}
+        self._test_helper(MockStrictRedis, expected_args,
+                connection_args=arguments)
 
     def test_connect_with_url(self, MockStrictRedis):
         arguments = {

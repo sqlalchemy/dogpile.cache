@@ -118,13 +118,21 @@ class RedisBackend(CacheBackend):
             # options present within, so here we disregard socket_timeout
             # and others.
             return redis.StrictRedis(connection_pool=self.connection_pool)
-        elif self.url is not None:
-            return redis.StrictRedis.from_url(url=self.url,
-                    socket_timeout=self.socket_timeout)
+
+        args = {}
+        if self.socket_timeout:
+            args['socket_timeout'] = self.socket_timeout
+
+        if self.url is not None:
+            args.update(url=self.url)
+            return redis.StrictRedis.from_url(**args)
         else:
-            return redis.StrictRedis(host=self.host, password=self.password,
-                    port=self.port, db=self.db,
-                    socket_timeout=self.socket_timeout)
+            args.update(
+                host=self.host, password=self.password,
+                port=self.port, db=self.db
+            )
+            return redis.StrictRedis(**args)
+
 
     def get_mutex(self, key):
         if self.distributed_lock:
