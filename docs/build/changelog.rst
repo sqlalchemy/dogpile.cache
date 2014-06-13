@@ -5,6 +5,15 @@ Changelog
     :version: 0.5.4
 
     .. change::
+      :tags: bug
+      :tickets: 58
+      :pullreq: 20
+
+      Fixed bug where calling :meth:`.CacheRegion.get_multi` or
+      :meth:`.CacheRegion.set_multi` with an empty list would cause failures
+      based on backend.  Pull request courtesy Wichert Akkerman.
+
+    .. change::
       :tags: feature
       :pullreq: 17
 

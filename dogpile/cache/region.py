@@ -503,6 +503,9 @@ class CacheRegion(object):
         .. versionadded:: 0.5.0
 
         """
+        if not keys:
+            return []
+
         if self.key_mangler:
             keys = list(map(lambda key: self.key_mangler(key), keys))
 
@@ -781,6 +784,8 @@ class CacheRegion(object):
         .. versionadded:: 0.5.0
 
         """
+        if not mapping:
+            return
 
         if self.key_mangler:
             mapping = dict((self.key_mangler(k), self._value(v))
