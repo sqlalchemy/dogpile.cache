@@ -66,6 +66,8 @@ class RedisBackend(CacheBackend):
      Redis should expire it.  This argument is only valid when
      ``distributed_lock`` is ``True``.
 
+    :param socket_timeout: float, seconds for socket timeout. Default is None (no timeout).
+
      .. versionadded:: 0.5.0
 
     :param lock_sleep: integer, number of seconds to sleep when failed to
@@ -84,6 +86,7 @@ class RedisBackend(CacheBackend):
         self.port = arguments.pop('port', 6379)
         self.db = arguments.pop('db', 0)
         self.distributed_lock = arguments.get('distributed_lock', False)
+        self.socket_timeout = arguments.pop('socket_timeout', None)
 
         self.lock_timeout = arguments.get('lock_timeout', None)
         self.lock_sleep = arguments.get('lock_sleep', 0.1)
@@ -98,10 +101,10 @@ class RedisBackend(CacheBackend):
 
     def _create_client(self):
         if self.url is not None:
-            return redis.StrictRedis.from_url(url=self.url)
+            return redis.StrictRedis.from_url(url=self.url, socket_timeout=self.socket_timeout)
         else:
             return redis.StrictRedis(host=self.host, password=self.password,
-                                     port=self.port, db=self.db)
+                                     port=self.port, db=self.db, socket_timeout=self.socket_timeout)
 
     def get_mutex(self, key):
         if self.distributed_lock:
