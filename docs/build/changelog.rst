@@ -6,6 +6,13 @@ Changelog
 
     .. change::
       :tags: bug
+      :pullreq: 19
+
+      Added missing Mako test dependency to setup.py.
+      Pull request courtesy Wichert Akkerman.
+
+    .. change::
+      :tags: bug
       :tickets: 58
       :pullreq: 20
 
