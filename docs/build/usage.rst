@@ -349,15 +349,14 @@ in order to invalidate everything having to do with that id.
   print user_fn_two(7)
 
 
-Refreshing After Database Update with SQLAlchemy
-------------------------------------------------
+Asynchronous Data Updates with ORM Events
+-----------------------------------------
 
-If you use SQLAlchemy and cache query results (for example after they are
-processed) you may find yourself in need of invalidating the cache after the
-database has been altered to provide the most up-to-date results. For example,
-if you have a decorated function like this:
+This recipe presents one technique of optimistically pushing new data
+into the cache when an update is sent to a database.
 
-.. code-block:: python
+Using SQLAlchemy for database querying, suppose a simple cache-decorated
+function returns the results of a database query::
 
     @region.cache_on_arguments()
     def get_some_data(argument):
@@ -365,59 +364,49 @@ if you have a decorated function like this:
         data = Session().query(DBClass).filter(DBClass.argument == argument).all()
         return data
 
-If you change the database and want this function to return fresh data, you
-could just call ``get_some_data.invalidate(argument)``. However, this only
-leads to the deletion of the old value. A new value is not generated until the
-next call. A common usage for a cache is if fetching the data is time-intense,
-so every once in a while a client has to wait for his new data. Another
-alternative would be to recreate the cache on the function adding new data. For
-example, say this function updates the database:
+We would like this particular function to be re-queried when the data
+has changed.  We could call ``get_some_data.invalidate(argument, hard=False)``
+at the point at which the data changes, however this only
+leads to the invalidation of the old value; a new value is not generated until
+the next call, and also means at least one client has to block while the
+new value is generated.    We could also call
+``get_some_data.refresh(argument)``, which would perform the data refresh
+at that moment, but then the writer is delayed by the re-query.
 
-.. code-block:: python
+A third variant is to instead offload the work of refreshing for this query
+into a background thread or process.   This can be acheived using
+a system such as the :paramref:`.CacheRegion.async_creation_runner`.
+However, an expedient approach for smaller use cases is to link cache refresh
+operations to the ORM session's commit, as below::
 
-    def add_new_data(argument):
-        Session().add(DBClass(argument=argument))
+    from sqlalchemy import event
+    from sqlalchemy.orm.Session
 
-Inside this class we could call the ``refresh`` function to generate new data
-or the ``invalidate`` function to just remove the old data:
-
-.. code-block:: python
-
-    def add_new_data(argument):
-        # ...
-        # Either refresh the data
-        get_some_data.refresh(argument)
-        # Or invalidate it
-        get_some_data.invalidate(argument)
-
-However, this leads to a new issue: Now the client adding new data has to wait.
-Instead, you can use the folloing recipe to regenerate the value after the data
-has been saved to the database. Since you start a new thread, no client has to
-wait. And because of dogpile-locking the cache will return fresh data as soon
-as it is done and return old data before.
-
-.. code-block:: python
-
-    def cache_refresh(refresher, *args, **kwargs):
+    def cache_refresh(session, refresher, *args, **kwargs):
         """
         Refresh the functions cache data in a new thread. Starts refreshing only
         after the session was committed so all database data is available.
         """
+        assert isinstance(session, Session), \
+            "Need a session, not a sessionmaker or scoped_session"
 
+        @event.listens_for(session, "after_commit")
         def do_refresh(session):
             t = Thread(target=refresher, args=args, kwargs=kwargs)
             t.daemon = True
             t.start()
-        event.listen(Session(), "after_commit", do_refresh)
 
-And its usage:
+Within a sequence of data persistence, ``cache_refresh`` can be called
+given a particular SQLAlchemy ``Session`` and a callable to do the work::
 
-.. code-block:: python
+    def add_new_data(session, argument):
+        # add some data
+        session.add(something_new(argument))
 
-    def add_new_data(argument):
-        # ...
-        cache_refresh(get_some_data.refresh, argument)
+        # add a hook to refresh after the Session is committed.
+        cache_refresh(session, get_some_data.refresh, argument)
 
-This example assumes that you have a threadlocal session factory as is common
-with web applications. Otherwise you might need to pass in your session to this
-function as well.
+Note that the event to refresh the data is associated with the ``Session``
+being used for persistence; however, the actual refresh operation is called
+with a **different** ``Session``, typically one that is local to the refresh
+operation, either through a thread-local registry or via direct instantiation.
