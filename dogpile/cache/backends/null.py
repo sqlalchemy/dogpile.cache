@@ -1,18 +1,22 @@
 """
-Dummy Backend
+Null Backend
 -------------
 
-The dummy backend does not do any cachingn at all. It is inteded to be used
-to test behaviour without caching.
+The Null backend does not do any caching at all.  It can be
+used to test behavior without caching, or as a means of disabling
+caching for a region that is otherwise used normally.
+
+.. versionadded:: 0.5.4
+
 """
 
 from dogpile.cache.api import CacheBackend, NO_VALUE
 
 
-__all__ = ['DummyBackend']
+__all__ = ['NullBackend']
 
 
-class DummyLock(object):  # pragma NO COVERAGE
+class NullLock(object):
     def acquire(self):
         pass
 
@@ -20,27 +24,27 @@ class DummyLock(object):  # pragma NO COVERAGE
         pass
 
 
-class DummyBackend(CacheBackend):  # pragma NO COVERAGE
+class NullBackend(CacheBackend):
     def __init__(self, arguments):
         pass
 
     def get_mutex(self, key):
-        return DummyLock()
+        return NullLock()
 
     def get(self, key):
         return NO_VALUE
 
-    def get_multiple(self, keys):
+    def get_multi(self, keys):
         return [NO_VALUE for k in keys]
 
     def set(self, key, value):
         pass
 
-    def set_multiple(self, mapping):
+    def set_multi(self, mapping):
         pass
 
     def delete(self, key):
         pass
 
-    def delete_multiple(self, keys):
+    def delete_multi(self, keys):
         pass

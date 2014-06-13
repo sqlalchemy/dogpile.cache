@@ -5,6 +5,13 @@ Changelog
     :version: 0.5.4
 
     .. change::
+      :tags: feature
+      :pullreq: 18
+
+      Added new :class:`.NullBackend`, for testing and cache-disabling
+      purposes.  Pull request courtesy Wichert Akkerman.
+
+    .. change::
       :tags: bug
       :pullreq: 19
 
