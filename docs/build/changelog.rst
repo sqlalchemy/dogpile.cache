@@ -6,6 +6,14 @@ Changelog
 
     .. change::
       :tags: feature
+      :pullreq: 16
+
+      Added new :paramref:`.RedisBackend.socket_timeout` option
+      on the Redis backend.  Pull request courtesy
+      Saulius Menkevičius.
+
+    .. change::
+      :tags: feature
 
       Added support for tests to run via py.test.
 

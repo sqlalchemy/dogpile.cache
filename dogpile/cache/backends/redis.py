@@ -66,9 +66,12 @@ class RedisBackend(CacheBackend):
      Redis should expire it.  This argument is only valid when
      ``distributed_lock`` is ``True``.
 
-    :param socket_timeout: float, seconds for socket timeout. Default is None (no timeout).
-
      .. versionadded:: 0.5.0
+
+    :param socket_timeout: float, seconds for socket timeout.
+     Default is None (no timeout).
+
+     ..versionadded:: 0.5.4
 
     :param lock_sleep: integer, number of seconds to sleep when failed to
      acquire a lock.  This argument is only valid when
