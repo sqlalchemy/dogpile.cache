@@ -1,6 +1,6 @@
 from dogpile.cache.backends.null import NullLock
 from unittest import TestCase
-from _fixtures import _GenericBackendFixture
+from ._fixtures import _GenericBackendFixture
 from dogpile.cache.api import NO_VALUE
 from . import eq_
 import itertools
