@@ -6,6 +6,14 @@ Changelog
 
     .. change::
       :tags: feature
+      :pullreq: 17
+
+      Added new :paramref:`.RedisBackend.connection_pool` option
+      on the Redis backend; this can be passed a ``redis.ConnectionPool``
+      instance directly.  Pull request courtesy Masayuko.
+
+    .. change::
+      :tags: feature
       :pullreq: 16
 
       Added new :paramref:`.RedisBackend.socket_timeout` option

@@ -79,6 +79,15 @@ class RedisBackend(CacheBackend):
 
      .. versionadded:: 0.5.0
 
+    :param connection_pool: ``redis.ConnectionPool`` object.  If provided,
+     this object supersedes other connection arguments passed to the
+     ``redis.StrictRedis`` instance, including url and/or host as well as
+     socket_timeout, and will be passed to ``redis.StrictRedis`` as the
+     source of connectivity.
+
+     .. versionadded:: 0.5.4
+
+
     """
 
     def __init__(self, arguments):
@@ -95,6 +104,7 @@ class RedisBackend(CacheBackend):
         self.lock_sleep = arguments.get('lock_sleep', 0.1)
 
         self.redis_expiration_time = arguments.pop('redis_expiration_time', 0)
+        self.connection_pool = arguments.get('connection_pool', None)
         self.client = self._create_client()
 
     def _imports(self):
@@ -103,11 +113,18 @@ class RedisBackend(CacheBackend):
         import redis
 
     def _create_client(self):
-        if self.url is not None:
-            return redis.StrictRedis.from_url(url=self.url, socket_timeout=self.socket_timeout)
+        if self.connection_pool is not None:
+            # the connection pool already has all other connection
+            # options present within, so here we disregard socket_timeout
+            # and others.
+            return redis.StrictRedis(connection_pool=self.connection_pool)
+        elif self.url is not None:
+            return redis.StrictRedis.from_url(url=self.url,
+                    socket_timeout=self.socket_timeout)
         else:
             return redis.StrictRedis(host=self.host, password=self.password,
-                                     port=self.port, db=self.db, socket_timeout=self.socket_timeout)
+                    port=self.port, db=self.db,
+                    socket_timeout=self.socket_timeout)
 
     def get_mutex(self, key):
         if self.distributed_lock:
