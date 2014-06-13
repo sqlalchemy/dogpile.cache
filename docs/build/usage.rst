@@ -347,3 +347,77 @@ in order to invalidate everything having to do with that id.
   print user_fn_two(5)
   print user_fn_three(7)
   print user_fn_two(7)
+
+
+Refreshing After Database Update with SQLAlchemy
+------------------------------------------------
+
+If you use SQLAlchemy and cache query results (for example after they are
+processed) you may find yourself in need of invalidating the cache after the
+database has been altered to provide the most up-to-date results. For example,
+if you have a decorated function like this:
+
+.. code-block:: python
+
+    @region.cache_on_arguments()
+    def get_some_data(argument):
+        # query database to get data
+        data = Session().query(DBClass).filter(DBClass.argument == argument).all()
+        return data
+
+If you change the database and want this function to return fresh data, you
+could just call ``get_some_data.invalidate(argument)``. However, this only
+leads to the deletion of the old value. A new value is not generated until the
+next call. A common usage for a cache is if fetching the data is time-intense,
+so every once in a while a client has to wait for his new data. Another
+alternative would be to recreate the cache on the function adding new data. For
+example, say this function updates the database:
+
+.. code-block:: python
+
+    def add_new_data(argument):
+        Session().add(DBClass(argument=argument))
+
+Inside this class we could call the ``refresh`` function to generate new data
+or the ``invalidate`` function to just remove the old data:
+
+.. code-block:: python
+
+    def add_new_data(argument):
+        # ...
+        # Either refresh the data
+        get_some_data.refresh(argument)
+        # Or invalidate it
+        get_some_data.invalidate(argument)
+
+However, this leads to a new issue: Now the client adding new data has to wait.
+Instead, you can use the folloing recipe to regenerate the value after the data
+has been saved to the database. Since you start a new thread, no client has to
+wait. And because of dogpile-locking the cache will return fresh data as soon
+as it is done and return old data before.
+
+.. code-block:: python
+
+    def cache_refresh(refresher, *args, **kwargs):
+        """
+        Refresh the functions cache data in a new thread. Starts refreshing only
+        after the session was committed so all database data is available.
+        """
+
+        def do_refresh(session):
+            t = Thread(target=refresher, args=args, kwargs=kwargs)
+            t.daemon = True
+            t.start()
+        event.listen(Session(), "after_commit", do_refresh)
+
+And its usage:
+
+.. code-block:: python
+
+    def add_new_data(argument):
+        # ...
+        cache_refresh(get_some_data.refresh, argument)
+
+This example assumes that you have a threadlocal session factory as is common
+with web applications. Otherwise you might need to pass in your session to this
+function as well.
