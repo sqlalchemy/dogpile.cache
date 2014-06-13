@@ -380,7 +380,7 @@ However, an expedient approach for smaller use cases is to link cache refresh
 operations to the ORM session's commit, as below::
 
     from sqlalchemy import event
-    from sqlalchemy.orm.Session
+    from sqlalchemy.orm import Session
 
     def cache_refresh(session, refresher, *args, **kwargs):
         """
