@@ -25,6 +25,18 @@ class NullLock(object):
 
 
 class NullBackend(CacheBackend):
+    """A "null" backend that effectively disables all cache operations.
+
+    Basic usage::
+
+        from dogpile.cache import make_region
+
+        region = make_region().configure(
+            'dogpile.cache.null'
+        )
+
+    """
+
     def __init__(self, arguments):
         pass
 
