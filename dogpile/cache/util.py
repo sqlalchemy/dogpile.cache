@@ -25,6 +25,7 @@ def coerce_string_conf(d):
             result[k] = v
     return result
 
+
 class PluginLoader(object):
     def __init__(self, group):
         self.group = group
@@ -47,9 +48,7 @@ class PluginLoader(object):
 
     def register(self, name, modulepath, objname):
         def load():
-            mod = __import__(modulepath)
-            for token in modulepath.split(".")[1:]:
-                mod = getattr(mod, token)
+            mod = __import__(modulepath, fromlist=[objname])
             return getattr(mod, objname)
         self.impls[name] = load
 
