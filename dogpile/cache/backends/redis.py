@@ -30,7 +30,7 @@ class RedisBackend(CacheBackend):
                 'port': 6379,
                 'db': 0,
                 'redis_expiration_time': 60*60*2,   # 2 hours
-                'distributed_lock':True
+                'distributed_lock': True
                 }
         )
 
