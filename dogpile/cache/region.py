@@ -626,6 +626,9 @@ class CacheRegion(object):
                     "Non-None expiration time required "
                     "for soft invalidation")
 
+        if expiration_time == -1:
+            expiration_time = None
+
         if self.async_creation_runner:
             def async_creator(mutex):
                 return self.async_creation_runner(self, orig_key, creator, mutex)
@@ -712,6 +715,9 @@ class CacheRegion(object):
             raise exception.DogpileCacheException(
                     "Non-None expiration time required "
                     "for soft invalidation")
+
+        if expiration_time == -1:
+            expiration_time = None
 
         mutexes = {}
 
