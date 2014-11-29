@@ -11,23 +11,27 @@ from dogpile.cache.api import NO_VALUE
 class DecoratorTest(_GenericBackendFixture, TestCase):
     backend = "dogpile.cache.memory"
 
-    def _fixture(self, namespace=None, expiration_time=None):
+    def _fixture(self, namespace=None, expiration_time=None,
+                 key_generator=None):
         reg = self._region(config_args={"expiration_time":.25})
 
         counter = itertools.count(1)
         @reg.cache_on_arguments(namespace=namespace,
-                            expiration_time=expiration_time)
+                            expiration_time=expiration_time,
+                            function_key_generator=key_generator)
         def go(a, b):
             val = next(counter)
             return val, a, b
         return go
 
-    def _multi_fixture(self, namespace=None, expiration_time=None):
+    def _multi_fixture(self, namespace=None, expiration_time=None,
+                       key_generator=None):
         reg = self._region(config_args={"expiration_time":.25})
 
         counter = itertools.count(1)
         @reg.cache_multi_on_arguments(namespace=namespace,
-                            expiration_time=expiration_time)
+                            expiration_time=expiration_time,
+                            function_multi_key_generator=key_generator)
         def go(*args):
             val = next(counter)
             return ["%d %s" % (val, arg) for arg in args]
@@ -138,6 +142,34 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         eq_(go.refresh(1, 2), ['2 1', '2 2'])
         eq_(go(1, 2), ['2 1', '2 2'])
         eq_(go(1, 2), ['2 1', '2 2'])
+
+    def test_decorator_key_generator(self):
+        def my_key_generator(namespace, fn, **kw):
+            fname = fn.__name__
+            def generate_key_with_first_argument(*args):
+                return fname + "_" + str(args[0])
+            return generate_key_with_first_argument
+
+        go = self._fixture(key_generator=my_key_generator)
+        eq_(go(1, 2), (1, 1, 2))
+        eq_(go(3, 4), (2, 3, 4))
+        eq_(go(1, 3), (1, 1, 2))
+        time.sleep(.3)
+        eq_(go(1, 3), (3, 1, 3))
+
+    def test_decorator_key_generator_multi(self):
+        def my_key_generator(namespace, fn, **kw):
+            fname = fn.__name__
+            def generate_key_with_reversed_order(*args):
+                return [fname + '_' + str(a) for a in args][::-1]
+            return generate_key_with_reversed_order
+
+        go = self._multi_fixture(key_generator=my_key_generator)
+        eq_(go(1, 2), ['1 1', '1 2'])
+        eq_(go.get(1, 2), ['1 1', '1 2'])
+        eq_(go.get(3, 1), ['1 2', NO_VALUE])
+        eq_(go(3, 1), ['1 2', '2 1'])
+        eq_(go.get(3, 1), ['1 2', '2 1'])
 
 class KeyGenerationTest(TestCase):
     def _keygen_decorator(self, namespace=None, **kw):
