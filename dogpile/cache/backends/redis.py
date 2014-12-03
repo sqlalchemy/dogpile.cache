@@ -30,7 +30,7 @@ class RedisBackend(CacheBackend):
                 'port': 6379,
                 'db': 0,
                 'redis_expiration_time': 60*60*2,   # 2 hours
-                'distributed_lock':True
+                'distributed_lock': True
                 }
         )
 
@@ -68,11 +68,25 @@ class RedisBackend(CacheBackend):
 
      .. versionadded:: 0.5.0
 
+    :param socket_timeout: float, seconds for socket timeout.
+     Default is None (no timeout).
+
+     .. versionadded:: 0.5.4
+
     :param lock_sleep: integer, number of seconds to sleep when failed to
      acquire a lock.  This argument is only valid when
      ``distributed_lock`` is ``True``.
 
      .. versionadded:: 0.5.0
+
+    :param connection_pool: ``redis.ConnectionPool`` object.  If provided,
+     this object supersedes other connection arguments passed to the
+     ``redis.StrictRedis`` instance, including url and/or host as well as
+     socket_timeout, and will be passed to ``redis.StrictRedis`` as the
+     source of connectivity.
+
+     .. versionadded:: 0.5.4
+
 
     """
 
@@ -84,11 +98,13 @@ class RedisBackend(CacheBackend):
         self.port = arguments.pop('port', 6379)
         self.db = arguments.pop('db', 0)
         self.distributed_lock = arguments.get('distributed_lock', False)
+        self.socket_timeout = arguments.pop('socket_timeout', None)
 
         self.lock_timeout = arguments.get('lock_timeout', None)
         self.lock_sleep = arguments.get('lock_sleep', 0.1)
 
         self.redis_expiration_time = arguments.pop('redis_expiration_time', 0)
+        self.connection_pool = arguments.get('connection_pool', None)
         self.client = self._create_client()
 
     def _imports(self):
@@ -97,11 +113,26 @@ class RedisBackend(CacheBackend):
         import redis
 
     def _create_client(self):
+        if self.connection_pool is not None:
+            # the connection pool already has all other connection
+            # options present within, so here we disregard socket_timeout
+            # and others.
+            return redis.StrictRedis(connection_pool=self.connection_pool)
+
+        args = {}
+        if self.socket_timeout:
+            args['socket_timeout'] = self.socket_timeout
+
         if self.url is not None:
-            return redis.StrictRedis.from_url(url=self.url)
+            args.update(url=self.url)
+            return redis.StrictRedis.from_url(**args)
         else:
-            return redis.StrictRedis(host=self.host, password=self.password,
-                                     port=self.port, db=self.db)
+            args.update(
+                host=self.host, password=self.password,
+                port=self.port, db=self.db
+            )
+            return redis.StrictRedis(**args)
+
 
     def get_mutex(self, key):
         if self.distributed_lock:

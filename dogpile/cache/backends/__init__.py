@@ -1,5 +1,6 @@
 from dogpile.cache.region import register_backend
 
+register_backend("dogpile.cache.null", "dogpile.cache.backends.null", "NullBackend")
 register_backend("dogpile.cache.dbm", "dogpile.cache.backends.file", "DBMBackend")
 register_backend("dogpile.cache.pylibmc", "dogpile.cache.backends.memcached", "PylibmcBackend")
 register_backend("dogpile.cache.bmemcached", "dogpile.cache.backends.memcached", "BMemcachedBackend")

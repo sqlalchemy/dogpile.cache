@@ -2,7 +2,114 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.5.4
+    :released: Sat Jun 14 2014
+
+    .. change::
+      :tags: feature
+      :pullreq: 18
+
+      Added new :class:`.NullBackend`, for testing and cache-disabling
+      purposes.  Pull request courtesy Wichert Akkerman.
+
+    .. change::
+      :tags: bug
+      :pullreq: 19
+
+      Added missing Mako test dependency to setup.py.
+      Pull request courtesy Wichert Akkerman.
+
+    .. change::
+      :tags: bug
+      :tickets: 58
+      :pullreq: 20
+
+      Fixed bug where calling :meth:`.CacheRegion.get_multi` or
+      :meth:`.CacheRegion.set_multi` with an empty list would cause failures
+      based on backend.  Pull request courtesy Wichert Akkerman.
+
+    .. change::
+      :tags: feature
+      :pullreq: 17
+
+      Added new :paramref:`.RedisBackend.connection_pool` option
+      on the Redis backend; this can be passed a ``redis.ConnectionPool``
+      instance directly.  Pull request courtesy Masayuko.
+
+    .. change::
+      :tags: feature
+      :pullreq: 16
+
+      Added new :paramref:`.RedisBackend.socket_timeout` option
+      on the Redis backend.  Pull request courtesy
+      Saulius Menkevičius.
+
+    .. change::
+      :tags: feature
+
+      Added support for tests to run via py.test.
+
+    .. change::
+      :tags: bug
+      :pullreq: 15
+
+      Repaired the entry point for Mako templates; the name of the entrypoint
+      itself was wrong vs. what was in the docs, but beyond that the entrypoint
+      would load the wrong module name.  Pull request courtesy zoomorph.
+
+    .. change::
+    	:tags: bug
+    	:tickets: 57
+    	:pullreq: 13
+
+      The :func:`.coerce_string_conf` function, which is used by
+      :meth:`.Region.configure_from_config`, will now recognize floating point
+      values when parsing conf strings and deliver them as such; this supports
+      non-integer values such as Redis ``lock_sleep``.  Pullreq courtesy
+      Jeff Dairiki.
+
+.. changelog::
     :version: 0.5.3
+    :released: Wed Jan 8 2014
+
+    .. change::
+        :tags: bug
+        :pullreq: 10
+
+      Fixed bug where the key_mangler would get in the way of usage of the
+      async_creation_runner feature within the :meth:`.Region.get_or_create`
+      method, by sending in the mangled key instead of the original key.  The
+      "mangled" key is only supposed to be exposed within the backend storage,
+      not the creation function which sends the key back into the :meth:`.Region.set`,
+      which does the mangling itself.  Pull request courtesy Ryan Kolak.
+
+    .. change::
+        :tags: bug, py3k
+
+      Fixed bug where the :meth:`.Region.get_multi` method wasn't calling
+      the backend correctly in Py3K (e.g. was passing a destructive ``map()``
+      object) which would cause this method to fail on the memcached backend.
+
+    .. change::
+        :tags: feature
+        :tickets: 55
+
+      Added a ``get()`` method to complement the ``set()``, ``invalidate()``
+      and ``refresh()`` methods established on functions decorated by
+      :meth:`.CacheRegion.cache_on_arguments` and
+      :meth:`.CacheRegion.cache_multi_on_arguments`.  Pullreq courtesy
+      Eric Hanchrow.
+
+    .. change::
+        :tags: feature
+        :tickets: 51
+        :pullreq: 11
+
+      Added a new variant on :class:`.MemoryBackend`, :class:`.MemoryPickleBackend`.
+      This backend applies ``pickle.dumps()`` and ``pickle.loads()`` to cached
+      values upon set and get, so that similar copy-on-cache behavior as that
+      of other backends is employed, guarding cached values against subsequent
+      in-memory state changes.  Pullreq courtesy Jonathan Vanasco.
 
     .. change::
         :tags: bug

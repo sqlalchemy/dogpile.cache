@@ -503,8 +503,11 @@ class CacheRegion(object):
         .. versionadded:: 0.5.0
 
         """
+        if not keys:
+            return []
+
         if self.key_mangler:
-            keys = map(lambda key: self.key_mangler(key), keys)
+            keys = list(map(lambda key: self.key_mangler(key), keys))
 
         backend_values = self.backend.get_multi(keys)
 
@@ -587,6 +590,7 @@ class CacheRegion(object):
             :meth:`.CacheRegion.get_or_create_multi` - multiple key/value version
 
         """
+        orig_key = key
         if self.key_mangler:
             key = self.key_mangler(key)
 
@@ -624,7 +628,7 @@ class CacheRegion(object):
 
         if self.async_creation_runner:
             def async_creator(mutex):
-                return self.async_creation_runner(self, key, creator, mutex)
+                return self.async_creation_runner(self, orig_key, creator, mutex)
         else:
             async_creator = None
 
@@ -780,6 +784,8 @@ class CacheRegion(object):
         .. versionadded:: 0.5.0
 
         """
+        if not mapping:
+            return
 
         if self.key_mangler:
             mapping = dict((self.key_mangler(k), self._value(v))
@@ -813,7 +819,7 @@ class CacheRegion(object):
         """
 
         if self.key_mangler:
-            keys = map(lambda key: self.key_mangler(key), keys)
+            keys = list(map(lambda key: self.key_mangler(key), keys))
 
         self.backend.delete_multi(keys)
 
@@ -873,6 +879,15 @@ class CacheRegion(object):
             newvalue = generate_something.refresh(5, 6)
 
         .. versionadded:: 0.5.0 Added ``refresh()`` method to decorated
+           function.
+
+        Lastly, the ``get()`` method returns either the value cached
+        for the given key, or the token ``NO_VALUE`` if no such key
+        exists::
+
+            value = generate_something.get(5, 6)
+
+        .. versionadded:: 0.5.3 Added ``get()`` method to decorated
            function.
 
         The default key generation will use the name
@@ -1005,6 +1020,10 @@ class CacheRegion(object):
                 key = key_generator(*arg, **kw)
                 self.set(key, value)
 
+            def get(*arg, **kw):
+                key = key_generator(*arg, **kw)
+                return self.get(key)
+
             def refresh(*arg, **kw):
                 key = key_generator(*arg, **kw)
                 value = fn(*arg, **kw)
@@ -1014,6 +1033,7 @@ class CacheRegion(object):
             decorate.set = set_
             decorate.invalidate = invalidate
             decorate.refresh = refresh
+            decorate.get = get
 
             return decorate
         return decorator
@@ -1069,16 +1089,24 @@ class CacheRegion(object):
             generate_something.set({"k1": "value1",
                                     "k2": "value2", "k3": "value3"})
 
-        an ``invalidate()`` method, which has the effect of deleting
+        ...an ``invalidate()`` method, which has the effect of deleting
         the given sequence of keys using the same mechanism as that of
         :meth:`.CacheRegion.delete_multi`::
 
             generate_something.invalidate("k1", "k2", "k3")
 
-        and finally a ``refresh()`` method, which will call the creation
+        ...a ``refresh()`` method, which will call the creation
         function, cache the new values, and return them::
 
             values = generate_something.refresh("k1", "k2", "k3")
+
+        ...and a ``get()`` method, which will return values
+        based on the given arguments::
+
+            values = generate_something.get("k1", "k2", "k3")
+
+        .. versionadded:: 0.5.3 Added ``get()`` method to decorated
+           function.
 
         Parameters passed to :meth:`.CacheRegion.cache_multi_on_arguments`
         have the same meaning as those passed to
@@ -1173,6 +1201,10 @@ class CacheRegion(object):
                         in zip(gen_keys, keys))
                     )
 
+            def get(*arg):
+                keys = key_generator(*arg)
+                return self.get_multi(keys)
+
             def refresh(*arg):
                 keys = key_generator(*arg)
                 values = fn(*arg)
@@ -1190,6 +1222,7 @@ class CacheRegion(object):
             decorate.set = set_
             decorate.invalidate = invalidate
             decorate.refresh = refresh
+            decorate.get = get
 
             return decorate
         return decorator
@@ -1205,4 +1238,3 @@ def make_region(*arg, **kw):
 
     """
     return CacheRegion(*arg, **kw)
-

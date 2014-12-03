@@ -27,9 +27,6 @@ Backends
 .. automodule:: dogpile.cache.backends.memory
     :members:
 
-.. automodule:: dogpile.cache.backends.memory_pickle
-    :members:
-
 .. automodule:: dogpile.cache.backends.memcached
     :members:
 
@@ -42,6 +39,8 @@ Backends
 .. automodule:: dogpile.cache.proxy
     :members:
 
+.. automodule:: dogpile.cache.backends.null
+    :members:
 
 Plugins
 ========

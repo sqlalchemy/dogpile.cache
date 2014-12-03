@@ -30,10 +30,10 @@ setup(name='dogpile.cache',
       namespace_packages=['dogpile'],
       entry_points="""
       [mako.cache]
-      dogpile = dogpile.cache.plugins.mako:MakoPlugin
+      dogpile.cache = dogpile.cache.plugins.mako_cache:MakoPlugin
       """,
       zip_safe=False,
       install_requires=['dogpile.core>=0.4.1'],
       test_suite='nose.collector',
-      tests_require=['nose', 'mock'],
+      tests_require=['nose', 'mock', 'Mako'],
 )
