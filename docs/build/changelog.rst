@@ -2,6 +2,18 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.5.5
+
+    .. change::
+      :tags: bug
+      :tickets: 41
+      :pullreq: 28
+
+      The ``wrap`` argument is now propagated when calling
+      :meth:`.CacheRegion.configure_from_config`.  Pull request courtesy
+      Jonathan Vanasco.
+
+.. changelog::
     :version: 0.5.4
     :released: Sat Jun 14 2014
 
