@@ -366,7 +366,9 @@ class CacheRegion(object):
             expiration_time = config_dict.get(
                                 "%sexpiration_time" % prefix, None),
             _config_argument_dict=config_dict,
-            _config_prefix="%sarguments." % prefix
+            _config_prefix="%sarguments." % prefix,
+            wrap = config_dict.get(
+                                "%swrap" % prefix, None),
         )
 
 
