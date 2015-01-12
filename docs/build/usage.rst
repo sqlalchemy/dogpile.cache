@@ -410,3 +410,18 @@ Note that the event to refresh the data is associated with the ``Session``
 being used for persistence; however, the actual refresh operation is called
 with a **different** ``Session``, typically one that is local to the refresh
 operation, either through a thread-local registry or via direct instantiation.
+
+
+Prefixing all keys in Redis
+---------------------------
+
+If you use a redis instance as backend that contains other keys besides the ones
+set by dogpile.cache, it is a good idea to uniquely prefix all dogpile.cache
+keys, to avoid potential collisions with keys set by your own code.  This can
+easily be done using a key mangler function::
+
+    from dogpile.cache import make_region
+
+    region = make_region(
+      key_mangler=lambda key: "myapp:dogpile:" + key
+    )
