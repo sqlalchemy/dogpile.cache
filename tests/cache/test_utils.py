@@ -4,6 +4,7 @@ from dogpile.cache import util
 
 
 class UtilsTest(TestCase):
+
     """ Test the relevant utils functionality.
     """
 

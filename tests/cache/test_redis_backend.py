@@ -4,7 +4,9 @@ from unittest import TestCase
 from nose import SkipTest
 from mock import patch, Mock
 
+
 class _TestRedisConn(object):
+
     @classmethod
     def _check_backend_available(cls, backend):
         try:
@@ -26,7 +28,7 @@ class RedisTest(_TestRedisConn, _GenericBackendTest):
             'host': '127.0.0.1',
             'port': 6379,
             'db': 0,
-            }
+        }
     }
 
 
@@ -38,8 +40,9 @@ class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTest):
             'port': 6379,
             'db': 0,
             'distributed_lock': True,
-            }
+        }
     }
+
 
 @patch('redis.StrictRedis', autospec=True)
 class RedisConnectionTest(TestCase):
@@ -68,7 +71,7 @@ class RedisConnectionTest(TestCase):
             'password': None,
             'port': 6379,
             'db': 0,
-            }
+        }
         self._test_helper(MockStrictRedis, arguments, {})
 
     def test_connect_with_basics(self, MockStrictRedis):
@@ -77,7 +80,7 @@ class RedisConnectionTest(TestCase):
             'password': None,
             'port': 6379,
             'db': 0,
-            }
+        }
         self._test_helper(MockStrictRedis, arguments)
 
     def test_connect_with_password(self, MockStrictRedis):
@@ -86,7 +89,7 @@ class RedisConnectionTest(TestCase):
             'password': 'some password',
             'port': 6379,
             'db': 0,
-            }
+        }
         self._test_helper(MockStrictRedis, arguments)
 
     def test_connect_with_socket_timeout(self, MockStrictRedis):
@@ -96,7 +99,7 @@ class RedisConnectionTest(TestCase):
             'socket_timeout': 0.5,
             'password': None,
             'db': 0,
-            }
+        }
         self._test_helper(MockStrictRedis, arguments)
 
     def test_connect_with_connection_pool(self, MockStrictRedis):
@@ -104,10 +107,10 @@ class RedisConnectionTest(TestCase):
         arguments = {
             'connection_pool': pool,
             'socket_timeout': 0.5
-            }
+        }
         expected_args = {'connection_pool': pool}
         self._test_helper(MockStrictRedis, expected_args,
-                connection_args=arguments)
+                          connection_args=arguments)
 
     def test_connect_with_url(self, MockStrictRedis):
         arguments = {

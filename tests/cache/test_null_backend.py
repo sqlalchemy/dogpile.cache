@@ -1,9 +1,9 @@
-from dogpile.cache.backends.null import NullLock
 from unittest import TestCase
 from ._fixtures import _GenericBackendFixture
 from dogpile.cache.api import NO_VALUE
 from . import eq_
 import itertools
+
 
 class NullBackendTest(_GenericBackendFixture, TestCase):
     backend = "dogpile.cache.null"
@@ -57,6 +57,7 @@ class NullBackendTest(_GenericBackendFixture, TestCase):
         reg = self._region()
 
         counter = itertools.count(1)
+
         @reg.cache_on_arguments()
         def go(a, b):
             val = next(counter)

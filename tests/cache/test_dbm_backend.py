@@ -1,20 +1,18 @@
 from ._fixtures import _GenericBackendTest, _GenericMutexTest
-from . import eq_, assert_raises_message
-from unittest import TestCase
-from threading import Thread
-import time
+from . import assert_raises_message
 import os
-from nose import SkipTest
 from dogpile.core.readwrite_lock import ReadWriteMutex
 from dogpile.cache.backends.file import AbstractFileLock
 
 try:
-    import fcntl
+    import fcntl  # noqa
     has_fcntl = True
 except ImportError:
     has_fcntl = False
 
+
 class MutexLock(AbstractFileLock):
+
     def __init__(self, filename):
         self.mutex = ReadWriteMutex()
 
@@ -41,6 +39,7 @@ if has_fcntl:
                 "filename": "test.dbm"
             }
         }
+
 
 class DBMBackendConditionTest(_GenericBackendTest):
     backend = "dogpile.cache.dbm"

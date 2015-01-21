@@ -1,19 +1,19 @@
-import pprint
 from unittest import TestCase
-from dogpile.cache.api import CacheBackend, CachedValue, NO_VALUE
+from dogpile.cache.api import NO_VALUE
 from dogpile.cache import exception
-from dogpile.cache import make_region, register_backend, CacheRegion, util
+from dogpile.cache import make_region, CacheRegion
 from dogpile.cache.proxy import ProxyBackend
-from . import eq_, is_, assert_raises_message, io, configparser, winsleep
-import time, datetime
+from . import eq_, is_, assert_raises_message, io, configparser
+import time
+import datetime
 import itertools
 from collections import defaultdict
-import operator
 from ._fixtures import MockBackend
 
 
 def key_mangler(key):
     return "HI!" + key
+
 
 class RegionTest(TestCase):
 
@@ -31,7 +31,7 @@ class RegionTest(TestCase):
             'cache.example.backend': 'mock',
             'cache.example.expiration_time': 600,
             'cache.example.arguments.url': '127.0.0.1'
-            }
+        }
         my_region = make_region()
         my_region.configure_from_config(my_conf, 'cache.example.')
         eq_(my_region.expiration_time, 600)
@@ -51,11 +51,13 @@ class RegionTest(TestCase):
         config = configparser.ConfigParser()
         config.readfp(io.StringIO(my_conf))
 
-        my_region.configure_from_config(dict(config.items('xyz')), 'cache.example.')
+        my_region.configure_from_config(
+            dict(config.items('xyz')), 'cache.example.')
         eq_(my_region.expiration_time, 600)
         assert isinstance(my_region.backend, MockBackend) is True
-        eq_(my_region.backend.arguments, {'url': '127.0.0.1',
-                            'dogpile_lockfile':False, 'xyz':None})
+        eq_(my_region.backend.arguments, {
+            'url': '127.0.0.1',
+            'dogpile_lockfile': False, 'xyz': None})
 
     def test_datetime_expiration_time(self):
         my_region = make_region()
@@ -63,7 +65,7 @@ class RegionTest(TestCase):
             backend='mock',
             expiration_time=datetime.timedelta(days=1, hours=8)
         )
-        eq_(my_region.expiration_time, 32*60*60)
+        eq_(my_region.expiration_time, 32 * 60 * 60)
 
     def test_reject_invalid_expiration_time(self):
         my_region = make_region()
@@ -75,24 +77,26 @@ class RegionTest(TestCase):
         )
 
     def test_key_mangler_argument(self):
-        reg = self._region(init_args={"key_mangler":key_mangler})
+        reg = self._region(init_args={"key_mangler": key_mangler})
         assert reg.key_mangler is key_mangler
 
         reg = self._region()
         assert reg.key_mangler is None
 
-        MockBackend.key_mangler = km = lambda self, k: "foo"
+        MockBackend.key_mangler = lambda self, k: "foo"
         reg = self._region()
         eq_(reg.key_mangler("bar"), "foo")
         MockBackend.key_mangler = None
 
     def test_key_mangler_impl(self):
-        reg = self._region(init_args={"key_mangler":key_mangler})
+        reg = self._region(init_args={"key_mangler": key_mangler})
 
         reg.set("some key", "some value")
         eq_(list(reg.backend._cache), ["HI!some key"])
         eq_(reg.get("some key"), "some value")
-        eq_(reg.get_or_create("some key", lambda: "some new value"), "some value")
+        eq_(
+            reg.get_or_create("some key", lambda: "some new value"),
+            "some value")
         reg.delete("some key")
         eq_(reg.get("some key"), NO_VALUE)
 
@@ -129,16 +133,18 @@ class RegionTest(TestCase):
 
     def test_creator(self):
         reg = self._region()
+
         def creator():
             return "some value"
         eq_(reg.get_or_create("some key", creator), "some value")
 
     def test_multi_creator(self):
         reg = self._region()
+
         def creator(*keys):
             return ["some value %s" % key for key in keys]
         eq_(reg.get_or_create_multi(["k3", "k2", "k5"], creator),
-                    ['some value k3', 'some value k2', 'some value k5'])
+            ['some value k3', 'some value k2', 'some value k5'])
 
     def test_remove(self):
         reg = self._region()
@@ -148,8 +154,9 @@ class RegionTest(TestCase):
         eq_(reg.get("some key"), NO_VALUE)
 
     def test_expire(self):
-        reg = self._region(config_args={"expiration_time":1})
+        reg = self._region(config_args={"expiration_time": 1})
         counter = itertools.count(1)
+
         def creator():
             return "some value %d" % next(counter)
         eq_(reg.get_or_create("some key", creator), "some value 1")
@@ -160,35 +167,36 @@ class RegionTest(TestCase):
         eq_(reg.get("some key"), "some value 2")
 
     def test_expire_multi(self):
-        reg = self._region(config_args={"expiration_time":1})
+        reg = self._region(config_args={"expiration_time": 1})
         counter = itertools.count(1)
+
         def creator(*keys):
             return ["some value %s %d" % (key, next(counter)) for key in keys]
         eq_(reg.get_or_create_multi(["k3", "k2", "k5"], creator),
-                    ['some value k3 2', 'some value k2 1', 'some value k5 3'])
+            ['some value k3 2', 'some value k2 1', 'some value k5 3'])
         time.sleep(2)
         is_(reg.get("k2"), NO_VALUE)
         eq_(reg.get("k2", ignore_expiration=True), "some value k2 1")
         eq_(reg.get_or_create_multi(["k3", "k2"], creator),
-                    ['some value k3 5', 'some value k2 4'])
+            ['some value k3 5', 'some value k2 4'])
         eq_(reg.get("k2"), "some value k2 4")
 
     def test_expire_on_get(self):
-        reg = self._region(config_args={"expiration_time":.5})
+        reg = self._region(config_args={"expiration_time": .5})
         reg.set("some key", "some value")
         eq_(reg.get("some key"), "some value")
         time.sleep(1)
         is_(reg.get("some key"), NO_VALUE)
 
     def test_ignore_expire_on_get(self):
-        reg = self._region(config_args={"expiration_time":.5})
+        reg = self._region(config_args={"expiration_time": .5})
         reg.set("some key", "some value")
         eq_(reg.get("some key"), "some value")
         time.sleep(1)
         eq_(reg.get("some key", ignore_expiration=True), "some value")
 
     def test_override_expire_on_get(self):
-        reg = self._region(config_args={"expiration_time":.5})
+        reg = self._region(config_args={"expiration_time": .5})
         reg.set("some key", "some value")
         eq_(reg.get("some key"), "some value")
         time.sleep(1)
@@ -196,18 +204,18 @@ class RegionTest(TestCase):
         is_(reg.get("some key"), NO_VALUE)
 
     def test_expire_override(self):
-        reg = self._region(config_args={"expiration_time":5})
+        reg = self._region(config_args={"expiration_time": 5})
         counter = itertools.count(1)
+
         def creator():
             return "some value %d" % next(counter)
         eq_(reg.get_or_create("some key", creator, expiration_time=1),
-                    "some value 1")
+            "some value 1")
         time.sleep(2)
         eq_(reg.get("some key"), "some value 1")
         eq_(reg.get_or_create("some key", creator, expiration_time=1),
-                    "some value 2")
+            "some value 2")
         eq_(reg.get("some key"), "some value 2")
-
 
     def test_hard_invalidate_get(self):
         reg = self._region()
@@ -219,15 +227,16 @@ class RegionTest(TestCase):
     def test_hard_invalidate_get_or_create(self):
         reg = self._region()
         counter = itertools.count(1)
+
         def creator():
             return "some value %d" % next(counter)
         eq_(reg.get_or_create("some key", creator),
-                    "some value 1")
+            "some value 1")
 
         time.sleep(.1)
         reg.invalidate()
         eq_(reg.get_or_create("some key", creator),
-                    "some value 2")
+            "some value 2")
 
     def test_soft_invalidate_get(self):
         reg = self._region(config_args={"expiration_time": 1})
@@ -239,29 +248,31 @@ class RegionTest(TestCase):
     def test_soft_invalidate_get_or_create(self):
         reg = self._region(config_args={"expiration_time": 1})
         counter = itertools.count(1)
+
         def creator():
             return "some value %d" % next(counter)
         eq_(reg.get_or_create("some key", creator),
-                    "some value 1")
+            "some value 1")
 
         time.sleep(.1)
         reg.invalidate(hard=False)
         eq_(reg.get_or_create("some key", creator),
-                    "some value 2")
+            "some value 2")
 
     def test_soft_invalidate_get_or_create_multi(self):
         reg = self._region(config_args={"expiration_time": 5})
         values = [1, 2, 3]
+
         def creator(*keys):
             v = values.pop(0)
             return [v for k in keys]
         ret = reg.get_or_create_multi(
-                    [1, 2], creator)
+            [1, 2], creator)
         eq_(ret, [1, 1])
         time.sleep(.1)
         reg.invalidate(hard=False)
         ret = reg.get_or_create_multi(
-                    [1, 2], creator)
+            [1, 2], creator)
         eq_(ret, [2, 2])
 
     def test_soft_invalidate_requires_expire_time_get(self):
@@ -285,53 +296,54 @@ class RegionTest(TestCase):
     def test_should_cache_fn(self):
         reg = self._region()
         values = [1, 2, 3]
+
         def creator():
             return values.pop(0)
         should_cache_fn = lambda val: val in (1, 3)
         ret = reg.get_or_create(
-                    "some key", creator,
-                    should_cache_fn=should_cache_fn)
+            "some key", creator,
+            should_cache_fn=should_cache_fn)
         eq_(ret, 1)
         eq_(reg.backend._cache['some key'][0], 1)
         time.sleep(.1)
         reg.invalidate()
         ret = reg.get_or_create(
-                    "some key", creator,
-                    should_cache_fn=should_cache_fn)
+            "some key", creator,
+            should_cache_fn=should_cache_fn)
         eq_(ret, 2)
         eq_(reg.backend._cache['some key'][0], 1)
         reg.invalidate()
         ret = reg.get_or_create(
-                    "some key", creator,
-                    should_cache_fn=should_cache_fn)
+            "some key", creator,
+            should_cache_fn=should_cache_fn)
         eq_(ret, 3)
         eq_(reg.backend._cache['some key'][0], 3)
-
 
     def test_should_cache_fn_multi(self):
         reg = self._region()
         values = [1, 2, 3]
+
         def creator(*keys):
             v = values.pop(0)
             return [v for k in keys]
         should_cache_fn = lambda val: val in (1, 3)
         ret = reg.get_or_create_multi(
-                    [1, 2], creator,
-                    should_cache_fn=should_cache_fn)
+            [1, 2], creator,
+            should_cache_fn=should_cache_fn)
         eq_(ret, [1, 1])
         eq_(reg.backend._cache[1][0], 1)
         time.sleep(.1)
         reg.invalidate()
         ret = reg.get_or_create_multi(
-                    [1, 2], creator,
-                    should_cache_fn=should_cache_fn)
+            [1, 2], creator,
+            should_cache_fn=should_cache_fn)
         eq_(ret, [2, 2])
         eq_(reg.backend._cache[1][0], 1)
         time.sleep(.1)
         reg.invalidate()
         ret = reg.get_or_create_multi(
-                    [1, 2], creator,
-                    should_cache_fn=should_cache_fn)
+            [1, 2], creator,
+            should_cache_fn=should_cache_fn)
         eq_(ret, [3, 3])
         eq_(reg.backend._cache[1][0], 3)
 
@@ -363,8 +375,8 @@ class RegionTest(TestCase):
         eq_(values['key3'], reg.get('key3'))
 
 
-
 class ProxyRegionTest(RegionTest):
+
     ''' This is exactly the same as the region test above, but it goes through
     a dummy proxy.  The purpose of this is to make sure the tests  still run
     successfully even when there is a proxy '''
@@ -375,35 +387,36 @@ class ProxyRegionTest(RegionTest):
         def _cache(self):
             return self.proxied._cache
 
-
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)
         config_args['wrap'] = [ProxyRegionTest.MockProxy]
-        reg.configure(backend,  **config_args)
+        reg.configure(backend, **config_args)
         return reg
-
 
 
 class ProxyBackendTest(TestCase):
 
     class GetCounterProxy(ProxyBackend):
         counter = 0
+
         def get(self, key):
             ProxyBackendTest.GetCounterProxy.counter += 1
             return self.proxied.get(key)
 
     class SetCounterProxy(ProxyBackend):
         counter = 0
+
         def set(self, key, value):
             ProxyBackendTest.SetCounterProxy.counter += 1
             return self.proxied.set(key, value)
 
     class UsedKeysProxy(ProxyBackend):
+
         ''' Keep a counter of hose often we set a particular key'''
 
         def __init__(self, *args, **kwargs):
             super(ProxyBackendTest.UsedKeysProxy, self).__init__(
-                                        *args, **kwargs)
+                *args, **kwargs)
             self._key_count = defaultdict(lambda: 0)
 
         def setcount(self, key):
@@ -414,18 +427,19 @@ class ProxyBackendTest(TestCase):
             self.proxied.set(key, value)
 
     class NeverSetProxy(ProxyBackend):
+
         ''' A totally contrived example of a Proxy that we pass arguments to.
         Never set a key that matches never_set '''
 
         def __init__(self, never_set, *args, **kwargs):
-            super(ProxyBackendTest.NeverSetProxy, self).__init__(*args, **kwargs)
+            super(ProxyBackendTest.NeverSetProxy, self).__init__(
+                *args, **kwargs)
             self.never_set = never_set
             self._key_count = defaultdict(lambda: 0)
 
         def set(self, key, value):
             if key != self.never_set:
                 self.proxied.set(key, value)
-
 
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)
@@ -499,4 +513,3 @@ class ProxyBackendTest(TestCase):
         # make sure 1 was set, but 5 was not
         eq_(reg.get(5), NO_VALUE)
         eq_(reg.get(1), True)
-

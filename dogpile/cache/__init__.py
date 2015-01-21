@@ -1,3 +1,3 @@
 __version__ = '0.5.5'
 
-from .region import CacheRegion, register_backend, make_region
+from .region import CacheRegion, register_backend, make_region  # noqa
