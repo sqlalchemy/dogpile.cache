@@ -840,7 +840,8 @@ class CacheRegion(object):
             self, namespace=None,
             expiration_time=None,
             should_cache_fn=None,
-            to_str=compat.string_type):
+            to_str=compat.string_type,
+            function_key_generator=None):
         """A function decorator that will cache the return
         value of the function using a key derived from the
         function itself and its arguments.
@@ -999,6 +1000,12 @@ class CacheRegion(object):
 
          .. versionadded:: 0.5.0
 
+        :param function_key_generator: a function that will produce a
+         "cache key". This function will supersede the one configured on the
+         :class:`.CacheRegion` itself.
+
+         .. versionadded:: 0.5.5
+
         .. seealso::
 
             :meth:`.CacheRegion.cache_multi_on_arguments`
@@ -1008,12 +1015,15 @@ class CacheRegion(object):
         """
         expiration_time_is_callable = compat.callable(expiration_time)
 
+        if function_key_generator is None:
+            function_key_generator = self.function_key_generator
+
         def decorator(fn):
             if to_str is compat.string_type:
                 # backwards compatible
-                key_generator = self.function_key_generator(namespace, fn)
+                key_generator = function_key_generator(namespace, fn)
             else:
-                key_generator = self.function_key_generator(
+                key_generator = function_key_generator(
                     namespace, fn,
                     to_str=to_str)
 
@@ -1058,7 +1068,8 @@ class CacheRegion(object):
     def cache_multi_on_arguments(
             self, namespace=None, expiration_time=None,
             should_cache_fn=None,
-            asdict=False, to_str=compat.string_type):
+            asdict=False, to_str=compat.string_type,
+            function_multi_key_generator=None):
         """A function decorator that will cache multiple return
         values from the function using a sequence of keys derived from the
         function itself and the arguments passed to it.
@@ -1162,6 +1173,12 @@ class CacheRegion(object):
 
         .. versionadded:: 0.5.0
 
+        :param function_multi_key_generator: a function that will produce a
+         list of keys. This function will supersede the one configured on the
+         :class:`.CacheRegion` itself.
+
+         .. versionadded:: 0.5.5
+
         .. seealso::
 
             :meth:`.CacheRegion.cache_on_arguments`
@@ -1171,8 +1188,11 @@ class CacheRegion(object):
         """
         expiration_time_is_callable = compat.callable(expiration_time)
 
+        if function_multi_key_generator is None:
+            function_multi_key_generator = self.function_multi_key_generator
+
         def decorator(fn):
-            key_generator = self.function_multi_key_generator(
+            key_generator = function_multi_key_generator(
                 namespace, fn,
                 to_str=to_str)
 
