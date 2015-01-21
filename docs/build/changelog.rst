@@ -13,6 +13,12 @@ Changelog
       :meth:`.CacheRegion.configure_from_config`.  Pull request courtesy
       Jonathan Vanasco.
 
+    .. change::
+      :tags: bug
+
+      Fixed tests under py.test, which were importing a symbol from
+      pytest itself ``is_unittest`` which has been removed.
+
 .. changelog::
     :version: 0.5.4
     :released: Sat Jun 14 2014
