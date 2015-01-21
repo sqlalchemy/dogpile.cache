@@ -6,6 +6,18 @@ Changelog
 
     .. change::
       :tags: bug
+      :tickets: 71
+      :pullreq: 25
+
+      Fixed bug where sending -1 for the
+      :paramref:`.CacheRegion.get_or_create.expiration_time` parameter to
+      :meth:`.CacheRegion.get_or_create` or
+      :meth:`.CacheRegion.get_or_create_multi`
+      would fail to honor the setting as "no expiration time".  Pull request
+      courtesy Hongbin Lu.
+
+    .. change::
+      :tags: bug
       :tickets: 41
       :pullreq: 28
 
