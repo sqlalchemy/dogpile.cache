@@ -5,6 +5,20 @@ Changelog
     :version: 0.5.5
 
     .. change::
+      :tags: feature
+      :pullreq: 26
+
+      Added new arguments
+      :paramref:`.CacheRegion.cache_on_arguments.function_key_generator` and
+      :paramref:`.CacheRegion.cache_multi_on_arguments.function_multi_key_generator`
+      which serve as per-decorator replacements for the region-wide
+      :paramref:`.CacheRegion.function_key_generator` and
+      :paramref:`.CacheRegion.function_multi_key_generator` parameters,
+      respectively, so that custom key production schemes can be applied
+      on a per-function basis within one region.
+      Pull request courtesy Hongbin Lu.
+
+    .. change::
       :tags: bug
       :tickets: 71
       :pullreq: 25
