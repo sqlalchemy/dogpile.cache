@@ -163,6 +163,8 @@ class RegionTest(TestCase):
         time.sleep(2)
         is_(reg.get("some key"), NO_VALUE)
         eq_(reg.get("some key", ignore_expiration=True), "some value 1")
+        eq_(reg.get_or_create("some key", creator, expiration_time=-1),
+                    "some value 1")
         eq_(reg.get_or_create("some key", creator), "some value 2")
         eq_(reg.get("some key"), "some value 2")
 
@@ -177,6 +179,8 @@ class RegionTest(TestCase):
         time.sleep(2)
         is_(reg.get("k2"), NO_VALUE)
         eq_(reg.get("k2", ignore_expiration=True), "some value k2 1")
+        eq_(reg.get_or_create_multi(["k3", "k2"], creator, expiration_time=-1),
+                    ['some value k3 2', 'some value k2 1'])
         eq_(reg.get_or_create_multi(["k3", "k2"], creator),
             ['some value k3 5', 'some value k2 4'])
         eq_(reg.get("k2"), "some value k2 4")
