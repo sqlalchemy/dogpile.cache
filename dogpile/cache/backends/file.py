@@ -235,12 +235,14 @@ class DBMBackend(CacheBackend):
 
     def set(self, key, value):
         with self._dbm_file(True) as dbm:
-            dbm[key] = compat.pickle.dumps(value)
+            dbm[key] = compat.pickle.dumps(value,
+                                           compat.pickle.HIGHEST_PROTOCOL)
 
     def set_multi(self, mapping):
         with self._dbm_file(True) as dbm:
             for key, value in mapping.items():
-                dbm[key] = compat.pickle.dumps(value)
+                dbm[key] = compat.pickle.dumps(value,
+                                               compat.pickle.HIGHEST_PROTOCOL)
 
     def delete(self, key):
         with self._dbm_file(True) as dbm:
