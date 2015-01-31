@@ -2,6 +2,18 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.5.6
+
+    .. change::
+      :tags: feature
+      :pullreq: 30
+
+      Changed the pickle protocol for the file/DBM backend to
+      ``pickle.HIGHEST_PROTOCOL`` when producing new pickles,
+      to match that of the redis and memorypickle backends.
+      Pull request courtesy anentropic.
+
+.. changelog::
     :version: 0.5.5
     :released: Wed Jan 21 2015
 
