@@ -2,6 +2,16 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.5.7
+
+    .. change::
+      :tags: bug, redis
+      :tickets: 74
+
+      Repaired the :meth:`.CacheRegion.get_multi` method when used with a
+      list of zero length against the redis backend.
+
+.. changelog::
     :version: 0.5.6
     :released: Mon Feb 2 2015
 

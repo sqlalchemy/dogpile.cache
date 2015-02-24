@@ -147,6 +147,8 @@ class RedisBackend(CacheBackend):
         return pickle.loads(value)
 
     def get_multi(self, keys):
+        if not keys:
+            return []
         values = self.client.mget(keys)
         return [
             pickle.loads(v) if v is not None else NO_VALUE

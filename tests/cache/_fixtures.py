@@ -102,9 +102,18 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         eq_(values['key2'], reg.get('key2'))
         eq_(values['key3'], reg.get('key3'))
 
+    def test_region_get_zero_multiple_values(self):
+        reg = self._region()
+        eq_(reg.get_multi([]), [])
+
     def test_region_set_zero_multiple_values(self):
         reg = self._region()
         reg.set_multi({})
+
+    def test_region_set_zero_multiple_values_w_decorator(self):
+        reg = self._region()
+        values = reg.get_or_create_multi([], lambda: 0)
+        eq_(values, [])
 
     def test_region_get_multiple_values(self):
         reg = self._region()
