@@ -5,6 +5,13 @@ Changelog
     :version: 0.5.7
 
     .. change::
+      :tags: feature, tests
+      :pullreq: 33
+
+      Test suite now runs using py.test.  Pull request courtesy
+      John Anderson.
+
+    .. change::
       :tags: bug, redis
       :tickets: 74
 
