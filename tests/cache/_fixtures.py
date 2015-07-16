@@ -4,7 +4,7 @@ from dogpile.cache.region import _backend_loader
 from . import eq_, assert_raises_message
 import itertools
 import time
-from nose import SkipTest
+import pytest
 from threading import Thread, Lock
 from unittest import TestCase
 import random
@@ -19,7 +19,7 @@ class _GenericBackendFixture(object):
             backend_cls = _backend_loader.load(cls.backend)
             backend = backend_cls(cls.config_args.get('arguments', {}))
         except ImportError:
-            raise SkipTest("Backend %s not installed" % cls.backend)
+            pytest.skip("Backend %s not installed" % cls.backend)
         cls._check_backend_available(backend)
 
     def tearDown(self):

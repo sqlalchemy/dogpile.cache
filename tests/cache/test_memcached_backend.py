@@ -3,7 +3,7 @@ from . import eq_
 from unittest import TestCase
 from threading import Thread
 import time
-from nose import SkipTest
+import pytest
 from dogpile.cache import compat
 
 
@@ -16,7 +16,7 @@ class _TestMemcachedConn(object):
             client.set("x", "y")
             assert client.get("x") == "y"
         except:
-            raise SkipTest(
+            pytest.skip(
                 "memcached is not running or "
                 "otherwise not functioning correctly")
 

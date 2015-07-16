@@ -4,8 +4,11 @@ dist/
 docs/build/output/
 *.orig
 alembic.ini
-tox.ini
 .venv
 *.egg
 *.egg-info
 .coverage
+.tox/
+coverage.xml
+test_*.lock
+test_*.db

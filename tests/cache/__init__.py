@@ -1,5 +1,5 @@
 import re
-from nose import SkipTest
+import pytest
 from functools import wraps
 from dogpile.cache import compat
 import time
@@ -42,6 +42,6 @@ def requires_py3k(fn):
     @wraps(fn)
     def wrap(*arg, **kw):
         if compat.py2k:
-            raise SkipTest("Python 3 required")
+            pytest.skip("Python 3 required")
         return fn(*arg, **kw)
     return wrap

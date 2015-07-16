@@ -1,0 +1,8 @@
+Mako
+mock
+pylibmc
+redis
+python-binary-memcached
+python-memcached
+pytest
+pytest-cov

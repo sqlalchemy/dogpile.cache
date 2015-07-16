@@ -38,6 +38,4 @@ setup(
     """,
     zip_safe=False,
     install_requires=['dogpile.core>=0.4.1'],
-    test_suite='nose.collector',
-    tests_require=['nose', 'mock', 'Mako'],
 )

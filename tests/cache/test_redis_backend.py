@@ -1,8 +1,8 @@
 from dogpile.cache.region import _backend_loader
 from ._fixtures import _GenericBackendTest, _GenericMutexTest
 from unittest import TestCase
-from nose import SkipTest
 from mock import patch, Mock
+import pytest
 
 
 class _TestRedisConn(object):
@@ -16,7 +16,7 @@ class _TestRedisConn(object):
             assert client.get("x").decode("ascii") == "y"
             client.delete("x")
         except:
-            raise SkipTest(
+            pytest.skip(
                 "redis is not running or "
                 "otherwise not functioning correctly")
 
@@ -54,7 +54,7 @@ class RedisConnectionTest(TestCase):
             cls.backend_cls = _backend_loader.load(cls.backend)
             cls.backend_cls({})
         except ImportError:
-            raise SkipTest("Backend %s not installed" % cls.backend)
+            pytest.skip("Backend %s not installed" % cls.backend)
 
     def _test_helper(self, mock_obj, expected_args, connection_args=None):
         if connection_args is None:
