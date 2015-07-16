@@ -60,6 +60,6 @@ setup(
     """,
     zip_safe=False,
     install_requires=['dogpile.core>=0.4.1'],
-    tests_require=['pytest', 'pytest-cov'],
+    tests_require=['pytest', 'pytest-cov', 'mock', 'Mako'],
     cmdclass={'test': PyTest},
 )
