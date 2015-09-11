@@ -169,10 +169,7 @@ class CacheRegion(object):
         self.name = name
         self.function_key_generator = function_key_generator
         self.function_multi_key_generator = function_multi_key_generator
-        if key_mangler:
-            self.key_mangler = key_mangler
-        else:
-            self.key_mangler = None
+        self.key_mangler = self._user_defined_key_mangler = key_mangler
         self._hard_invalidated = None
         self._soft_invalidated = None
         self.async_creation_runner = async_creation_runner
@@ -183,7 +180,8 @@ class CacheRegion(object):
             arguments=None,
             _config_argument_dict=None,
             _config_prefix=None,
-            wrap=None
+            wrap=None,
+            replace_existing_backend=False,
     ):
         """Configure a :class:`.CacheRegion`.
 
@@ -223,12 +221,19 @@ class CacheRegion(object):
 
             :ref:`changing_backend_behavior`
 
+        :param replace_existing_backend: if True, the existing cache backend
+         will be replaced.
+
+         .. versionadded:: 0.5.7
+
+
          """
 
-        if "backend" in self.__dict__:
+        if "backend" in self.__dict__ and not replace_existing_backend:
             raise exception.RegionAlreadyConfigured(
                 "This region is already "
-                "configured with backend: %s"
+                "configured with backend: %s.  "
+                "Specify replace_existing_backend=True to replace."
                 % self.backend)
         backend_cls = _backend_loader.load(backend)
         if _config_argument_dict:
@@ -248,7 +253,7 @@ class CacheRegion(object):
             raise exception.ValidationError(
                 'expiration_time is not a number or timedelta.')
 
-        if self.key_mangler is None:
+        if not self._user_defined_key_mangler:
             self.key_mangler = self.backend.key_mangler
 
         self._lock_registry = NameRegistry(self._create_mutex)

@@ -3,6 +3,7 @@ from dogpile.cache.api import NO_VALUE
 from dogpile.cache import exception
 from dogpile.cache import make_region, CacheRegion
 from dogpile.cache.proxy import ProxyBackend
+from dogpile.cache.region import _backend_loader
 from . import eq_, is_, assert_raises_message, io, configparser
 import time
 import datetime
@@ -109,6 +110,32 @@ class RegionTest(TestCase):
             reg.configure, "mock"
         )
         eq_(reg.is_configured, True)
+
+    def test_replace_backend_config(self):
+        reg = CacheRegion()
+
+        reg.configure("dogpile.cache.null")
+        eq_(reg.is_configured, True)
+
+        null_backend = _backend_loader.load("dogpile.cache.null")
+        assert reg.key_mangler is null_backend.key_mangler
+
+        reg.configure("mock", replace_existing_backend=True)
+        eq_(reg.is_configured, True)
+
+        assert isinstance(reg.backend, MockBackend)
+        assert reg.key_mangler is MockBackend.key_mangler
+
+    def test_replace_backend_config_with_custom_key_mangler(self):
+        reg = CacheRegion(key_mangler=key_mangler)
+
+        reg.configure("dogpile.cache.null")
+        eq_(reg.is_configured, True)
+        assert reg.key_mangler is key_mangler
+
+        reg.configure("mock", replace_existing_backend=True)
+        eq_(reg.is_configured, True)
+        assert reg.key_mangler is key_mangler
 
     def test_no_config(self):
         reg = CacheRegion()

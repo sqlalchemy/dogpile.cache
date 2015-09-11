@@ -5,6 +5,15 @@ Changelog
     :version: 0.5.7
 
     .. change::
+      :tags: feature
+      :pullreq: 35
+      :tickets: 65
+
+      Added a new flag :paramref:`.CacheRegion.configure.replace_existing_backend`,
+      allows a region to have a new backend replace an existing one.
+      Pull request courtesy hbccbh.
+
+    .. change::
       :tags: feature, tests
       :pullreq: 33
 
