@@ -47,7 +47,7 @@ dogpile.cache includes a Pylibmc backend.  A basic configuration looks like::
         'dogpile.cache.pylibmc',
         expiration_time = 3600,
         arguments = {
-            'url':["127.0.0.1"],
+            'url': ["127.0.0.1"],
         }
     )
 
@@ -461,48 +461,60 @@ Encoded ProxyBackend Example
     from dogpile.cache.proxy import ProxyBackend
     import msgpack
 
-	class _EncodedProxy(ProxyBackend):
+    class _EncodedProxy(ProxyBackend):
+        """base class for building value-mangling proxies"""
 
-		def value_decode(self, value):
-			raise NotImplementedError("override me")
+        def value_decode(self, value):
+            raise NotImplementedError("override me")
 
-		def value_encode(self, value):
-			raise NotImplementedError("override me")
+        def value_encode(self, value):
+            raise NotImplementedError("override me")
 
-		def set(self, k, v):
-			v = self.value_encode(v)
-			self.proxied.set(k, v)
+        def set(self, k, v):
+            v = self.value_encode(v)
+            self.proxied.set(k, v)
 
-		def get(self, key):
-			v = self.proxied.get(key)
-			return self.value_decode(v)
+        def get(self, key):
+            v = self.proxied.get(key)
+            return self.value_decode(v)
 
-		def set_multi(self, mapping):
-			for (k, v) in mapping.iteritems():
-				mapping[k] = self.value_encode(v)
-			return self.proxied.set_multi(mapping)
+        def set_multi(self, mapping):
+            for (k, v) in mapping.iteritems():
+                mapping[k] = self.value_encode(v)
+            return self.proxied.set_multi(mapping)
 
-		def get_multi(self, keys):
-			results = self.proxied.get_multi(keys)
-			translated = []
-			for record in results:
-				try:
-					translated.append(self.value_decode(record))
-				except Exception as e:
-					raise
-			return translated
+        def get_multi(self, keys):
+            results = self.proxied.get_multi(keys)
+            translated = []
+            for record in results:
+                try:
+                    translated.append(self.value_decode(record))
+                except Exception as e:
+                    raise
+            return translated
 
 
-	class MsgpackProxy(_EncodedProxy):
+    class MsgpackProxy(_EncodedProxy):
+        """custom decode/encode for value mangling"""
 
-		def value_decode(self, v):
-			if not v or v is NO_VALUE:
-				return NO_VALUE
-			# you probably want to specify a custom decoder via `object_hook`
-			v = msgpack.unpackb(payload, encoding="utf-8")
-			return CachedValue(*v)
+        def value_decode(self, v):
+            if not v or v is NO_VALUE:
+                return NO_VALUE
+            # you probably want to specify a custom decoder via `object_hook`
+            v = msgpack.unpackb(payload, encoding="utf-8")
+            return CachedValue(*v)
 
-		def value_encode(self, v):
-			# you probably want to specify a custom encoder via `default`
-			v = msgpack.packb(payload, use_bin_type=True)
-			return v
+        def value_encode(self, v):
+            # you probably want to specify a custom encoder via `default`
+            v = msgpack.packb(payload, use_bin_type=True)
+            return v
+
+    # extend our region configuration from above with a 'wrap'
+    region = make_region().configure(
+        'dogpile.cache.pylibmc',
+        expiration_time = 3600,
+        arguments = {
+            'url': ["127.0.0.1"],
+        },
+        wrap = [MsgpackProxy, ]
+    )
