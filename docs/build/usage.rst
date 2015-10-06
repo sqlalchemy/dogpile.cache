@@ -459,6 +459,7 @@ and ``value_encode`` functions.
 Encoded ProxyBackend Example
 
     from dogpile.cache.proxy import ProxyBackend
+    import msgpack
 
 	class _EncodedProxy(ProxyBackend):
 
