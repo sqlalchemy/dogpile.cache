@@ -47,7 +47,7 @@ dogpile.cache includes a Pylibmc backend.  A basic configuration looks like::
         'dogpile.cache.pylibmc',
         expiration_time = 3600,
         arguments = {
-            'url':["127.0.0.1"],
+            'url': ["127.0.0.1"],
         }
     )
 
@@ -424,4 +424,97 @@ easily be done using a key mangler function::
 
     region = make_region(
       key_mangler=lambda key: "myapp:dogpile:" + key
+    )
+
+
+Encoding/Decoding data into another format
+------------------------------------------
+
+Since dogpile is managing cached data, you may be concerned with the size of
+your payloads.  A possible method of helping minimize payloads is to use a
+ProxyBackend to recode the data on-the-fly or otherwise transform data as it
+enters or leaves persistent storage.
+
+In the example below, we define 2 classes to implement msgpack encoding.  Msgpack
+(http://msgpack.org/) is a serialization format that works exceptionally well
+with json-like data and can serialize nested dicts into a much smaller payload
+than Python's own pickle.  ``_EncodedProxy`` is our base class
+for building data encoders, and inherits from dogpile's own `ProxyBackend`.  You
+could just use one class.  This class passes 4 of the main `key/value` functions
+into a configurable decoder and encoder.  The ``MsgpackProxy`` class simply
+inherits from ``_EncodedProxy`` and  implements the necessary ``value_decode``
+and ``value_encode`` functions.
+
+
+.. sidebar:: A Note on Data Encoding
+
+    Under the hood, dogpile.cache wraps cached data in an instance of
+    ``dogpile.cache.api.CachedValue`` and then pickles that data for storage
+    along with some bookkeeping metadata. If you implement a ProxyBackend to
+    encode/decode data, that transformation will happen on the pre-pickled data-
+    dogpile does not store the data 'raw' and will still pass a pickled payload
+    to the backend.  This behavior can negate the hopeful improvements of some
+    encoding schemes.
+
+Encoded ProxyBackend Example
+
+    from dogpile.cache.proxy import ProxyBackend
+    import msgpack
+
+    class _EncodedProxy(ProxyBackend):
+        """base class for building value-mangling proxies"""
+
+        def value_decode(self, value):
+            raise NotImplementedError("override me")
+
+        def value_encode(self, value):
+            raise NotImplementedError("override me")
+
+        def set(self, k, v):
+            v = self.value_encode(v)
+            self.proxied.set(k, v)
+
+        def get(self, key):
+            v = self.proxied.get(key)
+            return self.value_decode(v)
+
+        def set_multi(self, mapping):
+            for (k, v) in mapping.iteritems():
+                mapping[k] = self.value_encode(v)
+            return self.proxied.set_multi(mapping)
+
+        def get_multi(self, keys):
+            results = self.proxied.get_multi(keys)
+            translated = []
+            for record in results:
+                try:
+                    translated.append(self.value_decode(record))
+                except Exception as e:
+                    raise
+            return translated
+
+
+    class MsgpackProxy(_EncodedProxy):
+        """custom decode/encode for value mangling"""
+
+        def value_decode(self, v):
+            if not v or v is NO_VALUE:
+                return NO_VALUE
+            # you probably want to specify a custom decoder via `object_hook`
+            v = msgpack.unpackb(payload, encoding="utf-8")
+            return CachedValue(*v)
+
+        def value_encode(self, v):
+            # you probably want to specify a custom encoder via `default`
+            v = msgpack.packb(payload, use_bin_type=True)
+            return v
+
+    # extend our region configuration from above with a 'wrap'
+    region = make_region().configure(
+        'dogpile.cache.pylibmc',
+        expiration_time = 3600,
+        arguments = {
+            'url': ["127.0.0.1"],
+        },
+        wrap = [MsgpackProxy, ]
     )
