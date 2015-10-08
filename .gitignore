@@ -12,3 +12,5 @@ alembic.ini
 coverage.xml
 test_*.lock
 test_*.db
+/.idea/
+/.cache/
