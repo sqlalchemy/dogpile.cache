@@ -12,7 +12,7 @@ from dogpile.cache import util
 import random
 import time
 
-__all__ = 'GenericMemcachedBackend', \
+__all__ = 'GenericMemcachedBackend', 'MemcachedBackend',\
           'PylibmcBackend', 'BMemcachedBackend', 'MemcachedLock'
 
 

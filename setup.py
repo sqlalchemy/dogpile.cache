@@ -59,7 +59,7 @@ setup(
     dogpile.cache = dogpile.cache.plugins.mako_cache:MakoPlugin
     """,
     zip_safe=False,
-    install_requires=['dogpile.core', 'python-binary-memcached', 'pylibmc', 'python-memcached'],
+    install_requires=['dogpile.core>=0.4.1'],
     tests_require=['pytest', 'pytest-cov', 'mock', 'Mako'],
     cmdclass={'test': PyTest},
 )
