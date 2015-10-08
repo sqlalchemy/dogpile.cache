@@ -1,7 +1,7 @@
 from dogpile.cache.api import CacheBackend, NO_VALUE
 from dogpile.cache import register_backend, CacheRegion
 from dogpile.cache.region import _backend_loader
-from . import eq_, assert_raises_message
+from . import eq_, assert_raises_message, requires_py3k
 import itertools
 import time
 import pytest
@@ -130,6 +130,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
 
     def test_region_get_nothing_multiple(self):
         reg = self._region()
+        reg.delete_multi(['key1', 'key2', 'key3', 'key4', 'key5'])
         values = {'key1': 'value1', 'key3': 'value3', 'key5': 'value5'}
         reg.set_multi(values)
         reg_values = reg.get_multi(
@@ -158,6 +159,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
 
     def test_region_set_get_nothing(self):
         reg = self._region()
+        reg.delete_multi(["some key"])
         eq_(reg.get("some key"), NO_VALUE)
 
     def test_region_creator(self):
@@ -193,7 +195,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
             t.start()
         for t in threads:
             t.join()
-        assert len(canary) > 3
+        assert len(canary) > 2
         assert False not in canary
 
     def test_threaded_get_multi(self):
@@ -271,6 +273,11 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         @reg.cache_on_arguments()
         def my_function(x, y):
             return next(counter) + x + y
+
+        # Start with a clean slate
+        my_function.invalidate(3, 4)
+        my_function.invalidate(5, 6)
+        my_function.invalidate(4, 3)
 
         eq_(my_function(3, 4), 8)
         eq_(my_function(5, 6), 13)
