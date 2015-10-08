@@ -1,7 +1,7 @@
 from dogpile.cache.api import CacheBackend, NO_VALUE
 from dogpile.cache import register_backend, CacheRegion
 from dogpile.cache.region import _backend_loader
-from . import eq_, assert_raises_message, requires_py3k
+from . import eq_, assert_raises_message
 import itertools
 import time
 import pytest
