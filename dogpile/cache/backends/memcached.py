@@ -33,7 +33,7 @@ class MemcachedLock(object):
         client = self.client_fn()
         i = 0
         while True:
-            if client.add(self.key, 1, time=self.timeout):
+            if client.add(self.key, 1, self.timeout):
                 return True
             elif not wait:
                 return False
@@ -113,6 +113,9 @@ class GenericMemcachedBackend(CacheBackend):
         self.lock_timeout = arguments.get('lock_timeout', 0)
         self.memcached_expire_time = arguments.get(
             'memcached_expire_time', 0)
+
+    def has_lock_timeout(self):
+        return self.lock_timeout != 0
 
     def _imports(self):
         """client library imports go here."""
@@ -336,9 +339,9 @@ class BMemcachedBackend(GenericMemcachedBackend):
 
             """
 
-            def add(self, key, value, time):
+            def add(self, key, value, timeout=0):
                 try:
-                    return super(RepairBMemcachedAPI, self).add(key, value, time)
+                    return super(RepairBMemcachedAPI, self).add(key, value, timeout)
                 except ValueError:
                     return False
 

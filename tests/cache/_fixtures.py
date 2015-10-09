@@ -180,7 +180,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         def creator():
             ack = lock.acquire(False)
             canary.append(ack)
-            time.sleep(.5)
+            time.sleep(.25)
             if ack:
                 lock.release()
             return "some value"
@@ -190,13 +190,16 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
                 reg.get_or_create("some key", creator)
                 time.sleep(.5)
 
-        threads = [Thread(target=f) for i in range(5)]
+        threads = [Thread(target=f) for i in range(10)]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
         assert len(canary) > 2
-        assert False not in canary
+        if not reg.backend.has_lock_timeout():
+            assert False not in canary
+        else:
+            assert False in canary
 
     def test_threaded_get_multi(self):
         reg = self._region(config_args={"expiration_time": .25})

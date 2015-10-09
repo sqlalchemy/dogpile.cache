@@ -6,6 +6,8 @@ import time
 import pytest
 from dogpile.cache import compat
 
+LOCK_TIMEOUT = 1
+
 
 class _TestMemcachedConn(object):
 
@@ -32,6 +34,19 @@ class _NonDistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     }
 
 
+class _DistributedMemcachedWithTimeoutTest(_TestMemcachedConn, _GenericBackendTest):
+    region_args = {
+        "key_mangler": lambda x: x.replace(" ", "_")
+    }
+    config_args = {
+        "arguments": {
+            "url": "127.0.0.1:11211",
+            "distributed_lock": True,
+            "lock_timeout": LOCK_TIMEOUT,
+        }
+    }
+
+
 class _DistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     region_args = {
         "key_mangler": lambda x: x.replace(" ", "_")
@@ -39,7 +54,7 @@ class _DistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     config_args = {
         "arguments": {
             "url": "127.0.0.1:11211",
-            "distributed_lock": True
+            "distributed_lock": True,
         }
     }
 
@@ -49,6 +64,16 @@ class _DistributedMemcachedMutexTest(_TestMemcachedConn, _GenericMutexTest):
         "arguments": {
             "url": "127.0.0.1:11211",
             "distributed_lock": True
+        }
+    }
+
+
+class _DistributedMemcachedMutexWithTimeoutTest(_TestMemcachedConn, _GenericMutexTest):
+    config_args = {
+        "arguments": {
+            "url": "127.0.0.1:11211",
+            "distributed_lock": True,
+            "lock_timeout": LOCK_TIMEOUT,
         }
     }
 
@@ -69,11 +94,19 @@ class BMemcachedTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
 
+class BMemcachedDistributedWithTimeoutTest(_DistributedMemcachedWithTimeoutTest):
+    backend = "dogpile.cache.bmemcached"
+
+
 class BMemcachedDistributedTest(_DistributedMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
 
 class BMemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
+    backend = "dogpile.cache.bmemcached"
+
+
+class BMemcachedDistributedMutexWithTimeoutTest(_DistributedMemcachedMutexWithTimeoutTest):
     backend = "dogpile.cache.bmemcached"
 
 

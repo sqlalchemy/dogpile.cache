@@ -83,6 +83,9 @@ class CacheBackend(object):
             )
         )
 
+    def has_lock_timeout(self):
+        return False
+
     def get_mutex(self, key):
         """Return an optional mutexing object for the given key.
 
