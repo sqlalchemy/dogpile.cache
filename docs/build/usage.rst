@@ -479,9 +479,13 @@ Encoded ProxyBackend Example
             return self.value_decode(v)
 
         def set_multi(self, mapping):
+            """encode to a new dict to preserve unencoded values in-place when
+               called by `get_or_create_multi`
+               """
+            mapping_set = {}
             for (k, v) in mapping.iteritems():
-                mapping[k] = self.value_encode(v)
-            return self.proxied.set_multi(mapping)
+                mapping_set[k] = self.value_encode(v)
+            return self.proxied.set_multi(mapping_set)
 
         def get_multi(self, keys):
             results = self.proxied.get_multi(keys)

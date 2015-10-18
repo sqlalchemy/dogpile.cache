@@ -670,6 +670,13 @@ class CacheRegion(object):
         The method uses the same approach as :meth:`.Region.get_multi`
         and :meth:`.Region.set_multi` to get and set values from the
         backend.
+        
+        If you are using a :class:`.CacheBackend` or :class:`.ProxyBackend` 
+        that modifies values, take note this function invokes 
+        ``.set_multi()`` for newly generated values using the same values it
+        returns to the calling function. A correct implementation of 
+        ``.set_multi()`` will not modify values in-place on the submitted
+        ``mapping`` dict.
 
         :param keys: Sequence of keys to be retrieved.
 
