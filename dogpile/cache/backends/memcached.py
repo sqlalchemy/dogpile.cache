@@ -66,6 +66,9 @@ class GenericMemcachedBackend(CacheBackend):
     :param lock_timeout: integer, number of seconds after acquiring a lock that
      memcached should expire it.  This argument is only valid when
      ``distributed_lock`` is ``True``.
+
+     .. versionadded:: 0.5.7
+
     :param memcached_expire_time: integer, when present will
      be passed as the ``time`` parameter to ``pylibmc.Client.set``.
      This is used to set the memcached expiry time for a value.
@@ -341,7 +344,8 @@ class BMemcachedBackend(GenericMemcachedBackend):
 
             def add(self, key, value, timeout=0):
                 try:
-                    return super(RepairBMemcachedAPI, self).add(key, value, timeout)
+                    return super(RepairBMemcachedAPI, self).add(
+                        key, value, timeout)
                 except ValueError:
                     return False
 

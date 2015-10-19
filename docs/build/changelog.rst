@@ -6,6 +6,17 @@ Changelog
 
     .. change::
       :tags: feature
+      :pullreq: 37
+      :tickets: 54
+
+      Added new parameter :paramref:`.GenericMemcachedBackend.lock_timeout`,
+      used in conjunction with
+      :paramref:`.GenericMemcachedBackend.distributed_lock`, will specify the
+      timeout used when communicating to the ``.add()`` method of the memcached
+      client.  Pull request courtesy Frits Stegmann and Morgan Fainberg.
+
+    .. change::
+      :tags: feature
       :pullreq: 35
       :tickets: 65
 
