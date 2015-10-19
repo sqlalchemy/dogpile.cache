@@ -222,7 +222,8 @@ class CacheRegion(object):
             :ref:`changing_backend_behavior`
 
         :param replace_existing_backend: if True, the existing cache backend
-         will be replaced.
+         will be replaced.  Without this flag, an exception is raised if
+         a backend is already configured.
 
          .. versionadded:: 0.5.7
 
