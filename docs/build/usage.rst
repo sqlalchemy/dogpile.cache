@@ -430,6 +430,16 @@ easily be done using a key mangler function::
 Encoding/Decoding data into another format
 ------------------------------------------
 
+.. sidebar:: A Note on Data Encoding
+
+    Under the hood, dogpile.cache wraps cached data in an instance of
+    ``dogpile.cache.api.CachedValue`` and then pickles that data for storage
+    along with some bookkeeping metadata. If you implement a ProxyBackend to
+    encode/decode data, that transformation will happen on the pre-pickled data-
+    dogpile does not store the data 'raw' and will still pass a pickled payload
+    to the backend.  This behavior can negate the hopeful improvements of some
+    encoding schemes.
+
 Since dogpile is managing cached data, you may be concerned with the size of
 your payloads.  A possible method of helping minimize payloads is to use a
 ProxyBackend to recode the data on-the-fly or otherwise transform data as it
@@ -446,17 +456,7 @@ inherits from ``_EncodedProxy`` and  implements the necessary ``value_decode``
 and ``value_encode`` functions.
 
 
-.. sidebar:: A Note on Data Encoding
-
-    Under the hood, dogpile.cache wraps cached data in an instance of
-    ``dogpile.cache.api.CachedValue`` and then pickles that data for storage
-    along with some bookkeeping metadata. If you implement a ProxyBackend to
-    encode/decode data, that transformation will happen on the pre-pickled data-
-    dogpile does not store the data 'raw' and will still pass a pickled payload
-    to the backend.  This behavior can negate the hopeful improvements of some
-    encoding schemes.
-
-Encoded ProxyBackend Example
+Encoded ProxyBackend Example::
 
     from dogpile.cache.proxy import ProxyBackend
     import msgpack
