@@ -1,5 +1,5 @@
 from unittest import TestCase
-from dogpile.cache.api import NO_VALUE
+from dogpile.cache.api import NO_VALUE, CachedValue
 from dogpile.cache import exception
 from dogpile.cache import make_region, CacheRegion
 from dogpile.cache.proxy import ProxyBackend
@@ -472,10 +472,27 @@ class ProxyBackendTest(TestCase):
             if key != self.never_set:
                 self.proxied.set(key, value)
 
+    class CanModifyCachedValueProxy(ProxyBackend):
+        def get(self, key):
+            value = ProxyBackend.get(self, key)
+            assert isinstance(value, CachedValue)
+            return value
+
+        def set(self, key, value):
+            assert isinstance(value, CachedValue)
+            ProxyBackend.set(self, key, value)
+
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)
         reg.configure(backend, **config_args)
         return reg
+
+    def test_cachedvalue_passed(self):
+        reg = self._region(config_args={"wrap": [
+            ProxyBackendTest.CanModifyCachedValueProxy]})
+
+        reg.set("some key", "some value")
+        eq_(reg.get("some key"), "some value")
 
     def test_counter_proxies(self):
         # count up the gets and sets and make sure they are passed through
