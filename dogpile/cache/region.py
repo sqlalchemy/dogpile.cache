@@ -1074,6 +1074,7 @@ class CacheRegion(object):
             decorate.invalidate = invalidate
             decorate.refresh = refresh
             decorate.get = get
+            decorate.original = fn
 
             return decorate
         return decorator
