@@ -309,6 +309,18 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         generate.invalidate(1, 2)
         eq_(generate(1, 2), 6)
 
+    def test_original_fn_set(self):
+        reg = self._region(backend="dogpile.cache.memory")
+
+        counter = itertools.count(1)
+
+        def generate(x, y):
+            return next(counter) + x + y
+
+        decorated = reg.cache_on_arguments()(generate)
+
+        eq_(decorated.original, generate)
+
     def test_reentrant_call(self):
         reg = self._region(backend="dogpile.cache.memory")
 
