@@ -5,6 +5,11 @@ from threading import Thread
 import time
 import pytest
 from dogpile.cache import compat
+import os
+
+
+MEMCACHED_PORT = os.getenv('DOGPILE_MEMCACHED_PORT', '11211')
+MEMCACHED_URL = "127.0.0.1:%s" % MEMCACHED_PORT
 
 LOCK_TIMEOUT = 1
 
@@ -29,7 +34,7 @@ class _NonDistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     }
     config_args = {
         "arguments": {
-            "url": "127.0.0.1:11211"
+            "url": MEMCACHED_URL
         }
     }
 
@@ -40,7 +45,7 @@ class _DistributedMemcachedWithTimeoutTest(_TestMemcachedConn, _GenericBackendTe
     }
     config_args = {
         "arguments": {
-            "url": "127.0.0.1:11211",
+            "url": MEMCACHED_URL,
             "distributed_lock": True,
             "lock_timeout": LOCK_TIMEOUT,
         }
@@ -53,7 +58,7 @@ class _DistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     }
     config_args = {
         "arguments": {
-            "url": "127.0.0.1:11211",
+            "url": MEMCACHED_URL,
             "distributed_lock": True,
         }
     }
@@ -62,7 +67,7 @@ class _DistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
 class _DistributedMemcachedMutexTest(_TestMemcachedConn, _GenericMutexTest):
     config_args = {
         "arguments": {
-            "url": "127.0.0.1:11211",
+            "url": MEMCACHED_URL,
             "distributed_lock": True
         }
     }
@@ -71,7 +76,7 @@ class _DistributedMemcachedMutexTest(_TestMemcachedConn, _GenericMutexTest):
 class _DistributedMemcachedMutexWithTimeoutTest(_TestMemcachedConn, _GenericMutexTest):
     config_args = {
         "arguments": {
-            "url": "127.0.0.1:11211",
+            "url": MEMCACHED_URL,
             "distributed_lock": True,
             "lock_timeout": LOCK_TIMEOUT,
         }
