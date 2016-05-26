@@ -6,9 +6,9 @@ Provides backends for talking to `memcached <http://memcached.org>`_.
 
 """
 
-from dogpile.cache.api import CacheBackend, NO_VALUE
-from dogpile.cache import compat
-from dogpile.cache import util
+from ..api import CacheBackend, NO_VALUE
+from ...util import compat
+from ... import util
 import random
 import time
 

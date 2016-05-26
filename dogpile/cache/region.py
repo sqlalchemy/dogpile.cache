@@ -1,12 +1,12 @@
 from __future__ import with_statement
-from dogpile.core import Lock, NeedRegenerationException
-from dogpile.core.nameregistry import NameRegistry
+from .. import Lock, NeedRegenerationException
+from ..util import NameRegistry
 from . import exception
-from .util import function_key_generator, PluginLoader, \
-    memoized_property, coerce_string_conf, function_multi_key_generator
+from ..util import PluginLoader, memoized_property, coerce_string_conf
+from .util import function_key_generator, function_multi_key_generator
 from .api import NO_VALUE, CachedValue
 from .proxy import ProxyBackend
-from . import compat
+from ..util import compat
 import time
 import datetime
 from numbers import Number
@@ -671,11 +671,11 @@ class CacheRegion(object):
         The method uses the same approach as :meth:`.Region.get_multi`
         and :meth:`.Region.set_multi` to get and set values from the
         backend.
-        
-        If you are using a :class:`.CacheBackend` or :class:`.ProxyBackend` 
-        that modifies values, take note this function invokes 
+
+        If you are using a :class:`.CacheBackend` or :class:`.ProxyBackend`
+        that modifies values, take note this function invokes
         ``.set_multi()`` for newly generated values using the same values it
-        returns to the calling function. A correct implementation of 
+        returns to the calling function. A correct implementation of
         ``.set_multi()`` will not modify values in-place on the submitted
         ``mapping`` dict.
 

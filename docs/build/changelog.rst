@@ -5,6 +5,22 @@ Changelog
     :version: 0.6.0
 
     .. change::
+      :tags: feature
+      :tickets: 91
+
+      The ``dogpile.core`` library has been rolled in as part of the
+      ``dogpile.cache`` distribution.   The configuration of the ``dogpile``
+      name as a namespace package is also removed from ``dogpile.cache``.
+      In order to allow existing installations of ``dogpile.core`` as a separate
+      package to remain unaffected, the ``.core`` package has been retired
+      within ``dogpile.cache`` directly; the :class:`.Lock` class is now
+      available directly as ``dogpile.Lock`` and the additional ``dogpile.core``
+      constructs are under the ``dogpile.util`` namespace.
+
+      Additionally, the long-deprecated ``dogpile.core.Dogpile`` and
+      ``dogpile.core.SyncReaderDogpile`` classes have been removed.
+
+    .. change::
       :tags: bug
 
       The Redis backend now creates a copy of the "arguments" dictionary passed

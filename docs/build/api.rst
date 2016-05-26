@@ -2,6 +2,7 @@
 API
 ===
 
+
 Region
 ======
 
@@ -58,4 +59,19 @@ Utilities
 .. autofunction:: sha1_mangle_key
 
 .. autofunction:: length_conditional_mangler
+
+dogpile Core
+============
+
+.. autoclass:: dogpile.Lock
+    :members:
+
+.. autoclass:: dogpile.NeedRegenerationException
+    :members:
+
+.. autoclass:: dogpile.util.ReadWriteMutex
+    :members:
+
+.. autoclass:: dogpile.util.NameRegistry
+    :members:
 

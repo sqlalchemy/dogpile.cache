@@ -1,5 +1,9 @@
 from _pytest.unittest import UnitTestCase
 import sys
+import logging
+
+import logging.config
+logging.config.fileConfig("log_tests.ini")
 
 
 def is_unittest(obj):

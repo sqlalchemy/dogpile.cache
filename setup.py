@@ -28,7 +28,7 @@ class PyTest(TestCommand):
 v = open(
     os.path.join(
         os.path.dirname(__file__),
-        'dogpile', 'cache', '__init__.py')
+        'dogpile', '__init__.py')
 )
 VERSION = re.compile(r".*__version__ = '(.*?)'", re.S).match(v.read()).group(1)
 v.close()
@@ -53,13 +53,11 @@ setup(
     url='http://bitbucket.org/zzzeek/dogpile.cache',
     license='BSD',
     packages=find_packages('.', exclude=['ez_setup', 'tests*']),
-    namespace_packages=['dogpile'],
     entry_points="""
     [mako.cache]
     dogpile.cache = dogpile.cache.plugins.mako_cache:MakoPlugin
     """,
     zip_safe=False,
-    install_requires=['dogpile.core>=0.4.1'],
     tests_require=['pytest', 'pytest-cov', 'mock', 'Mako'],
     cmdclass={'test': PyTest},
 )

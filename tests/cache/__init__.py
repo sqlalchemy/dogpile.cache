@@ -1,7 +1,8 @@
 import re
 import pytest
 from functools import wraps
-from dogpile.cache import compat
+from dogpile.util import compat
+from dogpile.util.compat import configparser, io  # noqa
 import time
 
 
@@ -26,8 +27,6 @@ def assert_raises_message(except_cls, msg, callable_, *args, **kwargs):
         assert False, "Callable did not raise an exception"
     except except_cls as e:
         assert re.search(msg, str(e)), "%r !~ %s" % (msg, e)
-
-from dogpile.cache.compat import configparser, io  # noqa
 
 
 def winsleep():

@@ -10,7 +10,7 @@ caching for a region that is otherwise used normally.
 
 """
 
-from dogpile.cache.api import CacheBackend, NO_VALUE
+from ..api import CacheBackend, NO_VALUE
 
 
 __all__ = ['NullBackend']

@@ -1,5 +1,5 @@
 import operator
-from .compat import py3k
+from ..util.compat import py3k
 
 
 class NoValue(object):
@@ -161,13 +161,13 @@ class CacheBackend(object):
         "key mangling" function, if any.
         The value will always be an instance
         of :class:`.CachedValue`.
-        
-        When implementing a new :class:`.CacheBackend` or cutomizing via 
+
+        When implementing a new :class:`.CacheBackend` or cutomizing via
         :class:`.ProxyBackend`, be aware that when this method is invoked by
         :meth:`.Region.get_or_create_multi`, the ``mapping`` values are the
         same ones returned to the upstream caller. If the subclass alters the
         values in any way, it must not do so 'in-place' on the ``mapping`` dict
-        -- that will have the undesirable effect of modifying the returned 
+        -- that will have the undesirable effect of modifying the returned
         values as well.
 
         .. versionadded:: 0.5.0

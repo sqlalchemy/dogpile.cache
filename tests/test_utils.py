@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from dogpile.cache import util
+from dogpile import util
 
 
 class UtilsTest(TestCase):

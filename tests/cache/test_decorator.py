@@ -4,7 +4,8 @@ from ._fixtures import _GenericBackendFixture
 from . import eq_, requires_py3k, winsleep
 from unittest import TestCase
 import time
-from dogpile.cache import util, compat
+from dogpile.cache import util
+from dogpile.util import compat
 import itertools
 from dogpile.cache.api import NO_VALUE
 

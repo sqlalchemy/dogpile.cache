@@ -1,18 +1,31 @@
-dogpile.cache
-=============
+dogpile
+=======
 
-A caching API built around the concept of a "dogpile lock", which allows
-continued access to an expiring data value while a single thread generates a
-new value.
+Dogpile consists of two subsystems, one building on top of the other.
 
-dogpile.cache builds on the `dogpile.core <http://pypi.python.org/pypi/dogpile.core>`_
-locking system, which implements the idea of "allow one creator to write while
-others read" in the abstract.   Overall, dogpile.cache is intended as a
-replacement to the `Beaker <http://beaker.groovie.org>`_ caching system, the internals
-of which are written by the same author.   All the ideas of Beaker which "work"
-are re-implemented in dogpile.cache in a more efficient and succinct manner,
-and all the cruft (Beaker's internals were first written in 2005) relegated
-to the trash heap.
+``dogpile`` provides the concept of a "dogpile lock", a control structure
+which allows a single thread of execution to be selected as the "creator" of
+some resource, while allowing other threads of execution to refer to the previous
+version of this resource as the creation proceeds; if there is no previous
+version, then those threads block until the object is available.
+
+``dogpile.cache`` is a caching API which provides a generic interface to
+caching backends of any variety, and additionally provides API hooks which
+integrate these cache backends with the locking mechanism of ``dogpile``.
+
+Overall, dogpile.cache is intended as a replacement to the `Beaker
+<http://beaker.groovie.org>`_ caching system, the internals of which are
+written by the same author.   All the ideas of Beaker which "work" are re-
+implemented in dogpile.cache in a more efficient and succinct manner, and all
+the cruft (Beaker's internals were first written in 2005) relegated to the
+trash heap.
+
+Documentation
+-------------
+
+See dogpile.cache's full documentation at
+`dogpile.cache documentation <http://dogpilecache.readthedocs.org>`_.  The
+sections below provide a brief synopsis of the ``dogpile`` packages.
 
 Features
 --------
@@ -47,45 +60,6 @@ Features
 * Included backends feature three memcached backends (python-memcached, pylibmc,
   bmemcached), a Redis backend, a backend based on Python's
   anydbm, and a plain dictionary backend.
-* Space for third party plugins, including the first which provides the
+* Space for third party plugins, including one which provides the
   dogpile.cache engine to Mako templates.
-* Python 3 compatible in place - no 2to3 required.
-
-Synopsis
---------
-
-dogpile.cache features a single public usage object known as the ``CacheRegion``.
-This object then refers to a particular ``CacheBackend``.   Typical usage
-generates a region using ``make_region()``, which can then be used at the
-module level to decorate functions, or used directly in code with a traditional
-get/set interface.   Configuration of the backend is applied to the region
-using ``configure()`` or ``configure_from_config()``, allowing deferred
-config-file based configuration to occur after modules have been imported::
-
-    from dogpile.cache import make_region
-
-    region = make_region().configure(
-        'dogpile.cache.pylibmc',
-        expiration_time = 3600,
-        arguments = {
-            'url':["127.0.0.1"],
-            'binary':True,
-            'behaviors':{"tcp_nodelay": True,"ketama":True}
-        }
-    )
-
-    @region.cache_on_arguments()
-    def load_user_info(user_id):
-        return some_database.lookup_user_by_id(user_id)
-
-
-Documentation
--------------
-
-See dogpile.cache's full documentation at
-`dogpile.cache documentation <http://dogpilecache.readthedocs.org>`_.
-
-
-
-
 

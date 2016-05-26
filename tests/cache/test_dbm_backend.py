@@ -2,7 +2,7 @@ from ._fixtures import _GenericBackendTest, _GenericMutexTest
 from . import assert_raises_message
 import os
 import sys
-from dogpile.core.readwrite_lock import ReadWriteMutex
+from dogpile.util.readwrite_lock import ReadWriteMutex
 from dogpile.cache.backends.file import AbstractFileLock
 
 try:

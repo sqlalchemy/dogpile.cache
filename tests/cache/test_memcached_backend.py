@@ -4,7 +4,7 @@ from unittest import TestCase
 from threading import Thread
 import time
 import pytest
-from dogpile.cache import compat
+from dogpile.util import compat
 import os
 
 
