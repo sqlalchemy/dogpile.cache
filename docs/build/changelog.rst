@@ -2,6 +2,17 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.6.0
+
+    .. change::
+      :tags: bug
+      :tickets: 97
+
+      Fixed bug in "null" backend where :class:`.NullLock` did not
+      accept a flag for the :meth:`.NullLock.acquire` method, nor did
+      it return a boolean value for "success".
+
+.. changelog::
     :version: 0.5.7
     :released: Mon Oct 19 2015
 

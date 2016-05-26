@@ -66,3 +66,26 @@ class NullBackendTest(_GenericBackendFixture, TestCase):
         eq_(go(1, 2), (1, 1, 2))
         eq_(go(1, 2), (2, 1, 2))
         eq_(go(1, 3), (3, 1, 3))
+
+    def test_mutex(self):
+        backend = self._backend()
+        mutex = backend.get_mutex("foo")
+
+        ac = mutex.acquire()
+        assert ac
+        mutex.release()
+
+        ac2 = mutex.acquire(False)
+        assert ac2
+        mutex.release()
+
+    def test_mutex_doesnt_actually_lock(self):
+        backend = self._backend()
+        mutex = backend.get_mutex("foo")
+
+        ac = mutex.acquire()
+        assert ac
+
+        ac2 = mutex.acquire(False)
+        assert ac2
+        mutex.release()

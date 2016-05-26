@@ -17,8 +17,8 @@ __all__ = ['NullBackend']
 
 
 class NullLock(object):
-    def acquire(self):
-        pass
+    def acquire(self, wait=True):
+        return True
 
     def release(self):
         pass
