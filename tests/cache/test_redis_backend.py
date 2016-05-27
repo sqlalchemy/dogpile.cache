@@ -32,6 +32,7 @@ class RedisTest(_TestRedisConn, _GenericBackendTest):
             'host': REDIS_HOST,
             'port': REDIS_PORT,
             'db': 0,
+            "foo": "barf"
         }
     }
 
@@ -62,8 +63,7 @@ class RedisConnectionTest(TestCase):
 
     def _test_helper(self, mock_obj, expected_args, connection_args=None):
         if connection_args is None:
-            # The redis backend pops items from the dict, so we copy
-            connection_args = expected_args.copy()
+            connection_args = expected_args
 
         self.backend_cls(connection_args)
         mock_obj.assert_called_once_with(**expected_args)

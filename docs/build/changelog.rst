@@ -6,6 +6,13 @@ Changelog
 
     .. change::
       :tags: bug
+
+      The Redis backend now creates a copy of the "arguments" dictionary passed
+      to it, before popping values out of it.  This prevents the given
+      dictionary from losing its keys.
+
+    .. change::
+      :tags: bug
       :tickets: 97
 
       Fixed bug in "null" backend where :class:`.NullLock` did not

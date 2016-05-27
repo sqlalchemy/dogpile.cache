@@ -91,6 +91,7 @@ class RedisBackend(CacheBackend):
     """
 
     def __init__(self, arguments):
+        arguments = arguments.copy()
         self._imports()
         self.url = arguments.pop('url', None)
         self.host = arguments.pop('host', 'localhost')

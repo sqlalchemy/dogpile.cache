@@ -17,7 +17,8 @@ class _GenericBackendFixture(object):
     def setup_class(cls):
         try:
             backend_cls = _backend_loader.load(cls.backend)
-            backend = backend_cls(cls.config_args.get('arguments', {}))
+            arguments = cls.config_args.get('arguments', {})
+            backend = backend_cls(arguments)
         except ImportError:
             pytest.skip("Backend %s not installed" % cls.backend)
         cls._check_backend_available(backend)
@@ -64,7 +65,8 @@ class _GenericBackendFixture(object):
     def _backend(self):
         backend_cls = _backend_loader.load(self.backend)
         _config_args = self.config_args.copy()
-        self._backend_inst = backend_cls(_config_args.get('arguments', {}))
+        arguments = _config_args.get('arguments', {})
+        self._backend_inst = backend_cls(arguments)
         return self._backend_inst
 
 
