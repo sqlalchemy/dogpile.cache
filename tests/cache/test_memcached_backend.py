@@ -270,6 +270,8 @@ class LocalThreadTest(TestCase):
             t.join()
         eq_(canary, [i + 1 for i in range(count)])
 
+        import gc
+        gc.collect()
         if compat.py27:
             eq_(MockClient.number_of_clients, 0)
         else:
