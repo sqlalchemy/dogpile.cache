@@ -4,6 +4,14 @@ Changelog
 .. changelog::
     :version: 0.6.2
 
+    .. change::
+      :tags: feature
+      :tickets: 43
+
+       Added a new cache key generator :func:`.kwarg_function_key_generator`,
+       which takes keyword arguments as well as positional arguments into
+       account when forming the cache key.
+
 .. changelog::
     :version: 0.6.1
     :released: Mon Jun 6 2016

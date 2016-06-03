@@ -79,6 +79,13 @@ class CacheRegion(object):
         def my_function(a, b, **kw):
             return my_data()
 
+     .. seealso::
+
+        :func:`.function_key_generator` - default key generator
+
+        :func:`.kwarg_function_key_generator` - optional gen that also
+        uses keyword arguments
+
     :param function_multi_key_generator: Optional.
      Similar to ``function_key_generator`` parameter, but it's used in
      :meth:`.CacheRegion.cache_multi_on_arguments`. Generated function

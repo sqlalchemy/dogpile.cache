@@ -199,6 +199,75 @@ class KeyGenerationTest(TestCase):
             return fn
         return decorate, canary
 
+    def _kwarg_keygen_decorator(self, namespace=None, **kw):
+        canary = []
+
+        def decorate(fn):
+            canary.append(
+                util.kwarg_function_key_generator(namespace, fn, **kw))
+            return fn
+        return decorate, canary
+
+    def test_default_keygen_kwargs_raises_value_error(self):
+        decorate, canary = self._keygen_decorator()
+
+        @decorate
+        def one(a, b):
+            pass
+
+        gen = canary[0]
+        self.assertRaises(ValueError, gen, 1, b=2)
+
+    def test_kwarg_kegen_keygen_fn(self):
+        decorate, canary = self._kwarg_keygen_decorator()
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        result_key = "tests.cache.test_decorator:one|1 2"
+
+        eq_(gen(1, 2), result_key)
+        eq_(gen(1, b=2), result_key)
+        eq_(gen(a=1, b=2), result_key)
+        eq_(gen(b=2, a=1), result_key)
+
+    def test_kwarg_kegen_keygen_fn_with_defaults_and_positional(self):
+        decorate, canary = self._kwarg_keygen_decorator()
+
+        @decorate
+        def one(a, b=None):
+            pass
+        gen = canary[0]
+
+        result_key = "tests.cache.test_decorator:one|1 2"
+
+        eq_(gen(1, 2), result_key)
+        eq_(gen(1, b=2), result_key)
+        eq_(gen(a=1, b=2), result_key)
+        eq_(gen(b=2, a=1), result_key)
+        eq_(gen(a=1), "tests.cache.test_decorator:one|1 None")
+
+    def test_kwarg_kegen_keygen_fn_all_defaults(self):
+        decorate, canary = self._kwarg_keygen_decorator()
+
+        @decorate
+        def one(a=True, b=None):
+            pass
+        gen = canary[0]
+
+        result_key = "tests.cache.test_decorator:one|1 2"
+
+        eq_(gen(1, 2), result_key)
+        eq_(gen(1, b=2), result_key)
+        eq_(gen(a=1, b=2), result_key)
+        eq_(gen(b=2, a=1), result_key)
+        eq_(gen(a=1), "tests.cache.test_decorator:one|1 None")
+        eq_(gen(1), "tests.cache.test_decorator:one|1 None")
+        eq_(gen(),  "tests.cache.test_decorator:one|True None")
+        eq_(gen(b=2),  "tests.cache.test_decorator:one|True 2")
+
     def test_keygen_fn(self):
         decorate, canary = self._keygen_decorator()
 
@@ -234,6 +303,17 @@ class KeyGenerationTest(TestCase):
         eq_(gen(1, 2), "tests.cache.test_decorator:one|mynamespace|1 2")
         eq_(gen(None, 5), "tests.cache.test_decorator:one|mynamespace|None 5")
 
+    def test_kwarg_keygen_fn_namespace(self):
+        decorate, canary = self._kwarg_keygen_decorator("mynamespace")
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        eq_(gen(1, 2), "tests.cache.test_decorator:one|mynamespace|1 2")
+        eq_(gen(None, 5), "tests.cache.test_decorator:one|mynamespace|None 5")
+
     def test_key_isnt_unicode_bydefault(self):
         decorate, canary = self._keygen_decorator("mynamespace")
 
@@ -244,9 +324,34 @@ class KeyGenerationTest(TestCase):
 
         assert isinstance(gen('foo'), str)
 
+    def test_kwarg_kwgen_key_isnt_unicode_bydefault(self):
+        decorate, canary = self._kwarg_keygen_decorator("mynamespace")
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        assert isinstance(gen('foo'), str)
+
+
     def test_unicode_key(self):
         decorate, canary = self._keygen_decorator("mynamespace",
                                                   to_str=compat.text_type)
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        eq_(gen(compat.u('méil'), compat.u('drôle')),
+            compat.ue("tests.cache.test_decorator:"
+                      "one|mynamespace|m\xe9il dr\xf4le"))
+
+    def test_unicode_key_kwarg_generator(self):
+        decorate, canary = self._kwarg_keygen_decorator(
+            "mynamespace",
+            to_str=compat.text_type)
 
         @decorate
         def one(a, b):
@@ -279,6 +384,23 @@ class KeyGenerationTest(TestCase):
     def test_unicode_key_by_default(self):
         decorate, canary = self._keygen_decorator("mynamespace",
                                                   to_str=compat.text_type)
+
+        @decorate
+        def one(a, b):
+            pass
+        gen = canary[0]
+
+        assert isinstance(gen('méil'), str)
+
+        eq_(gen('méil', 'drôle'),
+            "tests.cache.test_decorator:"
+            "one|mynamespace|m\xe9il dr\xf4le")
+
+    @requires_py3k
+    def test_unicode_key_by_default_kwarg_generator(self):
+        decorate, canary = self._kwarg_keygen_decorator(
+            "mynamespace",
+            to_str=compat.text_type)
 
         @decorate
         def one(a, b):

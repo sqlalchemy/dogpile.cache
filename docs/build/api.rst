@@ -9,8 +9,6 @@ Region
 .. automodule:: dogpile.cache.region
     :members:
 
-.. autofunction:: dogpile.cache.util.function_key_generator
-
 Backend API
 =============
 
@@ -55,6 +53,8 @@ Utilities
 .. currentmodule:: dogpile.cache.util
 
 .. autofunction:: function_key_generator
+
+.. autofunction:: kwarg_function_key_generator
 
 .. autofunction:: sha1_mangle_key
 
