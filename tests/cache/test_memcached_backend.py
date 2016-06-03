@@ -95,23 +95,38 @@ class PylibmcDistributedMutexTest(_DistributedMemcachedMutexTest):
     backend = "dogpile.cache.pylibmc"
 
 
-class BMemcachedTest(_NonDistributedMemcachedTest):
+class BMemcachedSkips(object):
+    def test_threaded_dogpile(self):
+        pytest.skip("bmemcached is too unreliable here")
+
+    def test_threaded_get_multi(self):
+        pytest.skip("bmemcached is too unreliable here")
+
+    def test_mutex_threaded_dogpile(self):
+        pytest.skip("bmemcached is too unreliable here")
+
+
+class BMemcachedTest(BMemcachedSkips, _NonDistributedMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedWithTimeoutTest(_DistributedMemcachedWithTimeoutTest):
+class BMemcachedDistributedWithTimeoutTest(
+        BMemcachedSkips, _DistributedMemcachedWithTimeoutTest):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedTest(_DistributedMemcachedTest):
+class BMemcachedDistributedTest(
+        BMemcachedSkips, _DistributedMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
+class BMemcachedDistributedMutexTest(
+        BMemcachedSkips, _DistributedMemcachedMutexTest):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedMutexWithTimeoutTest(_DistributedMemcachedMutexWithTimeoutTest):
+class BMemcachedDistributedMutexWithTimeoutTest(
+        BMemcachedSkips, _DistributedMemcachedMutexWithTimeoutTest):
     backend = "dogpile.cache.bmemcached"
 
 
