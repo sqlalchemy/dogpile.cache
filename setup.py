@@ -41,7 +41,7 @@ setup(
     description="A caching front-end based on the Dogpile lock.",
     long_description=open(readme).read(),
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
@@ -52,7 +52,7 @@ setup(
     author_email='mike_mp@zzzcomputing.com',
     url='http://bitbucket.org/zzzeek/dogpile.cache',
     license='BSD',
-    packages=find_packages('.', exclude=['ez_setup', 'tests*']),
+    packages=find_packages('.', exclude=['tests*']),
     entry_points="""
     [mako.cache]
     dogpile.cache = dogpile.cache.plugins.mako_cache:MakoPlugin
