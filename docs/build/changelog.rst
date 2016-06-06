@@ -2,6 +2,18 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.6.1
+    :released: Mon Jun 6 2016
+
+    .. change::
+      :tags: bug
+      :tickets: 99
+
+      Fixed imports for ``dogpile.core`` restoring ``ReadWriteMutex``
+      and ``NameRegistry`` into the base namespace, in addition to
+      ``dogpile.core.nameregistry`` and ``dogpile.core.readwrite_lock``.
+
+.. changelog::
     :version: 0.6.0
     :released: Mon Jun 6 2016
 
