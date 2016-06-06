@@ -1,7 +1,7 @@
 recursive-include docs *.html *.css *.txt *.js *.jpg *.png *.py Makefile *.rst *.sty
 recursive-include tests *.py *.dat
 
-include README* LICENSE CHANGES* log_tests.ini tox.ini
+include README* LICENSE CHANGES* log_tests.ini tox.ini hash_port.py
 
 prune docs/build/output
 
