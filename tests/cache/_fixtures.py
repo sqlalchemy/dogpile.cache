@@ -15,8 +15,8 @@ class _GenericBackendFixture(object):
 
     @classmethod
     def setup_class(cls):
+        backend_cls = _backend_loader.load(cls.backend)
         try:
-            backend_cls = _backend_loader.load(cls.backend)
             arguments = cls.config_args.get('arguments', {})
             backend = backend_cls(arguments)
         except ImportError:

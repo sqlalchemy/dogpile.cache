@@ -55,8 +55,8 @@ class RedisConnectionTest(TestCase):
 
     @classmethod
     def setup_class(cls):
+        cls.backend_cls = _backend_loader.load(cls.backend)
         try:
-            cls.backend_cls = _backend_loader.load(cls.backend)
             cls.backend_cls({})
         except ImportError:
             pytest.skip("Backend %s not installed" % cls.backend)

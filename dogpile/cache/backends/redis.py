@@ -8,7 +8,7 @@ Provides backends for talking to `Redis <http://redis.io>`_.
 
 from __future__ import absolute_import
 from ..api import CacheBackend, NO_VALUE
-from ..util.compat import pickle, u
+from ...util.compat import pickle, u
 
 redis = None
 
