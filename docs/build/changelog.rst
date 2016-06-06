@@ -3,6 +3,7 @@ Changelog
 ==============
 .. changelog::
     :version: 0.6.0
+    :released: Mon Jun 6 2016
 
     .. change::
       :tags: feature
