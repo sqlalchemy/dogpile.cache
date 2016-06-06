@@ -6,7 +6,7 @@ Overview
 ========
 
 At the time of this writing, popular key/value servers include
-`Memcached <http://memcached.org>`_, `Redis <http://redis.io/>`_, and `Riak <http://wiki.basho.com/>`_.
+`Memcached <http://memcached.org>`_,  `Redis <http://redis.io/>`_ and many others.
 While these tools all have different usage focuses, they all have in common that the storage model
 is based on the retrieval of a value based on a key; as such, they are all potentially
 suitable for caching, particularly Memcached which is first and foremost designed for
