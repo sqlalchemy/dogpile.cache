@@ -12,6 +12,17 @@ Changelog
        which takes keyword arguments as well as positional arguments into
        account when forming the cache key.
 
+    .. change::
+      :tags: bug
+
+      Restored some more util symbols that users may have been relying upon
+      (although these were not necessarily intended as user-facing):
+      ``dogpile.cache.util.coerce_string_conf``,
+      ``dogpile.cache.util.KeyReentrantMutex``,
+      ``dogpile.cache.util.memoized_property``,
+      ``dogpile.cache.util.PluginLoader``,
+      ``dogpile.cache.util.to_list``.
+
 .. changelog::
     :version: 0.6.1
     :released: Mon Jun 6 2016

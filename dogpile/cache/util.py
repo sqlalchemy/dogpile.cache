@@ -1,6 +1,7 @@
 from hashlib import sha1
 import inspect
 from ..util import compat
+from ..util import langhelpers
 
 
 def function_key_generator(namespace, fn, to_str=compat.string_type):
@@ -135,4 +136,11 @@ def length_conditional_mangler(length, mangler):
             return key
     return mangle
 
+# in the 0.6 release these functions were moved to the dogpile.util namespace.
+# They are linked here to maintain compatibility with older versions.
 
+coerce_string_conf = langhelpers.coerce_string_conf
+KeyReentrantMutex = langhelpers.KeyReentrantMutex
+memoized_property = langhelpers.memoized_property
+PluginLoader = langhelpers.PluginLoader
+to_list = langhelpers.to_list
