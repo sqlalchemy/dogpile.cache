@@ -6,6 +6,7 @@ import time
 import pytest
 from dogpile.util import compat
 import os
+import weakref
 
 
 MEMCACHED_PORT = os.getenv('DOGPILE_MEMCACHED_PORT', '11211')
@@ -178,14 +179,22 @@ class MockPylibmcBackend(PylibmcBackend):
 
 
 class MockClient(object):
-    number_of_clients = 0
+    clients = set()
 
     def __init__(self, *arg, **kw):
         self.arg = arg
         self.kw = kw
         self.canary = []
         self._cache = {}
-        MockClient.number_of_clients += 1
+        self.clients.add(weakref.ref(self, MockClient._remove))
+
+    @classmethod
+    def _remove(cls, ref):
+        cls.clients.remove(ref)
+
+    @classmethod
+    def number_of_clients(cls):
+        return len(cls.clients)
 
     def get(self, key):
         return self._cache.get(key)
@@ -196,9 +205,6 @@ class MockClient(object):
 
     def delete(self, key):
         self._cache.pop(key, None)
-
-    def __del__(self):
-        MockClient.number_of_clients -= 1
 
 
 class PylibmcArgsTest(TestCase):
@@ -258,7 +264,7 @@ class LocalThreadTest(TestCase):
     def setUp(self):
         import gc
         gc.collect()
-        eq_(MockClient.number_of_clients, 0)
+        eq_(MockClient.number_of_clients(), 0)
 
     def test_client_cleanup_1(self):
         self._test_client_cleanup(1)
@@ -275,7 +281,7 @@ class LocalThreadTest(TestCase):
 
         def f():
             backend._clients.memcached
-            canary.append(MockClient.number_of_clients)
+            canary.append(MockClient.number_of_clients())
             time.sleep(.05)
 
         threads = [Thread(target=f) for i in range(count)]
@@ -287,7 +293,4 @@ class LocalThreadTest(TestCase):
 
         import gc
         gc.collect()
-        if compat.py27:
-            eq_(MockClient.number_of_clients, 0)
-        else:
-            eq_(MockClient.number_of_clients, 1)
+        eq_(MockClient.number_of_clients(), 0)
