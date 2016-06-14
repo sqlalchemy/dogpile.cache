@@ -106,6 +106,9 @@ class BMemcachedSkips(object):
     def test_mutex_threaded_dogpile(self):
         pytest.skip("bmemcached is too unreliable here")
 
+    def test_mutex_threaded(self):
+        pytest.skip("bmemcached is too unreliable here")
+
 
 class BMemcachedTest(BMemcachedSkips, _NonDistributedMemcachedTest):
     backend = "dogpile.cache.bmemcached"
