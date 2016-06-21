@@ -2,6 +2,9 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.6.2
+
+.. changelog::
     :version: 0.6.1
     :released: Mon Jun 6 2016
 
