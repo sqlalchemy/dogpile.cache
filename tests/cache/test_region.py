@@ -4,6 +4,7 @@ from dogpile.cache import exception
 from dogpile.cache import make_region, CacheRegion
 from dogpile.cache.proxy import ProxyBackend
 from dogpile.cache.region import _backend_loader
+from dogpile.cache.region import RegionInvalidationStrategy
 from . import eq_, is_, assert_raises_message, io, configparser
 import time
 import datetime
@@ -422,6 +423,57 @@ class ProxyRegionTest(RegionTest):
         reg = CacheRegion(**init_args)
         config_args['wrap'] = [ProxyRegionTest.MockProxy]
         reg.configure(backend, **config_args)
+        return reg
+
+
+class CustomInvalidationStrategyTest(RegionTest):
+
+    """Try region tests with custom invalidation strategy.
+
+    This is exactly the same as the region test above, but it uses custom
+    invalidation strategy. The purpose of this is to make sure the tests
+    still run successfully even when there is a proxy.
+
+    """
+
+    class CustomInvalidationStrategy(RegionInvalidationStrategy):
+
+        def __init__(self):
+            self._soft_invalidated = None
+            self._hard_invalidated = None
+
+        def invalidate(self, hard=None):
+            if hard:
+                self._soft_invalidated = None
+                self._hard_invalidated = time.time()
+            else:
+                self._soft_invalidated = time.time()
+                self._hard_invalidated = None
+
+        def is_invalidated(self, timestamp):
+            return ((self._soft_invalidated and
+                     timestamp < self._soft_invalidated) or
+                    (self._hard_invalidated and
+                     timestamp < self._hard_invalidated))
+
+        def was_hard_invalidated(self):
+            return bool(self._hard_invalidated)
+
+        def is_hard_invalidated(self, timestamp):
+            return (self._hard_invalidated and
+                    timestamp < self._hard_invalidated)
+
+        def was_soft_invalidated(self):
+            return bool(self._soft_invalidated)
+
+        def is_soft_invalidated(self, timestamp):
+            return (self._soft_invalidated and
+                    timestamp < self._soft_invalidated)
+
+    def _region(self, init_args={}, config_args={}, backend="mock"):
+        reg = CacheRegion(**init_args)
+        invalidator = self.CustomInvalidationStrategy()
+        reg.configure(backend, region_invalidator=invalidator, **config_args)
         return reg
 
 
