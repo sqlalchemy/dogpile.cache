@@ -41,6 +41,12 @@ Backends
 .. automodule:: dogpile.cache.backends.null
     :members:
 
+Exceptions
+==========
+
+.. automodule:: dogpile.cache.exception
+    :members:
+
 Plugins
 ========
 

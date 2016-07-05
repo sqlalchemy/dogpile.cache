@@ -152,6 +152,15 @@ class RegionTest(TestCase):
         )
         eq_(reg.is_configured, False)
 
+    def test_invalid_backend(self):
+        reg = CacheRegion()
+        assert_raises_message(
+            exception.PluginNotFound,
+            "Couldn't find cache plugin to load: unknown",
+            reg.configure, 'unknown'
+        )
+        eq_(reg.is_configured, False)
+
     def test_set_get_value(self):
         reg = self._region()
         reg.set("some key", "some value")

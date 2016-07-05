@@ -22,6 +22,15 @@ Changelog
       ends up being used as a cache key do not create multiple values.
       Pull request courtesy Paul Brown.
 
+    .. change::
+      :tags: bug
+
+      A new exception class :class:`.exception.PluginNotFound` is now
+      raised when a particular cache plugin class cannot be located
+      either as a setuptools entrypoint or as a registered backend.
+      Previously, a plain ``Exception`` was thrown.  Pull request
+      courtesy Jamie Lennox.
+
 .. changelog::
     :version: 0.6.3
     :released: Thu May 18, 2017

@@ -410,7 +410,13 @@ class CacheRegion(object):
                 "configured with backend: %s.  "
                 "Specify replace_existing_backend=True to replace."
                 % self.backend)
-        backend_cls = _backend_loader.load(backend)
+
+        try:
+            backend_cls = _backend_loader.load(backend)
+        except PluginLoader.NotFound:
+            raise exception.PluginNotFound(
+                "Couldn't find cache plugin to load: %s" % backend)
+
         if _config_argument_dict:
             self.backend = backend_cls.from_config_dict(
                 _config_argument_dict,
