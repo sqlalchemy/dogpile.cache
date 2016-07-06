@@ -20,9 +20,9 @@ Changelog
       :tags: feature
       :tickets: 43
 
-       Added a new cache key generator :func:`.kwarg_function_key_generator`,
-       which takes keyword arguments as well as positional arguments into
-       account when forming the cache key.
+      Added a new cache key generator :func:`.kwarg_function_key_generator`,
+      which takes keyword arguments as well as positional arguments into
+      account when forming the cache key.
 
     .. change::
       :tags: bug
