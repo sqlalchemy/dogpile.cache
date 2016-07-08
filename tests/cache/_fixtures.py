@@ -58,6 +58,7 @@ class _GenericBackendFixture(object):
 
         existing_key_mangler = self._region_inst.key_mangler
         self._region_inst.key_mangler = _store_keys
+        self._region_inst._user_defined_key_mangler = _store_keys
 
         reg.configure(backend or self.backend, **_config_args)
         return reg
