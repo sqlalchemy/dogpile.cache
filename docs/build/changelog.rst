@@ -4,6 +4,15 @@ Changelog
 .. changelog::
     :version: 0.6.4
 
+    .. change::
+      :tags: bug
+
+      The method :meth:`.Region.get_or_create_multi` will not pass to the
+      cache backend if no values are ultimately to be stored, based on
+      the use of the :paramref:`.Region.get_or_create_multi.should_cache_fn`
+      function.  This empty dictionary is unnecessary and can cause API
+      problems for backends like that of Redis.  Pull request courtesy
+      Tobias Sauerwein.
 
 .. changelog::
     :version: 0.6.3

@@ -118,6 +118,13 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         values = reg.get_or_create_multi([], lambda: 0)
         eq_(values, [])
 
+    def test_region_get_or_create_multi_w_should_cache_none(self):
+        reg = self._region()
+        values = reg.get_or_create_multi(
+            ['key1', 'key2', 'key3'], lambda *k: [None, None, None],
+            should_cache_fn=lambda v: v is not None)
+        eq_(values, [None, None, None])
+
     def test_region_get_multiple_values(self):
         reg = self._region()
         key1 = 'value1'

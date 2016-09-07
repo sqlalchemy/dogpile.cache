@@ -946,11 +946,14 @@ class CacheRegion(object):
                 if not should_cache_fn:
                     self.backend.set_multi(values_w_created)
                 else:
-                    self.backend.set_multi(dict(
+                    values_to_cache = dict(
                         (k, v)
                         for k, v in values_w_created.items()
                         if should_cache_fn(v[0])
-                    ))
+                    )
+
+                    if values_to_cache:
+                        self.backend.set_multi(values_to_cache)
 
                 values.update(values_w_created)
             return [values[orig_to_mangled[k]].payload for k in keys]
