@@ -2,6 +2,16 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.6.3
+
+    .. change::
+      :tags: feature
+
+      Added ``replace_existing_backend`` to
+      :meth:`.CacheRegion.configure_from_config`.
+      Pull request courtesy Daniel Kraus.
+
+.. changelog::
     :version: 0.6.2
     :released: Tue Aug 16 2016
 

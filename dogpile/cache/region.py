@@ -550,6 +550,8 @@ class CacheRegion(object):
             _config_prefix="%sarguments." % prefix,
             wrap=config_dict.get(
                 "%swrap" % prefix, None),
+            replace_existing_backend=config_dict.get(
+                "%sreplace_existing_backend" % prefix, False),
         )
 
     @memoized_property
