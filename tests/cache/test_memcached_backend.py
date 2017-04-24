@@ -11,6 +11,7 @@ import weakref
 
 MEMCACHED_PORT = os.getenv('DOGPILE_MEMCACHED_PORT', '11211')
 MEMCACHED_URL = "127.0.0.1:%s" % MEMCACHED_PORT
+expect_memcached_running = bool(os.getenv('DOGPILE_MEMCACHED_PORT'))
 
 LOCK_TIMEOUT = 1
 
@@ -24,9 +25,12 @@ class _TestMemcachedConn(object):
             client.set("x", "y")
             assert client.get("x") == "y"
         except:
-            pytest.skip(
-                "memcached is not running or "
-                "otherwise not functioning correctly")
+            if not expect_memcached_running:
+                pytest.skip(
+                    "memcached is not running or "
+                    "otherwise not functioning correctly")
+            else:
+                raise
 
 
 class _NonDistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):

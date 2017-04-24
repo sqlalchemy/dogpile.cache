@@ -7,6 +7,7 @@ import os
 
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = int(os.getenv('DOGPILE_REDIS_PORT', '6379'))
+expect_redis_running = os.getenv('DOGPILE_REDIS_PORT') is not None
 
 
 class _TestRedisConn(object):
@@ -20,9 +21,12 @@ class _TestRedisConn(object):
             assert client.get("x").decode("ascii") == "y"
             client.delete("x")
         except:
-            pytest.skip(
-                "redis is not running or "
-                "otherwise not functioning correctly")
+            if not expect_redis_running:
+                pytest.skip(
+                    "redis is not running or "
+                    "otherwise not functioning correctly")
+            else:
+                raise
 
 
 class RedisTest(_TestRedisConn, _GenericBackendTest):
