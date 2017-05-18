@@ -3,6 +3,7 @@ Changelog
 ==============
 .. changelog::
     :version: 0.6.3
+    :released: Thu May 18, 2017
 
     .. change::
       :tags: feature
