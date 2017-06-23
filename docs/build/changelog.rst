@@ -2,6 +2,10 @@
 Changelog
 ==============
 .. changelog::
+    :version: 0.6.4
+
+
+.. changelog::
     :version: 0.6.3
     :released: Thu May 18, 2017
 
