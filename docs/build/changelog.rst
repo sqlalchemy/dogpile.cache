@@ -14,6 +14,14 @@ Changelog
       problems for backends like that of Redis.  Pull request courtesy
       Tobias Sauerwein.
 
+    .. change::
+      :tags: bug
+
+      The :attr:`.api.NO_VALUE` constant now has a fixed ``__repr__()``
+      output, so that scenarios where this constant's string value
+      ends up being used as a cache key do not create multiple values.
+      Pull request courtesy Paul Brown.
+
 .. changelog::
     :version: 0.6.3
     :released: Thu May 18, 2017

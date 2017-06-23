@@ -17,6 +17,11 @@ def key_mangler(key):
     return "HI!" + key
 
 
+class APITest(TestCase):
+    def test_no_value_str(self):
+        eq_(str(NO_VALUE), "<dogpile.cache.api.NoValue object>")
+
+
 class RegionTest(TestCase):
 
     def _region(self, init_args={}, config_args={}, backend="mock"):
