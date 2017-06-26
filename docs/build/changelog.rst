@@ -3,6 +3,7 @@ Changelog
 ==============
 .. changelog::
     :version: 0.6.4
+    :released: Mon Jun 26, 2017
 
     .. change::
       :tags: bug
