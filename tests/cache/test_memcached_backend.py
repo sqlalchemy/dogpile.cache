@@ -286,14 +286,18 @@ class LocalThreadTest(TestCase):
         backend = MockGenericMemcachedBackend(arguments={'url': 'foo'})
         canary = []
 
-        def f():
+        flag = [False]
+
+        def f(delay):
             backend._clients.memcached
             canary.append(MockClient.number_of_clients())
-            time.sleep(.05)
+            while not flag[0]:
+                time.sleep(.02)
 
-        threads = [Thread(target=f) for i in range(count)]
+        threads = [Thread(target=f, args=(count - i, )) for i in range(count)]
         for t in threads:
             t.start()
+        flag[0] = True
         for t in threads:
             t.join()
         eq_(canary, [i + 1 for i in range(count)])
