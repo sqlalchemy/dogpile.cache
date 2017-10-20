@@ -1097,6 +1097,14 @@ class CacheRegion(object):
         .. versionadded:: 0.5.0 Added ``refresh()`` method to decorated
            function.
 
+        ``original()`` on other hand will invoke the decorated function
+        without any caching::
+
+            newvalue = generate_something.original(5, 6)
+
+        .. versionadded:: 0.6.0 Added ``original()`` method to decorated
+           function.
+
         Lastly, the ``get()`` method returns either the value cached
         for the given key, or the token ``NO_VALUE`` if no such key
         exists::
