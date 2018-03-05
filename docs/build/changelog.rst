@@ -7,10 +7,6 @@ Changelog
     :include_notes_from: unreleased
 
 .. changelog::
-    :version: 0.6.6
-    :include_notes_from: unreleased
-
-.. changelog::
     :version: 0.6.5
     :released: Mon Mar 5 2018
 
