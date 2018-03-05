@@ -4,7 +4,16 @@ Changelog
 
 .. changelog::
     :version: 0.6.5
-    :include_notes_from: unreleased
+    :released: Mon Mar 5 2018
+
+    .. change::
+    	:tags: bug
+    	:tickets: 119
+
+    	Fixed import issue for Python 3.7 where several variables named "async"
+    	were, leading to syntax errors.  Pull request courtesy Brian Sheldon.
+
+
 
 .. changelog::
     :version: 0.6.4
