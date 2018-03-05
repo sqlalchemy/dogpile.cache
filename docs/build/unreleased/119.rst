@@ -1,0 +1,8 @@
+.. change::
+	:tags: bug
+	:tickets: 119
+
+	Fixed import issue for Python 3.7 where several variables named "async"
+	were, leading to syntax errors.  Pull request courtesy Brian Sheldon.
+
+
