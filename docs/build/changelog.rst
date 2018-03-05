@@ -4,6 +4,7 @@ Changelog
 
 .. changelog::
     :version: 0.6.5
+    :include_notes_from: unreleased
 
 .. changelog::
     :version: 0.6.4

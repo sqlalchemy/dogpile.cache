@@ -1,4 +1,4 @@
+git+https://bitbucket.org/zzzeek/changelog.git@HEAD#egg=changelog
+git+https://bitbucket.org/zzzeek/sphinx-paramlinks.git@HEAD#egg=sphinx-paramlinks
+sphinx
 mako
-dogpile
-changelog
-sphinx-paramlinks
