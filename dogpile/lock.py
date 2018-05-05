@@ -69,11 +69,10 @@ class Lock(object):
         """Return true if the expiration time is reached, or no
         value is available."""
 
-        return not self._has_value(createdtime) or \
-            (
-                self.expiretime is not None and
-                time.time() - createdtime > self.expiretime
-            )
+        return not self._has_value(createdtime) or (
+            self.expiretime is not None and
+            time.time() - createdtime > self.expiretime
+        )
 
     def _has_value(self, createdtime):
         """Return true if the creation function has proceeded
@@ -101,9 +100,10 @@ class Lock(object):
                 value, createdtime = value_fn()
                 return value
             except NeedRegenerationException:
-                raise Exception("Generation function should "
-                            "have just been called by a concurrent "
-                            "thread.")
+                raise Exception(
+                    "Generation function should "
+                    "have just been called by a concurrent "
+                    "thread.")
         else:
             return value
 
@@ -116,8 +116,9 @@ class Lock(object):
 
         if self._has_value(createdtime):
             if not self.mutex.acquire(False):
-                log.debug("creation function in progress "
-                            "elsewhere, returning")
+                log.debug(
+                    "creation function in progress "
+                    "elsewhere, returning")
                 return NOT_REGENERATED
         else:
             log.debug("no value, waiting for create lock")
@@ -130,17 +131,30 @@ class Lock(object):
             try:
                 value, createdtime = self.value_and_created_fn()
             except NeedRegenerationException:
+                # we have no value at all, we must create it
+                # right now
                 pass
             else:
+                # there's a value
                 if not self._is_expired(createdtime):
+                    # and it's not expired either
                     log.debug("value already present")
+
+                    # so return it, we're good
                     return value, createdtime
                 elif self.async_creator:
+                    # it's expired, and we have a background creation routine
                     log.debug("Passing creation lock to async runner")
+
+                    # so...run it!
                     self.async_creator(self.mutex)
                     _async = True
+
+                    # and return the expired value for now
                     return value, createdtime
 
+            # it's expired, and it's our turn to create it synchronously, *or*,
+            # there's no value at all, and we have to create it synchronously
             log.debug("Calling creation function")
             created = self.creator()
             return created
@@ -149,10 +163,8 @@ class Lock(object):
                 self.mutex.release()
                 log.debug("Released creation lock")
 
-
     def __enter__(self):
         return self._enter()
 
     def __exit__(self, type, value, traceback):
         pass
-
