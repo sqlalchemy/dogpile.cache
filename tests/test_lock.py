@@ -6,6 +6,7 @@ from dogpile.util import ReadWriteMutex
 import contextlib
 import math
 import logging
+import mock
 log = logging.getLogger(__name__)
 
 
@@ -277,3 +278,34 @@ class ConcurrencyTest(TestCase):
                 len(the_resource),
                 expected_generations)
 
+
+class RaceConditionTests(TestCase):
+    def test_no_double_get_on_expired(self):
+        mutex = threading.Lock()
+
+        the_value = "the value"
+        expiration_time = 10
+        created_time = 10
+        current_time = 22  # e.g. it's expired
+
+        def creator():
+            return the_value, current_time
+
+        def value_and_created_fn():
+            return the_value, created_time
+
+        value_and_created_fn = mock.Mock(side_effect=value_and_created_fn)
+
+        def time_mock():
+            return current_time
+
+        with mock.patch("dogpile.lock.time.time", time_mock):
+
+            with Lock(
+                mutex, creator, value_and_created_fn, expiration_time
+            ) as entered_value:
+                self.assertEquals("the value", entered_value)
+
+        self.assertEquals(
+            value_and_created_fn.call_count, 1
+        )
