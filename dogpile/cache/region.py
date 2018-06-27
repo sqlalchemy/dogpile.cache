@@ -489,8 +489,14 @@ class CacheRegion(object):
 
     @property
     def actual_backend(self):
-        ''' The backend might be the result of one or more `proxy.wrap`
-        applications. If so, derive the actual underlying backend. '''
+        """Return the ultimate backend underneath any proxies.
+
+        The backend might be the result of one or more ``proxy.wrap``
+        applications. If so, derive the actual underlying backend.
+
+        .. versionadded:: 0.6.6
+
+        """
         if self._actual_backend is None:
             _backend = self.backend
             while hasattr(_backend, 'proxied'):

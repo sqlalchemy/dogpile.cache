@@ -2,9 +2,9 @@
     :tags: feature
     :tickets: 123
 
-    Added method :meth:`.CacheRegion.actual_backend` which calculates and
+    Added method :attr:`.CacheRegion.actual_backend` which calculates and
     caches the actual backend for the region, which may be abstracted by
-    the use of one or more :class:`ProxyBackend` subclasses.
+    the use of one or more :class:`.ProxyBackend` subclasses.
 
 
 
