@@ -484,6 +484,20 @@ class CacheRegion(object):
         else:
             return self._LockWrapper()
 
+    # cached value
+    _actual_backend = None
+
+    @property
+    def actual_backend(self):
+        ''' The backend might be the result of one or more `proxy.wrap`
+        applications. If so, derive the actual underlying backend. '''
+        if self._actual_backend is None:
+            _backend = self.backend
+            while hasattr(_backend, 'proxied'):
+                _backend = _backend.proxied
+            self._actual_backend = _backend
+        return self._actual_backend
+
     def invalidate(self, hard=True):
         """Invalidate this :class:`.CacheRegion`.
 
