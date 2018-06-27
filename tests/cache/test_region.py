@@ -1,5 +1,6 @@
 from unittest import TestCase
 from dogpile.cache.api import NO_VALUE, CachedValue
+from dogpile.cache.api import CacheBackend
 from dogpile.cache import exception
 from dogpile.cache import make_region, CacheRegion
 from dogpile.cache.proxy import ProxyBackend
@@ -627,3 +628,19 @@ class ProxyBackendTest(TestCase):
         # make sure 1 was set, but 5 was not
         eq_(reg.get(5), NO_VALUE)
         eq_(reg.get(1), True)
+
+    def test_actual_backend_proxied(self):
+        # ensure that `reg.actual_backend` is the actual backend
+        # also ensure that `reg.backend` is a proxied backend
+        reg = self._region(config_args={"wrap": [
+            ProxyBackendTest.GetCounterProxy,
+            ProxyBackendTest.SetCounterProxy]})
+        assert isinstance(reg.backend, ProxyBackend)
+        assert isinstance(reg.actual_backend, CacheBackend)
+
+    def test_actual_backend_noproxy(self):
+        # ensure that `reg.actual_backend` is the actual backend
+        # also ensure that `reg.backend` is NOT a proxied backend
+        reg = self._region()
+        assert isinstance(reg.backend, CacheBackend)
+        assert isinstance(reg.actual_backend, CacheBackend)
