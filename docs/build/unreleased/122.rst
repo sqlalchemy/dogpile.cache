@@ -1,7 +1,0 @@
-.. change::
-    :tags: bug
-    :tickets: 122
-
-    Fixed a condition in the :class:`.Lock` where the "get" function could be
-    called a second time unnecessarily, when returning an existing, expired
-    value from the cache.

@@ -4,7 +4,26 @@ Changelog
 
 .. changelog::
     :version: 0.6.6
-    :include_notes_from: unreleased
+    :released: Wed Jun 27 2018
+
+    .. change::
+        :tags: feature
+        :tickets: 123
+
+        Added method :attr:`.CacheRegion.actual_backend` which calculates and
+        caches the actual backend for the region, which may be abstracted by
+        the use of one or more :class:`.ProxyBackend` subclasses.
+
+
+
+
+    .. change::
+        :tags: bug
+        :tickets: 122
+
+        Fixed a condition in the :class:`.Lock` where the "get" function could be
+        called a second time unnecessarily, when returning an existing, expired
+        value from the cache.
 
 .. changelog::
     :version: 0.6.5
