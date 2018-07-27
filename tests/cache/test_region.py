@@ -285,6 +285,41 @@ class RegionTest(TestCase):
         eq_(reg.get_or_create("some key", creator),
             "some value 2")
 
+        eq_(reg.get_or_create("some key", creator),
+            "some value 2")
+
+        reg.invalidate()
+        eq_(reg.get_or_create("some key", creator),
+            "some value 3")
+
+        eq_(reg.get_or_create("some key", creator),
+            "some value 3")
+
+    def test_hard_invalidate_get_or_create_multi(self):
+        reg = self._region()
+        counter = itertools.count(1)
+
+        def creator(*keys):
+            return ["some value %s %d" % (k, next(counter)) for k in keys]
+
+        eq_(reg.get_or_create_multi(["k1", "k2"], creator),
+            ["some value k1 1", "some value k2 2"])
+
+        time.sleep(.1)
+        reg.invalidate()
+        eq_(reg.get_or_create_multi(["k1", "k2"], creator),
+            ["some value k1 3", "some value k2 4"])
+
+        eq_(reg.get_or_create_multi(["k1", "k2"], creator),
+            ["some value k1 3", "some value k2 4"])
+
+        reg.invalidate()
+        eq_(reg.get_or_create_multi(["k1", "k2"], creator),
+            ["some value k1 5", "some value k2 6"])
+
+        eq_(reg.get_or_create_multi(["k1", "k2"], creator),
+            ["some value k1 5", "some value k2 6"])
+
     def test_soft_invalidate_get(self):
         reg = self._region(config_args={"expiration_time": 1})
         reg.set("some key", "some value")

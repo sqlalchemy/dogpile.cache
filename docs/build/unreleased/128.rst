@@ -1,0 +1,11 @@
+.. change::
+    :tags: bug
+    :tickets: 128
+
+    Fixed issue in the :meth:`.CacheRegion.get_or_create_multi` method which
+    was erroneously considering the cached value as the timestamp field if the
+    :meth:`.CacheRegion.invalidate` method had ben used, usually causing a
+    ``TypeError`` to occur, or in less frequent cases an invalid result for
+    whether or not the cached value was invalid, leading to excessive caching
+    or regeneration. The issue was a regression caused by an implementation
+    issue in the pluggable invalidation feature added in :ticket:`38`.
