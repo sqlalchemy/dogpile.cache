@@ -34,9 +34,9 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
 
 changelog_sections = ["feature", "bug"]
 
-changelog_render_ticket = "https://bitbucket.org/zzzeek/dogpile.cache/issue/%s"
-changelog_render_pullreq = "https://bitbucket.org/zzzeek/dogpile.cache/pull-request/%s"
-changelog_render_changeset = "https://bitbucket.org/zzzeek/dogpile.cache/changeset/%s"
+changelog_render_ticket = "https://github.com/sqlalchemy/dogpile.cache/issues/%s"
+changelog_render_pullreq = "https://github.com/sqlalchemy/dogpile.cache/pull-request/%s"
+changelog_render_changeset = "https://github.com/sqlalchemy/dogpile.cache/commit/%s"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -147,6 +147,11 @@ html_static_path = ['_static']
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
+
+# Custom sidebar templates, maps document names to template names.
+html_sidebars = {"**": ["site_custom_sidebars.html", "localtoc.html", "searchbox.html", "relations.html"]}
+
+
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
