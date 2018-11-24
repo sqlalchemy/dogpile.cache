@@ -24,7 +24,7 @@ Documentation
 -------------
 
 See dogpile.cache's full documentation at
-`dogpile.cache documentation <http://dogpilecache.readthedocs.org>`_.  The
+`dogpile.cache documentation <http://dogpilecache.sqlalchemy.org>`_.  The
 sections below provide a brief synopsis of the ``dogpile`` packages.
 
 Features
