@@ -50,7 +50,7 @@ setup(
     keywords='caching',
     author='Mike Bayer',
     author_email='mike_mp@zzzcomputing.com',
-    url='http://github.com/sqlalchemy/dogpile.cache',
+    url='https://github.com/sqlalchemy/dogpile.cache',
     license='BSD',
     packages=find_packages('.', exclude=['tests*']),
     entry_points="""

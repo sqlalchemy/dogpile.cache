@@ -7,12 +7,11 @@ Information about the dogpile.cache project.
 Project Homepage
 ================
 
-dogpile.cache is hosted on `GitHub <https://github.com/sqlalchemy/dogpile.cache>`_ at
-https://github.com/sqlalchemy/dogpile.cache.
+dogpile.cache is hosted on GitHub at https://github.com/sqlalchemy/dogpile.cache.
 
-Releases and project status are available on Pypi at http://pypi.python.org/pypi/dogpile.cache.
+Releases and project status are available on Pypi at https://pypi.python.org/pypi/dogpile.cache.
 
-The most recent published version of this documentation should be at http://dogpilecache.sqlalchemy.org.
+The most recent published version of this documentation should be at https://dogpilecache.sqlalchemy.org.
 
 Installation
 ============
@@ -24,6 +23,6 @@ Install released versions of dogpile.cache from the Python package index with `p
 Bugs
 ====
 
-Bugs and feature enhancements to dogpile.cache should be reported on the `GitHubt
+Bugs and feature enhancements to dogpile.cache should be reported on the `GitHub
 issue tracker
 <https://github.com/sqlalchemy/dogpile.cache/issues/>`_.
