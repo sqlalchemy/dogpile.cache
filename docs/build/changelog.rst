@@ -4,7 +4,13 @@ Changelog
 
 .. changelog::
     :version: 0.6.8
-    :include_notes_from: unreleased
+    :released: Sat Nov 24 2018
+
+    .. change::
+       :tags: change
+
+       Project hosting has moved to GitHub, under the SQLAlchemy
+       organization at https://github.com/sqlalchemy/dogpile.cache
 
 .. changelog::
     :version: 0.6.7
