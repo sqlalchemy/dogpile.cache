@@ -1424,50 +1424,49 @@ class CacheRegion(object):
         if function_multi_key_generator is None:
             function_multi_key_generator = self.function_multi_key_generator
 
-        def decorator(fn):
+        def get_or_create_wrapper(key_generator, user_func, *arg, **kw):
+            cache_keys = arg
+            keys = key_generator(*arg, **kw)
+            key_lookup = dict(zip(keys, cache_keys))
+
+            @wraps(user_func)
+            def creator(*keys_to_create):
+                return user_func(*[key_lookup[k] for k in keys_to_create])
+
+            timeout = expiration_time() if expiration_time_is_callable \
+                else expiration_time
+
+            if asdict:
+                def dict_create(*keys):
+                    d_values = creator(*keys)
+                    return [
+                        d_values.get(key_lookup[k], NO_VALUE)
+                        for k in keys]
+
+                def wrap_cache_fn(value):
+                    if value is NO_VALUE:
+                        return False
+                    elif not should_cache_fn:
+                        return True
+                    else:
+                        return should_cache_fn(value)
+
+                result = self.get_or_create_multi(
+                    keys, dict_create, timeout, wrap_cache_fn)
+                result = dict(
+                    (k, v) for k, v in zip(cache_keys, result)
+                    if v is not NO_VALUE)
+            else:
+                result = self.get_or_create_multi(
+                    keys, creator, timeout,
+                    should_cache_fn)
+
+            return result
+
+        def cache_decorator(user_func):
             key_generator = function_multi_key_generator(
-                namespace, fn,
+                namespace, user_func,
                 to_str=to_str)
-
-            @wraps(fn)
-            def decorate(*arg, **kw):
-                cache_keys = arg
-                keys = key_generator(*arg, **kw)
-                key_lookup = dict(zip(keys, cache_keys))
-
-                @wraps(fn)
-                def creator(*keys_to_create):
-                    return fn(*[key_lookup[k] for k in keys_to_create])
-
-                timeout = expiration_time() if expiration_time_is_callable \
-                    else expiration_time
-
-                if asdict:
-                    def dict_create(*keys):
-                        d_values = creator(*keys)
-                        return [
-                            d_values.get(key_lookup[k], NO_VALUE)
-                            for k in keys]
-
-                    def wrap_cache_fn(value):
-                        if value is NO_VALUE:
-                            return False
-                        elif not should_cache_fn:
-                            return True
-                        else:
-                            return should_cache_fn(value)
-
-                    result = self.get_or_create_multi(
-                        keys, dict_create, timeout, wrap_cache_fn)
-                    result = dict(
-                        (k, v) for k, v in zip(cache_keys, result)
-                        if v is not NO_VALUE)
-                else:
-                    result = self.get_or_create_multi(
-                        keys, creator, timeout,
-                        should_cache_fn)
-
-                return result
 
             def invalidate(*arg):
                 keys = key_generator(*arg)
@@ -1488,7 +1487,7 @@ class CacheRegion(object):
 
             def refresh(*arg):
                 keys = key_generator(*arg)
-                values = fn(*arg)
+                values = user_func(*arg)
                 if asdict:
                     self.set_multi(
                         dict(zip(keys, [values[a] for a in arg]))
@@ -1500,13 +1499,16 @@ class CacheRegion(object):
                     )
                     return values
 
-            decorate.set = set_
-            decorate.invalidate = invalidate
-            decorate.refresh = refresh
-            decorate.get = get
+            user_func.set = set_
+            user_func.invalidate = invalidate
+            user_func.refresh = refresh
+            user_func.get = get
 
-            return decorate
-        return decorator
+            return decorate(user_func, partial(get_or_create_wrapper, key_generator))
+
+        return cache_decorator
+
+
 
 
 def make_region(*arg, **kw):
