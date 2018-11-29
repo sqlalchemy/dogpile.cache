@@ -10,8 +10,9 @@ from ..util import compat
 import time
 import datetime
 from numbers import Number
-from functools import wraps
+from functools import wraps, partial
 import threading
+from decorator import decorate
 
 _backend_loader = PluginLoader("dogpile.cache")
 register_backend = _backend_loader.register
@@ -1248,26 +1249,32 @@ class CacheRegion(object):
         if function_key_generator is None:
             function_key_generator = self.function_key_generator
 
-        def decorator(fn):
+        def get_or_create_wrapper(key_generator, user_func, *arg, **kw):
+            key = key_generator(*arg, **kw)
+
+            @wraps(user_func)
+            def creator():
+                return user_func(*arg, **kw)
+            timeout = expiration_time() if expiration_time_is_callable \
+                else expiration_time
+            return self.get_or_create(key, creator, timeout,
+                                      should_cache_fn)
+
+        def cache_decorator(user_func):
             if to_str is compat.string_type:
                 # backwards compatible
-                key_generator = function_key_generator(namespace, fn)
+                key_generator = function_key_generator(namespace, user_func)
             else:
                 key_generator = function_key_generator(
-                    namespace, fn,
+                    namespace, user_func,
                     to_str=to_str)
 
-            @wraps(fn)
-            def decorate(*arg, **kw):
+            # Like invalidate, but regenerates the value instead
+            def refresh(*arg, **kw):
                 key = key_generator(*arg, **kw)
-
-                @wraps(fn)
-                def creator():
-                    return fn(*arg, **kw)
-                timeout = expiration_time() if expiration_time_is_callable \
-                    else expiration_time
-                return self.get_or_create(key, creator, timeout,
-                                          should_cache_fn)
+                value = user_func(*arg, **kw)
+                self.set(key, value)
+                return value
 
             def invalidate(*arg, **kw):
                 key = key_generator(*arg, **kw)
@@ -1281,20 +1288,15 @@ class CacheRegion(object):
                 key = key_generator(*arg, **kw)
                 return self.get(key)
 
-            def refresh(*arg, **kw):
-                key = key_generator(*arg, **kw)
-                value = fn(*arg, **kw)
-                self.set(key, value)
-                return value
+            user_func.set = set_
+            user_func.invalidate = invalidate
+            user_func.get = get
+            user_func.refresh = refresh
+            user_func.original = user_func
 
-            decorate.set = set_
-            decorate.invalidate = invalidate
-            decorate.refresh = refresh
-            decorate.get = get
-            decorate.original = fn
+            return decorate(user_func, partial(get_or_create_wrapper, key_generator))
 
-            return decorate
-        return decorator
+        return cache_decorator
 
     def cache_multi_on_arguments(
             self, namespace=None, expiration_time=None,
