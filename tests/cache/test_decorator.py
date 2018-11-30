@@ -8,7 +8,7 @@ from dogpile.cache import util
 from dogpile.util import compat
 import itertools
 from dogpile.cache.api import NO_VALUE
-
+import inspect
 
 class DecoratorTest(_GenericBackendFixture, TestCase):
     backend = "dogpile.cache.memory"
@@ -593,7 +593,6 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         def func(a, b, c=True, *args, **kwargs):
             return None
 
-        import inspect
         signature = inspect.getargspec(func)
         cached_func = reg.cache_on_arguments()(func)
         cached_signature = inspect.getargspec(cached_func)
@@ -606,7 +605,6 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         def func(a, b, c=True, *args, **kwargs):
             return None, None
 
-        import inspect
         signature = inspect.getargspec(func)
         cached_func = reg.cache_multi_on_arguments()(func)
         cached_signature = inspect.getargspec(cached_func)

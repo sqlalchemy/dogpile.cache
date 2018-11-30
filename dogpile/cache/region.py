@@ -1249,7 +1249,7 @@ class CacheRegion(object):
         if function_key_generator is None:
             function_key_generator = self.function_key_generator
 
-        def get_or_create_wrapper(key_generator, user_func, *arg, **kw):
+        def get_or_create_for_user_func(key_generator, user_func, *arg, **kw):
             key = key_generator(*arg, **kw)
 
             @wraps(user_func)
@@ -1269,8 +1269,10 @@ class CacheRegion(object):
                     namespace, user_func,
                     to_str=to_str)
 
-            # Like invalidate, but regenerates the value instead
             def refresh(*arg, **kw):
+                """
+                Like invalidate, but regenerates the value instead
+                """
                 key = key_generator(*arg, **kw)
                 value = user_func(*arg, **kw)
                 self.set(key, value)
@@ -1294,7 +1296,9 @@ class CacheRegion(object):
             user_func.refresh = refresh
             user_func.original = user_func
 
-            return decorate(user_func, partial(get_or_create_wrapper, key_generator))
+            # Use `decorate` to preserve the signature of :param:`user_func`.
+
+            return decorate(user_func, partial(get_or_create_for_user_func, key_generator))
 
         return cache_decorator
 
@@ -1424,7 +1428,7 @@ class CacheRegion(object):
         if function_multi_key_generator is None:
             function_multi_key_generator = self.function_multi_key_generator
 
-        def get_or_create_wrapper(key_generator, user_func, *arg, **kw):
+        def get_or_create_for_user_func(key_generator, user_func, *arg, **kw):
             cache_keys = arg
             keys = key_generator(*arg, **kw)
             key_lookup = dict(zip(keys, cache_keys))
@@ -1504,7 +1508,9 @@ class CacheRegion(object):
             user_func.refresh = refresh
             user_func.get = get
 
-            return decorate(user_func, partial(get_or_create_wrapper, key_generator))
+            # Use `decorate` to preserve the signature of :param:`user_func`.
+
+            return decorate(user_func, partial(get_or_create_for_user_func, key_generator))
 
         return cache_decorator
 
