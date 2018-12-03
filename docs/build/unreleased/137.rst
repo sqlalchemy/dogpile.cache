@@ -1,0 +1,14 @@
+.. change:
+    :tags: bug
+    :tickets: 137
+
+    The ``decorator`` module is now used when creating function decorators
+    within :meth:`.CacheRegion.cache_on_arguments` and
+    :meth:`.CacheRegion.cache_multi_on_arguments` so that function signatures
+    are preserved.  Pull request courtesy ankitpatel96.
+
+    Additionally adds a small performance enhancement which is to avoid
+    internally creating a ``@wraps()`` decorator for the creator function on
+    every get operation, by allowing the arguments to the creator be passed
+    separately to :meth:`.CacheRegion.get_or_create`.
+

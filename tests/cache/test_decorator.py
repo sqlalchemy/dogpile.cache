@@ -586,3 +586,27 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
 
         generate.set({7: 18, 10: 15})
         eq_(generate(2, 7, 10), ['2 5', 18, 15])
+
+    def test_cache_preserve_sig(self):
+        reg = self._region()
+
+        def func(a, b, c=True, *args, **kwargs):
+            return None
+
+        signature = compat.inspect_getargspec(func)
+        cached_func = reg.cache_on_arguments()(func)
+        cached_signature = compat.inspect_getargspec(cached_func)
+
+        self.assertEqual(signature, cached_signature)
+
+    def test_cache_multi_preserve_sig(self):
+        reg = self._region()
+
+        def func(a, b, c=True, *args, **kwargs):
+            return None, None
+
+        signature = compat.inspect_getargspec(func)
+        cached_func = reg.cache_multi_on_arguments()(func)
+        cached_signature = compat.inspect_getargspec(cached_func)
+
+        self.assertEqual(signature, cached_signature)
