@@ -304,8 +304,8 @@ class RaceConditionTests(TestCase):
             with Lock(
                 mutex, creator, value_and_created_fn, expiration_time
             ) as entered_value:
-                self.assertEqual("the value", entered_value)
+                self.assertEquals("the value", entered_value)
 
-        self.assertEqual(
+        self.assertEquals(
             value_and_created_fn.call_count, 1
         )

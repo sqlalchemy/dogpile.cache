@@ -1,4 +1,5 @@
 from hashlib import sha1
+import inspect
 from ..util import compat
 from ..util import langhelpers
 
@@ -27,7 +28,7 @@ def function_key_generator(namespace, fn, to_str=compat.string_type):
     else:
         namespace = '%s:%s|%s' % (fn.__module__, fn.__name__, namespace)
 
-    args = compat.inspect_getargspec(fn)
+    args = inspect.getargspec(fn)
     has_self = args[0] and args[0][0] in ('self', 'cls')
 
     def generate_key(*args, **kw):
@@ -49,7 +50,7 @@ def function_multi_key_generator(namespace, fn, to_str=compat.string_type):
     else:
         namespace = '%s:%s|%s' % (fn.__module__, fn.__name__, namespace)
 
-    args = compat.inspect_getargspec(fn)
+    args = inspect.getargspec(fn)
     has_self = args[0] and args[0][0] in ('self', 'cls')
 
     def generate_keys(*args, **kw):
@@ -87,7 +88,7 @@ def kwarg_function_key_generator(namespace, fn, to_str=compat.string_type):
     else:
         namespace = '%s:%s|%s' % (fn.__module__, fn.__name__, namespace)
 
-    argspec = compat.inspect_getargspec(fn)
+    argspec = inspect.getargspec(fn)
     default_list = list(argspec.defaults or [])
     # Reverse the list, as we want to compare the argspec by negative index,
     # meaning default_list[0] should be args[-1], which works well with

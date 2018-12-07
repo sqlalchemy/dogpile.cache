@@ -188,7 +188,7 @@ class DefaultInvalidationStrategy(RegionInvalidationStrategy):
 
 
 class CacheRegion(object):
-    r"""A front end to a particular cache backend.
+    """A front end to a particular cache backend.
 
     :param name: Optional, a string name for the region.
      This isn't used internally

@@ -6,7 +6,6 @@ from dogpile.cache import make_region, CacheRegion
 from dogpile.cache.proxy import ProxyBackend
 from dogpile.cache.region import _backend_loader
 from dogpile.cache.region import RegionInvalidationStrategy
-from dogpile.util import compat
 from . import eq_, is_, assert_raises_message, io, configparser
 import time
 import datetime
@@ -58,7 +57,7 @@ class RegionTest(TestCase):
 
         my_region = make_region()
         config = configparser.ConfigParser()
-        compat.read_config_file(config, io.StringIO(my_conf))
+        config.readfp(io.StringIO(my_conf))
 
         my_region.configure_from_config(
             dict(config.items('xyz')), 'cache.example.')
