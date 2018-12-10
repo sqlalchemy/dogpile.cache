@@ -1,4 +1,4 @@
-.. change:
+.. change::
     :tags: bug
     :tickets: 137
 
