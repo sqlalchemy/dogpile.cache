@@ -3,6 +3,10 @@ Changelog
 ==============
 
 .. changelog::
+    :version: 0.7.1
+    :include_notes_from: unreleased
+
+.. changelog::
     :version: 0.7.0
     :released: Mon Dec 10 2018
 
