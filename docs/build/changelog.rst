@@ -4,7 +4,29 @@ Changelog
 
 .. changelog::
     :version: 0.7.0
-    :include_notes_from: unreleased
+    :released: Mon Dec 10 2018
+
+    .. change::
+        :tags: bug
+        :tickets: 137
+
+        The ``decorator`` module is now used when creating function decorators
+        within :meth:`.CacheRegion.cache_on_arguments` and
+        :meth:`.CacheRegion.cache_multi_on_arguments` so that function signatures
+        are preserved.  Pull request courtesy ankitpatel96.
+
+        Additionally adds a small performance enhancement which is to avoid
+        internally creating a ``@wraps()`` decorator for the creator function on
+        every get operation, by allowing the arguments to the creator be passed
+        separately to :meth:`.CacheRegion.get_or_create`.
+
+
+    .. change::
+       :tags: bug, py3k
+       :tickets: 129
+
+       Fixed all Python 3.x deprecation warnings including
+       ``inspect.getargspec()``.
 
 .. changelog::
     :version: 0.6.8

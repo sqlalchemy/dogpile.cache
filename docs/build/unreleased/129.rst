@@ -1,6 +1,0 @@
-.. change::
-   :tags: bug, py3k
-   :tickets: 129
-
-   Fixed all Python 3.x deprecation warnings including
-   ``inspect.getargspec()``.
