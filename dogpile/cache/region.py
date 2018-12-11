@@ -784,7 +784,7 @@ class CacheRegion(object):
         :param creator_args: optional tuple of (args, kwargs) that will be
          passed to the creator function if present.
 
-         .. versionadded:: 0.6.9
+         .. versionadded:: 0.7.0
 
         :param expiration_time: optional expiration time which will overide
          the expiration time already configured on this :class:`.CacheRegion`
