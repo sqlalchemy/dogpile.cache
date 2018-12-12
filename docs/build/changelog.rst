@@ -4,7 +4,20 @@ Changelog
 
 .. changelog::
     :version: 0.7.1
-    :include_notes_from: unreleased
+    :released: Tue Dec 11 2018
+
+    .. change::
+       :tags: bug, region
+       :tickets: 139
+
+       Fixed regression in 0.7.0 caused by :ticket:`136` where the assumed
+       arguments for the :paramref:`.CacheRegion.async_creation_runner` expanded to
+       include the new :paramref:`.CacheRegion.get_or_create.creator_args`
+       parameter, as it was not tested that the async runner would be implicitly
+       called with these arguments when the :meth:`.CacheRegion.cache_on_arguments`
+       decorator was used.  The exact signature of ``async_creation_runner`` is
+       now restored to have the same arguments in all cases.
+
 
 .. changelog::
     :version: 0.7.0
