@@ -862,12 +862,12 @@ class CacheRegion(object):
         if self.async_creation_runner:
             def async_creator(mutex):
                 if creator_args:
-                    return self.async_creation_runner(
-                        self, orig_key, creator, mutex,
-                        creator_args=creator_args)
+                    @wraps(creator)
+                    def go():
+                        return creator(*creator_args[0], **creator_args[1])
                 else:
-                    return self.async_creation_runner(
-                        self, orig_key, creator, mutex)
+                    go = creator
+                return self.async_creation_runner(self, orig_key, go, mutex)
         else:
             async_creator = None
 

@@ -11,6 +11,7 @@ from . import eq_, is_, assert_raises_message, io, configparser
 import time
 import datetime
 import itertools
+import mock
 from collections import defaultdict
 from ._fixtures import MockBackend
 
@@ -526,6 +527,79 @@ class CustomInvalidationStrategyTest(RegionTest):
         invalidator = self.CustomInvalidationStrategy()
         reg.configure(backend, region_invalidator=invalidator, **config_args)
         return reg
+
+
+class AsyncCreatorTest(TestCase):
+    def _fixture(self):
+
+        def async_creation_runner(cache, somekey, creator, mutex):
+            try:
+                value = creator()
+                cache.set(somekey, value)
+            finally:
+                mutex.release()
+
+        return mock.Mock(side_effect=async_creation_runner)
+
+    def test_get_or_create(self):
+        acr = self._fixture()
+        reg = CacheRegion(async_creation_runner=acr)
+        reg.configure("mock", expiration_time=.2)
+
+        def some_value():
+            return "some value"
+
+        def some_new_value():
+            return "some new value"
+
+        eq_(reg.get_or_create("some key", some_value), "some value")
+        time.sleep(.5)
+        eq_(
+            reg.get_or_create("some key", some_new_value),
+            "some value")
+        eq_(
+            reg.get_or_create("some key", some_new_value),
+            "some new value")
+        eq_(
+            acr.mock_calls, [
+                mock.call(reg, "some key",
+                          some_new_value, reg._mutex("some key"))
+            ])
+
+    def test_fn_decorator(self):
+        acr = self._fixture()
+        reg = CacheRegion(async_creation_runner=acr)
+        reg.configure("mock", expiration_time=5)
+
+        canary = mock.Mock()
+
+        @reg.cache_on_arguments()
+        def go(x, y):
+            canary(x, y)
+            return x + y
+
+        eq_(go(1, 2), 3)
+        eq_(go(1, 2), 3)
+
+        eq_(canary.mock_calls, [mock.call(1, 2)])
+
+        eq_(go(3, 4), 7)
+
+        eq_(canary.mock_calls, [mock.call(1, 2), mock.call(3, 4)])
+
+        reg.invalidate(hard=False)
+
+        eq_(go(1, 2), 3)
+
+        eq_(canary.mock_calls, [
+            mock.call(1, 2), mock.call(3, 4), mock.call(1, 2)])
+
+        eq_(
+            acr.mock_calls, [
+                mock.call(reg, "tests.cache.test_region:go|1 2",
+                          mock.ANY,
+                          reg._mutex("tests.cache.test_region:go|1 2"))
+            ])
 
 
 class ProxyBackendTest(TestCase):
