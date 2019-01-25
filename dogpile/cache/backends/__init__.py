@@ -5,6 +5,8 @@ register_backend(
 register_backend(
     "dogpile.cache.dbm", "dogpile.cache.backends.file", "DBMBackend")
 register_backend(
+    "dogpile.cache.files", "dogpile.cache.backends.file", "FilesBackend")
+register_backend(
     "dogpile.cache.pylibmc", "dogpile.cache.backends.memcached",
     "PylibmcBackend")
 register_backend(
