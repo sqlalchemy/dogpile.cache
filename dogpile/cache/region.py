@@ -650,6 +650,13 @@ class CacheRegion(object):
          which will supersede that configured on the :class:`.CacheRegion`
          itself.
 
+         .. note:: The :paramref:`.CacheRegion.get.expiration_time`
+            argument is **not persisted in the cache** and is relevant
+            only to **this specific cache retrieval operation**, relative to
+            the creation time stored with the existing cached value.
+            Subsequent calls to :meth:`.CacheRegion.get` are **not** affected
+            by this value.
+
          .. versionadded:: 0.3.0
 
         :param ignore_expiration: if ``True``, the value is returned
@@ -658,6 +665,17 @@ class CacheRegion(object):
          was called.
 
          .. versionadded:: 0.3.0
+
+        .. seealso::
+
+            :meth:`.CacheRegion.get_multi`
+
+            :meth:`.CacheRegion.get_or_create`
+
+            :meth:`.CacheRegion.set`
+
+            :meth:`.CacheRegion.delete`
+
 
         """
 
@@ -790,6 +808,13 @@ class CacheRegion(object):
          the expiration time already configured on this :class:`.CacheRegion`
          if not None.   To set no expiration, use the value -1.
 
+         .. note:: The :paramref:`.CacheRegion.get_or_create.expiration_time`
+            argument is **not persisted in the cache** and is relevant
+            only to **this specific cache retrieval operation**, relative to
+            the creation time stored with the existing cached value.
+            Subsequent calls to :meth:`.CacheRegion.get_or_create` are **not**
+            affected by this value.
+
         :param should_cache_fn: optional callable function which will receive
          the value returned by the "creator", and will then return True or
          False, indicating if the value should actually be cached or not.  If
@@ -811,11 +836,13 @@ class CacheRegion(object):
 
         .. seealso::
 
+            :meth:`.CacheRegion.get`
+
             :meth:`.CacheRegion.cache_on_arguments` - applies
             :meth:`.get_or_create` to any function using a decorator.
 
             :meth:`.CacheRegion.get_or_create_multi` - multiple key/value
-             version
+            version
 
         """
         orig_key = key
