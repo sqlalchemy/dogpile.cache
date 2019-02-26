@@ -529,6 +529,11 @@ class CustomInvalidationStrategyTest(RegionTest):
         return reg
 
 
+class TestProxyValue(object):
+    def __init__(self, value):
+        self.value = value
+
+
 class AsyncCreatorTest(TestCase):
     def _fixture(self):
 
@@ -601,6 +606,27 @@ class AsyncCreatorTest(TestCase):
                           reg._mutex("tests.cache.test_region:go|1 2"))
             ])
 
+    def test_fn_decorator_with_kw(self):
+        acr = self._fixture()
+        reg = CacheRegion(async_creation_runner=acr)
+        reg.configure("mock", expiration_time=5)
+
+        canary = mock.Mock()
+
+        @reg.cache_on_arguments()
+        def go(x, **kw):
+            return x
+
+        test_value = TestProxyValue("Decorator Test")
+        self.assertRaises(ValueError, go, x=1, foo=test_value)
+
+        @reg.cache_on_arguments()
+        def go2(x):
+            return x
+
+        # Raise a TypeError since decorator return foo
+        result = go2(x=test_value)
+        self.assertTrue(isinstance(result, TestProxyValue))
 
 class ProxyBackendTest(TestCase):
 
