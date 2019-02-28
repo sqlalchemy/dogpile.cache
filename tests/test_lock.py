@@ -1,12 +1,15 @@
-from unittest import TestCase
-import time
-import threading
-from dogpile import Lock, NeedRegenerationException
-from dogpile.util import ReadWriteMutex
 import contextlib
-import math
 import logging
+import math
+import threading
+import time
+from unittest import TestCase
+
+from dogpile import Lock
+from dogpile import NeedRegenerationException
+from dogpile.util import ReadWriteMutex
 import mock
+
 log = logging.getLogger(__name__)
 
 
@@ -16,14 +19,10 @@ class ConcurrencyTest(TestCase):
     _assertion_lock = threading.Lock()
 
     def test_quick(self):
-        self._test_multi(
-            10, 2, .5, 50, .05, .1,
-        )
+        self._test_multi(10, 2, 0.5, 50, 0.05, 0.1)
 
     def test_slow(self):
-        self._test_multi(
-            10, 5, 2, 50, .1, .1,
-        )
+        self._test_multi(10, 5, 2, 50, 0.1, 0.1)
 
     # TODO: this is a port from the legacy test_dogpile test.
     # sequence and calculations need to be revised.
@@ -34,32 +33,21 @@ class ConcurrencyTest(TestCase):
     #    )
 
     def test_return_while_in_progress(self):
-        self._test_multi(
-            10, 5, 2, 50, 1, .1
-        )
+        self._test_multi(10, 5, 2, 50, 1, 0.1)
 
     def test_get_value_plus_created_long_create(self):
-        self._test_multi(
-            10, 2, 2.5, 50, .05, .1,
-        )
+        self._test_multi(10, 2, 2.5, 50, 0.05, 0.1)
 
     def test_get_value_plus_created_registry_unsafe_cache(self):
         self._test_multi(
-            10, 1, .6, 100, .05, .1,
-            cache_expire_time='unsafe'
+            10, 1, 0.6, 100, 0.05, 0.1, cache_expire_time="unsafe"
         )
 
     def test_get_value_plus_created_registry_safe_cache_quick(self):
-        self._test_multi(
-            10, 2, .5, 50, .05, .1,
-            cache_expire_time='safe'
-        )
+        self._test_multi(10, 2, 0.5, 50, 0.05, 0.1, cache_expire_time="safe")
 
     def test_get_value_plus_created_registry_safe_cache_slow(self):
-        self._test_multi(
-            10, 5, 2, 50, .1, .1,
-            cache_expire_time='safe'
-        )
+        self._test_multi(10, 5, 2, 50, 0.1, 0.1, cache_expire_time="safe")
 
     def _assert_synchronized(self):
         acq = self._assertion_lock.acquire(False)
@@ -69,10 +57,11 @@ class ConcurrencyTest(TestCase):
         def go():
             try:
                 yield {}
-            except:
+            except Exception:
                 raise
             finally:
                 self._assertion_lock.release()
+
         return go()
 
     def _assert_log(self, cond, msg, *args):
@@ -83,14 +72,15 @@ class ConcurrencyTest(TestCase):
             assert False, msg % args
 
     def _test_multi(
-        self, num_threads,
+        self,
+        num_threads,
         expiretime,
         creation_time,
         num_usages,
         usage_time,
         delay_time,
         cache_expire_time=None,
-        slow_write_time=None
+        slow_write_time=None,
     ):
         mutex = threading.Lock()
 
@@ -99,10 +89,10 @@ class ConcurrencyTest(TestCase):
 
         unsafe_cache = False
         if cache_expire_time:
-            if cache_expire_time == 'unsafe':
+            if cache_expire_time == "unsafe":
                 unsafe_cache = True
-                cache_expire_time = expiretime * .8
-            elif cache_expire_time == 'safe':
+                cache_expire_time = expiretime * 0.8
+            elif cache_expire_time == "safe":
                 cache_expire_time = (expiretime + creation_time) * 1.1
             else:
                 assert False, cache_expire_time
@@ -116,8 +106,11 @@ class ConcurrencyTest(TestCase):
         effective_creation_time = creation_time
 
         max_stale = (
-            effective_expiretime + effective_creation_time +
-            usage_time + delay_time) * 1.1
+            effective_expiretime
+            + effective_creation_time
+            + usage_time
+            + delay_time
+        ) * 1.1
 
         the_resource = []
         slow_waiters = [0]
@@ -126,7 +119,8 @@ class ConcurrencyTest(TestCase):
         def create_resource():
             with self._assert_synchronized():
                 log.debug(
-                    "creating resource, will take %f sec" % creation_time)
+                    "creating resource, will take %f sec" % creation_time
+                )
                 time.sleep(creation_time)
 
                 if slow_write_time:
@@ -178,15 +172,15 @@ class ConcurrencyTest(TestCase):
                 for i in range(num_usages):
                     now = time.time()
                     with Lock(
-                            mutex, create_resource,
-                            get_value, expiretime) as value:
+                        mutex, create_resource, get_value, expiretime
+                    ) as value:
                         waited = time.time() - now
-                        if waited > .01:
+                        if waited > 0.01:
                             slow_waiters[0] += 1
                         check_value(value, waited)
                         time.sleep(usage_time)
                     time.sleep(delay_time)
-            except:
+            except Exception:
                 log.error("thread failed", exc_info=True)
                 failures[0] += 1
 
@@ -199,10 +193,10 @@ class ConcurrencyTest(TestCase):
 
             self._assert_log(
                 time_since_create < max_stale,
-                "Time since create %.4f max stale time %s, "
-                "total waited %s",
-                time_since_create, max_stale,
-                slow_waiters[0]
+                "Time since create %.4f max stale time %s, " "total waited %s",
+                time_since_create,
+                max_stale,
+                slow_waiters[0],
             )
 
         started_at = time.time()
@@ -219,7 +213,8 @@ class ConcurrencyTest(TestCase):
         expected_run_time = (num_usages * (usage_time + delay_time)) * 1.1
 
         expected_generations = math.ceil(
-            expected_run_time / effective_expiretime)
+            expected_run_time / effective_expiretime
+        )
 
         if unsafe_cache:
             expected_slow_waiters = expected_generations * num_threads
@@ -235,7 +230,8 @@ class ConcurrencyTest(TestCase):
         # and a fudged version of the periodic waiting time anticipated
         # for a single thread...
         expected_run_time += (
-            expected_slow_waiters * effective_creation_time) / num_threads
+            expected_slow_waiters * effective_creation_time
+        ) / num_threads
         expected_run_time *= 1.1
 
         log.info("Test Summary")
@@ -243,40 +239,48 @@ class ConcurrencyTest(TestCase):
             "num threads: %s; expiretime: %s; creation_time: %s; "
             "num_usages: %s; "
             "usage_time: %s; delay_time: %s",
-            num_threads, expiretime, creation_time, num_usages,
-            usage_time, delay_time
+            num_threads,
+            expiretime,
+            creation_time,
+            num_usages,
+            usage_time,
+            delay_time,
         )
         log.info(
             "cache expire time: %s; unsafe cache: %s",
-            cache_expire_time, unsafe_cache)
+            cache_expire_time,
+            unsafe_cache,
+        )
         log.info(
             "Estimated run time %.2f actual run time %.2f",
-            expected_run_time, actual_run_time)
+            expected_run_time,
+            actual_run_time,
+        )
         log.info(
             "Effective expiretime (min(cache_exp_time, exptime)) %s",
-            effective_expiretime)
+            effective_expiretime,
+        )
         log.info(
             "Expected slow waits %s, Total slow waits %s",
-            expected_slow_waiters, slow_waiters[0])
+            expected_slow_waiters,
+            slow_waiters[0],
+        )
         log.info(
-            "Total generations %s Max generations expected %s" % (
-                len(the_resource), expected_generations
-            )
+            "Total generations %s Max generations expected %s"
+            % (len(the_resource), expected_generations)
         )
 
         assert not failures[0], "%s failures occurred" % failures[0]
         assert actual_run_time <= expected_run_time
 
-        assert slow_waiters[0] <= expected_slow_waiters, \
-            "Number of slow waiters %s exceeds expected slow waiters %s" % (
-                slow_waiters[0],
-                expected_slow_waiters
+        assert slow_waiters[0] <= expected_slow_waiters, (
+            "Number of slow waiters %s exceeds expected slow waiters %s"
+            % (slow_waiters[0], expected_slow_waiters)
         )
-        assert len(the_resource) <= expected_generations,\
-            "Number of resource generations %d exceeded "\
-            "expected %d" % (
-                len(the_resource),
-                expected_generations)
+        assert len(the_resource) <= expected_generations, (
+            "Number of resource generations %d exceeded "
+            "expected %d" % (len(the_resource), expected_generations)
+        )
 
 
 class RaceConditionTests(TestCase):
@@ -306,6 +310,4 @@ class RaceConditionTests(TestCase):
             ) as entered_value:
                 self.assertEqual("the value", entered_value)
 
-        self.assertEqual(
-            value_and_created_fn.call_count, 1
-        )
+        self.assertEqual(value_and_created_fn.call_count, 1)

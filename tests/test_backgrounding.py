@@ -1,5 +1,6 @@
-import unittest
 import threading
+import unittest
+
 import dogpile
 
 
@@ -12,14 +13,13 @@ class TestAsyncRunner(unittest.TestCase):
             mutex.release()
 
         mutex = threading.Lock()
-        create = lambda: ("value", 1)
-        get = lambda: ("value", 1)
+        create = lambda: ("value", 1)  # noqa
+        get = lambda: ("value", 1)  # noqa
         expiretime = 1
 
         assert not self.called
 
-        with dogpile.Lock(mutex, create, get, expiretime, runner) as l:
+        with dogpile.Lock(mutex, create, get, expiretime, runner) as _:
             assert self.called
 
         assert self.called
-

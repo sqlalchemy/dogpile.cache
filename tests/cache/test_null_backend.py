@@ -1,8 +1,10 @@
-from unittest import TestCase
-from ._fixtures import _GenericBackendFixture
-from dogpile.cache.api import NO_VALUE
-from . import eq_
 import itertools
+from unittest import TestCase
+
+from dogpile.cache.api import NO_VALUE
+
+from . import eq_
+from ._fixtures import _GenericBackendFixture
 
 
 class NullBackendTest(_GenericBackendFixture, TestCase):
@@ -26,32 +28,17 @@ class NullBackendTest(_GenericBackendFixture, TestCase):
     def test_get_multi(self):
         reg = self._region()
 
-        eq_(
-            reg.get_multi(['a', 'b', 'c']),
-            [NO_VALUE, NO_VALUE, NO_VALUE]
-        )
+        eq_(reg.get_multi(["a", "b", "c"]), [NO_VALUE, NO_VALUE, NO_VALUE])
 
     def test_set_multi(self):
         reg = self._region()
-        reg.set_multi(
-            {
-                "a": 1,
-                "b": 2,
-                "c": 3
-            }
-        )
-        eq_(
-            reg.get_multi(['a', 'b', 'c']),
-            [NO_VALUE, NO_VALUE, NO_VALUE]
-        )
+        reg.set_multi({"a": 1, "b": 2, "c": 3})
+        eq_(reg.get_multi(["a", "b", "c"]), [NO_VALUE, NO_VALUE, NO_VALUE])
 
     def test_delete_multi(self):
         reg = self._region()
         reg.delete_multi(["a", "b", "c"])
-        eq_(
-            reg.get_multi(['a', 'b', 'c']),
-            [NO_VALUE, NO_VALUE, NO_VALUE]
-        )
+        eq_(reg.get_multi(["a", "b", "c"]), [NO_VALUE, NO_VALUE, NO_VALUE])
 
     def test_decorator(self):
         reg = self._region()
