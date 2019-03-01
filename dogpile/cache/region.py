@@ -14,9 +14,9 @@ from functools import wraps, partial
 import threading
 from decorator import decorate
 
-_backend_loader = PluginLoader("dogpile.cache")
-register_backend = _backend_loader.register
-from . import backends  # noqa
+from .backends import register_backend
+from .backends import _backend_loader
+
 
 value_version = 1
 """An integer placed in the :class:`.CachedValue`

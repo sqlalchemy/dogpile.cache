@@ -1,4 +1,7 @@
-from dogpile.cache.region import register_backend
+from ...util import PluginLoader
+
+_backend_loader = PluginLoader("dogpile.cache")
+register_backend = _backend_loader.register
 
 register_backend(
     "dogpile.cache.null", "dogpile.cache.backends.null", "NullBackend")
