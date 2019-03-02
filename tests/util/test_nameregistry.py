@@ -1,15 +1,15 @@
-from unittest import TestCase
-import time
-import threading
-from dogpile.util import NameRegistry
-import random
-
 import logging
+import random
+import threading
+import time
+from unittest import TestCase
+
+from dogpile.util import NameRegistry
+
 log = logging.getLogger(__name__)
 
 
 class NameRegistryTest(TestCase):
-
     def test_name_registry(self):
         success = [True]
         num_operations = [0]
@@ -20,11 +20,7 @@ class NameRegistryTest(TestCase):
 
         registry = NameRegistry(create)
 
-        baton = {
-            "beans":False,
-            "means":False,
-            "please":False
-        }
+        baton = {"beans": False, "means": False, "please": False}
 
         def do_something(name):
             for iteration in range(20):
@@ -38,7 +34,7 @@ class NameRegistryTest(TestCase):
                         break
                     baton[name] = True
                     try:
-                        time.sleep(random.random() * .01)
+                        time.sleep(random.random() * 0.01)
                     finally:
                         num_operations[0] += 1
                         baton[name] = False
@@ -56,4 +52,3 @@ class NameRegistryTest(TestCase):
             t.join()
 
         assert success[0]
-

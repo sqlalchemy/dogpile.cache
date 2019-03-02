@@ -1,19 +1,21 @@
-from ._fixtures import _GenericBackendTest, _GenericMutexTest
-from . import assert_raises_message
 import os
 import sys
-from dogpile.util.readwrite_lock import ReadWriteMutex
+
 from dogpile.cache.backends.file import AbstractFileLock
+from dogpile.util.readwrite_lock import ReadWriteMutex
+from . import assert_raises_message
+from ._fixtures import _GenericBackendTest
+from ._fixtures import _GenericMutexTest
 
 try:
     import fcntl  # noqa
+
     has_fcntl = True
 except ImportError:
     has_fcntl = False
 
 
 class MutexLock(AbstractFileLock):
-
     def __init__(self, filename):
         self.mutex = ReadWriteMutex()
 
@@ -31,27 +33,22 @@ class MutexLock(AbstractFileLock):
     def release_write_lock(self):
         return self.mutex.release_write_lock()
 
+
 test_fname = "test_%s.db" % sys.hexversion
 
 if has_fcntl:
+
     class DBMBackendTest(_GenericBackendTest):
         backend = "dogpile.cache.dbm"
 
-        config_args = {
-            "arguments": {
-                "filename": test_fname
-            }
-        }
+        config_args = {"arguments": {"filename": test_fname}}
 
 
 class DBMBackendConditionTest(_GenericBackendTest):
     backend = "dogpile.cache.dbm"
 
     config_args = {
-        "arguments": {
-            "filename": test_fname,
-            "lock_factory": MutexLock
-        }
+        "arguments": {"filename": test_fname, "lock_factory": MutexLock}
     }
 
 
@@ -74,9 +71,7 @@ class _DBMMutexTest(_GenericMutexTest):
         backend = self._backend()
         m1 = backend.get_mutex("foo")
         assert_raises_message(
-            AssertionError,
-            "this thread didn't do the acquire",
-            m1.release
+            AssertionError, "this thread didn't do the acquire", m1.release
         )
 
     def test_release_assertion_key(self):
@@ -87,28 +82,21 @@ class _DBMMutexTest(_GenericMutexTest):
         m1.acquire()
         try:
             assert_raises_message(
-                AssertionError,
-                "No acquire held for key 'bar'",
-                m2.release
+                AssertionError, "No acquire held for key 'bar'", m2.release
             )
         finally:
             m1.release()
 
+
 if has_fcntl:
+
     class DBMMutexFileTest(_DBMMutexTest):
-        config_args = {
-            "arguments": {
-                "filename": test_fname,
-            }
-        }
+        config_args = {"arguments": {"filename": test_fname}}
 
 
 class DBMMutexConditionTest(_DBMMutexTest):
     config_args = {
-        "arguments": {
-            "filename": test_fname,
-            "lock_factory": MutexLock
-        }
+        "arguments": {"filename": test_fname, "lock_factory": MutexLock}
     }
 
 

@@ -1,47 +1,56 @@
 #! coding: utf-8
 
-from ._fixtures import _GenericBackendFixture
-from . import eq_, requires_py3k, winsleep
-from unittest import TestCase
-import time
-from dogpile.cache import util
-from dogpile.util import compat
 import itertools
+import time
+from unittest import TestCase
+
+from dogpile.cache import util
 from dogpile.cache.api import NO_VALUE
+from dogpile.util import compat
+from . import eq_
+from . import requires_py3k
+from . import winsleep
+from ._fixtures import _GenericBackendFixture
 
 
 class DecoratorTest(_GenericBackendFixture, TestCase):
     backend = "dogpile.cache.memory"
 
-    def _fixture(self, namespace=None, expiration_time=None,
-                 key_generator=None):
-        reg = self._region(config_args={"expiration_time": .25})
+    def _fixture(
+        self, namespace=None, expiration_time=None, key_generator=None
+    ):
+        reg = self._region(config_args={"expiration_time": 0.25})
 
         counter = itertools.count(1)
 
         @reg.cache_on_arguments(
             namespace=namespace,
             expiration_time=expiration_time,
-            function_key_generator=key_generator)
+            function_key_generator=key_generator,
+        )
         def go(a, b):
             val = next(counter)
             return val, a, b
+
         return go
 
-    def _multi_fixture(self, namespace=None, expiration_time=None,
-                       key_generator=None):
+    def _multi_fixture(
+        self, namespace=None, expiration_time=None, key_generator=None
+    ):
 
-        reg = self._region(config_args={"expiration_time": .25})
+        reg = self._region(config_args={"expiration_time": 0.25})
 
         counter = itertools.count(1)
 
         @reg.cache_multi_on_arguments(
             namespace=namespace,
             expiration_time=expiration_time,
-            function_multi_key_generator=key_generator)
+            function_multi_key_generator=key_generator,
+        )
         def go(*args):
             val = next(counter)
             return ["%d %s" % (val, arg) for arg in args]
+
         return go
 
     def test_decorator(self):
@@ -49,7 +58,7 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         eq_(go(1, 2), (1, 1, 2))
         eq_(go(3, 4), (2, 3, 4))
         eq_(go(1, 2), (1, 1, 2))
-        time.sleep(.3)
+        time.sleep(0.3)
         eq_(go(1, 2), (3, 1, 2))
 
     def test_decorator_namespace(self):
@@ -59,27 +68,27 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         eq_(go(1, 2), (1, 1, 2))
         eq_(go(3, 4), (2, 3, 4))
         eq_(go(1, 2), (1, 1, 2))
-        time.sleep(.3)
+        time.sleep(0.3)
         eq_(go(1, 2), (3, 1, 2))
 
     def test_decorator_custom_expire(self):
-        go = self._fixture(expiration_time=.5)
+        go = self._fixture(expiration_time=0.5)
         eq_(go(1, 2), (1, 1, 2))
         eq_(go(3, 4), (2, 3, 4))
         eq_(go(1, 2), (1, 1, 2))
-        time.sleep(.3)
+        time.sleep(0.3)
         eq_(go(1, 2), (1, 1, 2))
-        time.sleep(.3)
+        time.sleep(0.3)
         eq_(go(1, 2), (3, 1, 2))
 
     def test_decorator_expire_callable(self):
-        go = self._fixture(expiration_time=lambda: .5)
+        go = self._fixture(expiration_time=lambda: 0.5)
         eq_(go(1, 2), (1, 1, 2))
         eq_(go(3, 4), (2, 3, 4))
         eq_(go(1, 2), (1, 1, 2))
-        time.sleep(.3)
+        time.sleep(0.3)
         eq_(go(1, 2), (1, 1, 2))
-        time.sleep(.3)
+        time.sleep(0.3)
         eq_(go(1, 2), (3, 1, 2))
 
     def test_decorator_expire_callable_zero(self):
@@ -119,18 +128,18 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
 
     def test_explicit_get_multi(self):
         go = self._multi_fixture(expiration_time=1)
-        eq_(go(1, 2), ['1 1', '1 2'])
-        eq_(go.get(1, 2), ['1 1', '1 2'])
-        eq_(go.get(3, 1), [NO_VALUE, '1 1'])
-        eq_(go(3, 1), ['2 3', '1 1'])
-        eq_(go.get(3, 1), ['2 3', '1 1'])
+        eq_(go(1, 2), ["1 1", "1 2"])
+        eq_(go.get(1, 2), ["1 1", "1 2"])
+        eq_(go.get(3, 1), [NO_VALUE, "1 1"])
+        eq_(go(3, 1), ["2 3", "1 1"])
+        eq_(go.get(3, 1), ["2 3", "1 1"])
 
     def test_explicit_set_multi(self):
         go = self._multi_fixture(expiration_time=1)
-        eq_(go(1, 2), ['1 1', '1 2'])
-        eq_(go(1, 2), ['1 1', '1 2'])
-        go.set({1: '1 5', 2: '1 6'})
-        eq_(go(1, 2), ['1 5', '1 6'])
+        eq_(go(1, 2), ["1 1", "1 2"])
+        eq_(go(1, 2), ["1 1", "1 2"])
+        go.set({1: "1 5", 2: "1 6"})
+        eq_(go(1, 2), ["1 5", "1 6"])
 
     def test_explicit_refresh(self):
         go = self._fixture(expiration_time=1)
@@ -143,11 +152,11 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
 
     def test_explicit_refresh_multi(self):
         go = self._multi_fixture(expiration_time=1)
-        eq_(go(1, 2), ['1 1', '1 2'])
-        eq_(go(1, 2), ['1 1', '1 2'])
-        eq_(go.refresh(1, 2), ['2 1', '2 2'])
-        eq_(go(1, 2), ['2 1', '2 2'])
-        eq_(go(1, 2), ['2 1', '2 2'])
+        eq_(go(1, 2), ["1 1", "1 2"])
+        eq_(go(1, 2), ["1 1", "1 2"])
+        eq_(go.refresh(1, 2), ["2 1", "2 2"])
+        eq_(go(1, 2), ["2 1", "2 2"])
+        eq_(go(1, 2), ["2 1", "2 2"])
 
     def test_decorator_key_generator(self):
         def my_key_generator(namespace, fn, **kw):
@@ -155,13 +164,14 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
 
             def generate_key_with_first_argument(*args):
                 return fname + "_" + str(args[0])
+
             return generate_key_with_first_argument
 
         go = self._fixture(key_generator=my_key_generator)
         eq_(go(1, 2), (1, 1, 2))
         eq_(go(3, 4), (2, 3, 4))
         eq_(go(1, 3), (1, 1, 2))
-        time.sleep(.3)
+        time.sleep(0.3)
         eq_(go(1, 3), (3, 1, 3))
 
     def test_decorator_key_generator_multi(self):
@@ -169,25 +179,26 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
             fname = fn.__name__
 
             def generate_key_with_reversed_order(*args):
-                return [fname + '_' + str(a) for a in args][::-1]
+                return [fname + "_" + str(a) for a in args][::-1]
+
             return generate_key_with_reversed_order
 
         go = self._multi_fixture(key_generator=my_key_generator)
-        eq_(go(1, 2), ['1 1', '1 2'])
-        eq_(go.get(1, 2), ['1 1', '1 2'])
-        eq_(go.get(3, 1), ['1 2', NO_VALUE])
-        eq_(go(3, 1), ['1 2', '2 1'])
-        eq_(go.get(3, 1), ['1 2', '2 1'])
+        eq_(go(1, 2), ["1 1", "1 2"])
+        eq_(go.get(1, 2), ["1 1", "1 2"])
+        eq_(go.get(3, 1), ["1 2", NO_VALUE])
+        eq_(go(3, 1), ["1 2", "2 1"])
+        eq_(go.get(3, 1), ["1 2", "2 1"])
 
 
 class KeyGenerationTest(TestCase):
-
     def _keygen_decorator(self, namespace=None, **kw):
         canary = []
 
         def decorate(fn):
             canary.append(util.function_key_generator(namespace, fn, **kw))
             return fn
+
         return decorate, canary
 
     def _multi_keygen_decorator(self, namespace=None, **kw):
@@ -195,8 +206,10 @@ class KeyGenerationTest(TestCase):
 
         def decorate(fn):
             canary.append(
-                util.function_multi_key_generator(namespace, fn, **kw))
+                util.function_multi_key_generator(namespace, fn, **kw)
+            )
             return fn
+
         return decorate, canary
 
     def _kwarg_keygen_decorator(self, namespace=None, **kw):
@@ -204,8 +217,10 @@ class KeyGenerationTest(TestCase):
 
         def decorate(fn):
             canary.append(
-                util.kwarg_function_key_generator(namespace, fn, **kw))
+                util.kwarg_function_key_generator(namespace, fn, **kw)
+            )
             return fn
+
         return decorate, canary
 
     def test_default_keygen_kwargs_raises_value_error(self):
@@ -224,6 +239,7 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
         result_key = "tests.cache.test_decorator:one|1 2"
@@ -239,6 +255,7 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a, b=None):
             pass
+
         gen = canary[0]
 
         result_key = "tests.cache.test_decorator:one|1 2"
@@ -255,6 +272,7 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a=True, b=None):
             pass
+
         gen = canary[0]
 
         result_key = "tests.cache.test_decorator:one|1 2"
@@ -265,8 +283,8 @@ class KeyGenerationTest(TestCase):
         eq_(gen(b=2, a=1), result_key)
         eq_(gen(a=1), "tests.cache.test_decorator:one|1 None")
         eq_(gen(1), "tests.cache.test_decorator:one|1 None")
-        eq_(gen(),  "tests.cache.test_decorator:one|True None")
-        eq_(gen(b=2),  "tests.cache.test_decorator:one|True 2")
+        eq_(gen(), "tests.cache.test_decorator:one|True None")
+        eq_(gen(b=2), "tests.cache.test_decorator:one|True 2")
 
     def test_keygen_fn(self):
         decorate, canary = self._keygen_decorator()
@@ -274,6 +292,7 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
         eq_(gen(1, 2), "tests.cache.test_decorator:one|1 2")
@@ -285,12 +304,16 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
-        eq_(gen(1, 2), [
-            "tests.cache.test_decorator:one|1",
-            "tests.cache.test_decorator:one|2"
-        ])
+        eq_(
+            gen(1, 2),
+            [
+                "tests.cache.test_decorator:one|1",
+                "tests.cache.test_decorator:one|2",
+            ],
+        )
 
     def test_keygen_fn_namespace(self):
         decorate, canary = self._keygen_decorator("mynamespace")
@@ -298,6 +321,7 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
         eq_(gen(1, 2), "tests.cache.test_decorator:one|mynamespace|1 2")
@@ -309,6 +333,7 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
         eq_(gen(1, 2), "tests.cache.test_decorator:one|mynamespace|1 2")
@@ -320,9 +345,10 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
-        assert isinstance(gen('foo'), str)
+        assert isinstance(gen("foo"), str)
 
     def test_kwarg_kwgen_key_isnt_unicode_bydefault(self):
         decorate, canary = self._kwarg_keygen_decorator("mynamespace")
@@ -330,88 +356,109 @@ class KeyGenerationTest(TestCase):
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
-        assert isinstance(gen('foo'), str)
-
+        assert isinstance(gen("foo"), str)
 
     def test_unicode_key(self):
-        decorate, canary = self._keygen_decorator("mynamespace",
-                                                  to_str=compat.text_type)
+        decorate, canary = self._keygen_decorator(
+            "mynamespace", to_str=compat.text_type
+        )
 
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
-        eq_(gen(compat.u('méil'), compat.u('drôle')),
-            compat.ue("tests.cache.test_decorator:"
-                      "one|mynamespace|m\xe9il dr\xf4le"))
+        eq_(
+            gen(compat.u("méil"), compat.u("drôle")),
+            compat.ue(
+                "tests.cache.test_decorator:"
+                "one|mynamespace|m\xe9il dr\xf4le"
+            ),
+        )
 
     def test_unicode_key_kwarg_generator(self):
         decorate, canary = self._kwarg_keygen_decorator(
-            "mynamespace",
-            to_str=compat.text_type)
+            "mynamespace", to_str=compat.text_type
+        )
 
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
-        eq_(gen(compat.u('méil'), compat.u('drôle')),
-            compat.ue("tests.cache.test_decorator:"
-                      "one|mynamespace|m\xe9il dr\xf4le"))
+        eq_(
+            gen(compat.u("méil"), compat.u("drôle")),
+            compat.ue(
+                "tests.cache.test_decorator:"
+                "one|mynamespace|m\xe9il dr\xf4le"
+            ),
+        )
 
     def test_unicode_key_multi(self):
         decorate, canary = self._multi_keygen_decorator(
-            "mynamespace",
-            to_str=compat.text_type)
+            "mynamespace", to_str=compat.text_type
+        )
 
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
-        eq_(gen(compat.u('méil'), compat.u('drôle')),
+        eq_(
+            gen(compat.u("méil"), compat.u("drôle")),
             [
                 compat.ue(
-                    'tests.cache.test_decorator:one|mynamespace|m\xe9il'),
+                    "tests.cache.test_decorator:one|mynamespace|m\xe9il"
+                ),
                 compat.ue(
-                    'tests.cache.test_decorator:one|mynamespace|dr\xf4le')
-        ])
+                    "tests.cache.test_decorator:one|mynamespace|dr\xf4le"
+                ),
+            ],
+        )
 
     @requires_py3k
     def test_unicode_key_by_default(self):
-        decorate, canary = self._keygen_decorator("mynamespace",
-                                                  to_str=compat.text_type)
+        decorate, canary = self._keygen_decorator(
+            "mynamespace", to_str=compat.text_type
+        )
 
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
-        assert isinstance(gen('méil'), str)
+        assert isinstance(gen("méil"), str)
 
-        eq_(gen('méil', 'drôle'),
-            "tests.cache.test_decorator:"
-            "one|mynamespace|m\xe9il dr\xf4le")
+        eq_(
+            gen("méil", "drôle"),
+            "tests.cache.test_decorator:" "one|mynamespace|m\xe9il dr\xf4le",
+        )
 
     @requires_py3k
     def test_unicode_key_by_default_kwarg_generator(self):
         decorate, canary = self._kwarg_keygen_decorator(
-            "mynamespace",
-            to_str=compat.text_type)
+            "mynamespace", to_str=compat.text_type
+        )
 
         @decorate
         def one(a, b):
             pass
+
         gen = canary[0]
 
-        assert isinstance(gen('méil'), str)
+        assert isinstance(gen("méil"), str)
 
-        eq_(gen('méil', 'drôle'),
-            "tests.cache.test_decorator:"
-            "one|mynamespace|m\xe9il dr\xf4le")
+        eq_(
+            gen("méil", "drôle"),
+            "tests.cache.test_decorator:" "one|mynamespace|m\xe9il dr\xf4le",
+        )
 
 
 class CacheDecoratorTest(_GenericBackendFixture, TestCase):
@@ -452,14 +499,12 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         # if these two classes get the same namespace,
         # you get a reentrant deadlock.
         class Foo(object):
-
             @classmethod
             @reg.cache_on_arguments(namespace="foo")
             def generate(cls, x, y):
                 return next(counter) + x + y
 
         class Bar(object):
-
             @classmethod
             @reg.cache_on_arguments(namespace="bar")
             def generate(cls, x, y):
@@ -476,14 +521,14 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         def generate(*args):
             return ["%d %d" % (arg, next(counter)) for arg in args]
 
-        eq_(generate(2, 8, 10), ['2 2', '8 3', '10 1'])
-        eq_(generate(2, 9, 10), ['2 2', '9 4', '10 1'])
+        eq_(generate(2, 8, 10), ["2 2", "8 3", "10 1"])
+        eq_(generate(2, 9, 10), ["2 2", "9 4", "10 1"])
 
         generate.invalidate(2)
-        eq_(generate(2, 7, 10), ['2 5', '7 6', '10 1'])
+        eq_(generate(2, 7, 10), ["2 5", "7 6", "10 1"])
 
         generate.set({7: 18, 10: 15})
-        eq_(generate(2, 7, 10), ['2 5', 18, 15])
+        eq_(generate(2, 7, 10), ["2 5", 18, 15])
 
     def test_multi_asdict(self):
         reg = self._region()
@@ -496,20 +541,17 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
                 [(arg, "%d %d" % (arg, next(counter))) for arg in args]
             )
 
-        eq_(generate(2, 8, 10), {2: '2 2', 8: '8 3', 10: '10 1'})
-        eq_(generate(2, 9, 10), {2: '2 2', 9: '9 4', 10: '10 1'})
+        eq_(generate(2, 8, 10), {2: "2 2", 8: "8 3", 10: "10 1"})
+        eq_(generate(2, 9, 10), {2: "2 2", 9: "9 4", 10: "10 1"})
 
         generate.invalidate(2)
-        eq_(generate(2, 7, 10), {2: '2 5', 7: '7 6', 10: '10 1'})
+        eq_(generate(2, 7, 10), {2: "2 5", 7: "7 6", 10: "10 1"})
 
         generate.set({7: 18, 10: 15})
-        eq_(generate(2, 7, 10), {2: '2 5', 7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: "2 5", 7: 18, 10: 15})
 
-        eq_(
-            generate.refresh(2, 7),
-            {2: '2 7', 7: '7 8'}
-        )
-        eq_(generate(2, 7, 10), {2: '2 7', 10: 15, 7: '7 8'})
+        eq_(generate.refresh(2, 7), {2: "2 7", 7: "7 8"})
+        eq_(generate(2, 7, 10), {2: "2 7", 10: 15, 7: "7 8"})
 
     def test_multi_asdict_keys_missing(self):
         reg = self._region()
@@ -519,20 +561,23 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         @reg.cache_multi_on_arguments(asdict=True)
         def generate(*args):
             return dict(
-                [(arg, "%d %d" % (arg, next(counter)))
-                 for arg in args if arg != 10]
+                [
+                    (arg, "%d %d" % (arg, next(counter)))
+                    for arg in args
+                    if arg != 10
+                ]
             )
 
-        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 2'})
-        eq_(generate(2, 9, 10), {2: '2 1', 9: '9 3'})
+        eq_(generate(2, 8, 10), {2: "2 1", 8: "8 2"})
+        eq_(generate(2, 9, 10), {2: "2 1", 9: "9 3"})
 
         assert reg.get(10) is NO_VALUE
 
         generate.invalidate(2)
-        eq_(generate(2, 7, 10), {2: '2 4', 7: '7 5'})
+        eq_(generate(2, 7, 10), {2: "2 4", 7: "7 5"})
 
         generate.set({7: 18, 10: 15})
-        eq_(generate(2, 7, 10), {2: '2 4', 7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: "2 4", 7: 18, 10: 15})
 
     def test_multi_asdict_keys_missing_existing_cache_fn(self):
         reg = self._region()
@@ -540,26 +585,29 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         counter = itertools.count(1)
 
         @reg.cache_multi_on_arguments(
-            asdict=True,
-            should_cache_fn=lambda v: not v.startswith('8 '))
+            asdict=True, should_cache_fn=lambda v: not v.startswith("8 ")
+        )
         def generate(*args):
             return dict(
-                [(arg, "%d %d" % (arg, next(counter)))
-                 for arg in args if arg != 10]
+                [
+                    (arg, "%d %d" % (arg, next(counter)))
+                    for arg in args
+                    if arg != 10
+                ]
             )
 
-        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 2'})
-        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 3'})
-        eq_(generate(2, 8, 10), {2: '2 1', 8: '8 4'})
-        eq_(generate(2, 9, 10), {2: '2 1', 9: '9 5'})
+        eq_(generate(2, 8, 10), {2: "2 1", 8: "8 2"})
+        eq_(generate(2, 8, 10), {2: "2 1", 8: "8 3"})
+        eq_(generate(2, 8, 10), {2: "2 1", 8: "8 4"})
+        eq_(generate(2, 9, 10), {2: "2 1", 9: "9 5"})
 
         assert reg.get(10) is NO_VALUE
 
         generate.invalidate(2)
-        eq_(generate(2, 7, 10), {2: '2 6', 7: '7 7'})
+        eq_(generate(2, 7, 10), {2: "2 6", 7: "7 7"})
 
         generate.set({7: 18, 10: 15})
-        eq_(generate(2, 7, 10), {2: '2 6', 7: 18, 10: 15})
+        eq_(generate(2, 7, 10), {2: "2 6", 7: 18, 10: 15})
 
     def test_multi_namespace(self):
         reg = self._region()
@@ -570,22 +618,23 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         def generate(*args):
             return ["%d %d" % (arg, next(counter)) for arg in args]
 
-        eq_(generate(2, 8, 10), ['2 2', '8 3', '10 1'])
-        eq_(generate(2, 9, 10), ['2 2', '9 4', '10 1'])
+        eq_(generate(2, 8, 10), ["2 2", "8 3", "10 1"])
+        eq_(generate(2, 9, 10), ["2 2", "9 4", "10 1"])
 
         eq_(
             sorted(list(reg.backend._cache)),
             [
-                'tests.cache.test_decorator:generate|foo|10',
-                'tests.cache.test_decorator:generate|foo|2',
-                'tests.cache.test_decorator:generate|foo|8',
-                'tests.cache.test_decorator:generate|foo|9']
+                "tests.cache.test_decorator:generate|foo|10",
+                "tests.cache.test_decorator:generate|foo|2",
+                "tests.cache.test_decorator:generate|foo|8",
+                "tests.cache.test_decorator:generate|foo|9",
+            ],
         )
         generate.invalidate(2)
-        eq_(generate(2, 7, 10), ['2 5', '7 6', '10 1'])
+        eq_(generate(2, 7, 10), ["2 5", "7 6", "10 1"])
 
         generate.set({7: 18, 10: 15})
-        eq_(generate(2, 7, 10), ['2 5', 18, 15])
+        eq_(generate(2, 7, 10), ["2 5", 18, 15])
 
     def test_cache_preserve_sig(self):
         reg = self._region()

@@ -4,8 +4,8 @@ py2k = sys.version_info < (3, 0)
 py3k = sys.version_info >= (3, 0)
 py32 = sys.version_info >= (3, 2)
 py27 = sys.version_info >= (2, 7)
-jython = sys.platform.startswith('java')
-win32 = sys.platform.startswith('win')
+jython = sys.platform.startswith("java")
+win32 = sys.platform.startswith("win")
 
 try:
     import threading
@@ -14,15 +14,16 @@ except ImportError:
 
 
 if py3k:  # pragma: no cover
-    string_types = str,
+    string_types = (str,)
     text_type = str
     string_type = str
 
     if py32:
-        callable = callable
+        callable = callable  # noqa
     else:
-        def callable(fn):
-            return hasattr(fn, '__call__')
+
+        def callable(fn):  # noqa
+            return hasattr(fn, "__call__")
 
     def u(s):
         return s
@@ -34,18 +35,20 @@ if py3k:  # pragma: no cover
     import io
     import _thread as thread
 else:
-    string_types = basestring,
-    text_type = unicode
+    # Using noqa bellow due to tox -e pep8 who use
+    # python3.7 as the default interpreter
+    string_types = (basestring,)  # noqa
+    text_type = unicode  # noqa
     string_type = str
 
     def u(s):
-        return unicode(s, "utf-8")
+        return unicode(s, "utf-8")  # noqa
 
     def ue(s):
-        return unicode(s, "unicode_escape")
+        return unicode(s, "unicode_escape")  # noqa
 
     import ConfigParser as configparser  # noqa
-    import StringIO as io   # noqa
+    import StringIO as io  # noqa
 
     callable = callable  # noqa
     import thread  # noqa
@@ -53,16 +56,17 @@ else:
 
 if py3k:
     import collections
+
     ArgSpec = collections.namedtuple(
-        "ArgSpec",
-        ["args", "varargs", "keywords", "defaults"])
+        "ArgSpec", ["args", "varargs", "keywords", "defaults"]
+    )
 
     from inspect import getfullargspec as inspect_getfullargspec
 
     def inspect_getargspec(func):
-        return ArgSpec(
-            *inspect_getfullargspec(func)[0:4]
-        )
+        return ArgSpec(*inspect_getfullargspec(func)[0:4])
+
+
 else:
     from inspect import getargspec as inspect_getargspec  # noqa
 
@@ -72,9 +76,13 @@ else:
     import cPickle as pickle  # noqa
 
 if py3k:
+
     def read_config_file(config, fileobj):
         return config.read_file(fileobj)
+
+
 else:
+
     def read_config_file(config, fileobj):
         return config.readfp(fileobj)
 
@@ -83,5 +91,6 @@ def timedelta_total_seconds(td):
     if py27:
         return td.total_seconds()
     else:
-        return (td.microseconds + (
-            td.seconds + td.days * 24 * 3600) * 1e6) / 1e6
+        return (
+            td.microseconds + (td.seconds + td.days * 24 * 3600) * 1e6
+        ) / 1e6
