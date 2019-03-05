@@ -3,3 +3,4 @@ git+https://github.com/sqlalchemyorg/sphinx-paramlinks.git#egg=sphinx-paramlinks
 sphinx
 mako
 decorator
+pbr

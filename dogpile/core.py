@@ -8,7 +8,6 @@ dogpile.core installation is present.
 
 """
 
-from . import __version__  # noqa
 from .lock import Lock  # noqa
 from .lock import NeedRegenerationException  # noqa
 from .util import nameregistry  # noqa
