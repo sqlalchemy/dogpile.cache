@@ -1,3 +1,5 @@
+import collections
+import inspect
 import sys
 
 py2k = sys.version_info < (3, 0)
@@ -11,6 +13,65 @@ try:
     import threading
 except ImportError:
     import dummy_threading as threading  # noqa
+
+FullArgSpec = collections.namedtuple(
+    "FullArgSpec",
+    [
+        "args",
+        "varargs",
+        "varkw",
+        "defaults",
+        "kwonlyargs",
+        "kwonlydefaults",
+        "annotations",
+    ],
+)
+
+ArgSpec = collections.namedtuple(
+    "ArgSpec", ["args", "varargs", "keywords", "defaults"]
+)
+
+
+def inspect_getfullargspec(func):
+    """Fully vendored version of getfullargspec from Python 3.3."""
+
+    if inspect.ismethod(func):
+        func = func.__func__
+    if not inspect.isfunction(func):
+        raise TypeError("{!r} is not a Python function".format(func))
+
+    co = func.__code__
+    if not inspect.iscode(co):
+        raise TypeError("{!r} is not a code object".format(co))
+
+    nargs = co.co_argcount
+    names = co.co_varnames
+    nkwargs = co.co_kwonlyargcount if py3k else 0
+    args = list(names[:nargs])
+    kwonlyargs = list(names[nargs : nargs + nkwargs])
+
+    nargs += nkwargs
+    varargs = None
+    if co.co_flags & inspect.CO_VARARGS:
+        varargs = co.co_varnames[nargs]
+        nargs = nargs + 1
+    varkw = None
+    if co.co_flags & inspect.CO_VARKEYWORDS:
+        varkw = co.co_varnames[nargs]
+
+    return FullArgSpec(
+        args,
+        varargs,
+        varkw,
+        func.__defaults__,
+        kwonlyargs,
+        func.__kwdefaults__ if py3k else None,
+        func.__annotations__ if py3k else {},
+    )
+
+
+def inspect_getargspec(func):
+    return ArgSpec(*inspect_getfullargspec(func)[0:4])
 
 
 if py3k:  # pragma: no cover
@@ -53,22 +114,6 @@ else:
     callable = callable  # noqa
     import thread  # noqa
 
-
-if py3k:
-    import collections
-
-    ArgSpec = collections.namedtuple(
-        "ArgSpec", ["args", "varargs", "keywords", "defaults"]
-    )
-
-    from inspect import getfullargspec as inspect_getfullargspec
-
-    def inspect_getargspec(func):
-        return ArgSpec(*inspect_getfullargspec(func)[0:4])
-
-
-else:
-    from inspect import getargspec as inspect_getargspec  # noqa
 
 if py3k or jython:
     import pickle
