@@ -131,6 +131,9 @@ def kwarg_function_key_generator(namespace, fn, to_str=compat.string_type):
 def sha1_mangle_key(key):
     """a SHA1 key mangler."""
 
+    if isinstance(key, compat.text_type):
+        key = key.encode("utf-8")
+
     return sha1(key).hexdigest()
 
 

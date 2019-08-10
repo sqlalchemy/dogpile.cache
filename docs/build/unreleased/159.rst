@@ -1,0 +1,7 @@
+.. change::
+    :tags: bug, py3k
+    :tickets: 159
+
+    Fixed the :func:`.sha1_mangle_key` key mangler to coerce incoming Unicode
+    objects into bytes as is required by the Py3k version of this function.
+

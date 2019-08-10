@@ -460,6 +460,35 @@ class KeyGenerationTest(TestCase):
             "tests.cache.test_decorator:" "one|mynamespace|m\xe9il dr\xf4le",
         )
 
+    def test_sha1_key_mangler(self):
+
+        decorate, canary = self._keygen_decorator()
+
+        @decorate
+        def one(a, b):
+            pass
+
+        gen = canary[0]
+
+        key = gen(1, 2)
+
+        eq_(
+            util.sha1_mangle_key(key),
+            "aead490a8ace2d69a00160f1fd8fd8a16552c24f",
+        )
+
+    def test_sha1_key_mangler_unicode_py2k(self):
+        eq_(
+            util.sha1_mangle_key(u"some_key"),
+            "53def077a4264bd3183d4eb21b1f56f883e1b572",
+        )
+
+    def test_sha1_key_mangler_bytes_py3k(self):
+        eq_(
+            util.sha1_mangle_key(b"some_key"),
+            "53def077a4264bd3183d4eb21b1f56f883e1b572",
+        )
+
 
 class CacheDecoratorTest(_GenericBackendFixture, TestCase):
     backend = "mock"
