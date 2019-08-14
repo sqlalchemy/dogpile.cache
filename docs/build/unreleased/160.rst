@@ -1,0 +1,6 @@
+.. change::
+    :tags: bug, installation
+    :tickets: 160
+
+    Pinned minimum version of Python decorator module at 4.0.0 (July, 2015) as
+    previous versions don't provide the API that dogpile is using.

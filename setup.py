@@ -56,7 +56,7 @@ setup(
     dogpile.cache = dogpile.cache.plugins.mako_cache:MakoPlugin
     """,
     zip_safe=False,
-    install_requires=["decorator"],
+    install_requires=["decorator>=4.0.0"],
     tests_require=["pytest", "pytest-cov", "mock", "Mako"],
     cmdclass={"test": PyTest},
 )
