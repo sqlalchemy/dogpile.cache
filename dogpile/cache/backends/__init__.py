@@ -35,3 +35,6 @@ register_backend(
 register_backend(
     "dogpile.cache.redis", "dogpile.cache.backends.redis", "RedisBackend"
 )
+register_backend(
+    "dogpile.cache.mongo", "dogpile.cache.backends.mongodb", "MongoBackend"
+)
