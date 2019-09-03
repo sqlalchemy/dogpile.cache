@@ -11,7 +11,6 @@ from __future__ import absolute_import
 from ..api import CacheBackend
 from ..api import NO_VALUE
 from ...util.compat import pickle
-from ...util.compat import u
 from datetime import datetime, timedelta
 import time
 
@@ -193,13 +192,13 @@ class MongoBackend(CacheBackend):
         if self.mongo_expiration_time:
             self.client.update_one(
                 {"_id": "CACHED_{0}".format(key)},
-                {"$set": {"value": pickle.dumps(value, pickle.HIGHEST_PROTOCOL),
+                {"$set": {"value": bson.Binary(pickle.dumps(value, pickle.HIGHEST_PROTOCOL)),
                           "created_at": datetime.utcnow()}
                  }, upsert=True)
         else:
             self.client.update_one(
                 {"_id": "CACHED_{0}".format(key)},
-                {"$set": {"value": pickle.dumps(value, pickle.HIGHEST_PROTOCOL)}
+                {"$set": {"value": bson.Binary(pickle.dumps(value, pickle.HIGHEST_PROTOCOL))}
                  }, upsert=True)
 
     def set_multi(self, mapping):
@@ -210,7 +209,7 @@ class MongoBackend(CacheBackend):
                 set_dict = {"created_at": datetime.utcnow()}
             else:
                 set_dict = {}
-            set_dict["value"] = pickle.dumps(v, pickle.HIGHEST_PROTOCOL)
+            set_dict["value"] = bson.Binary(pickle.dumps(v, pickle.HIGHEST_PROTOCOL))
             ops.append(pymongo.UpdateOne({"_id": "CACHED_{0}".format(k)}, {"$set": set_dict}, upsert=True))
 
         self.client.bulk_write(ops, ordered=False)

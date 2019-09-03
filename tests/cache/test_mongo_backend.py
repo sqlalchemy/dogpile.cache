@@ -18,7 +18,6 @@ class _TestMongoConn(object):
         try:
             client = backend._create_client()
             cmd = client.database.command("ping")
-            # on py3k it appears to return b"y"
             assert cmd == {'ok': 1.0}
         except Exception:
             pytest.skip(
