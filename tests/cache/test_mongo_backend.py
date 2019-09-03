@@ -1,15 +1,7 @@
-import os
-from unittest import TestCase
-
-from mock import Mock
-from mock import patch
 import pytest
 
-from dogpile.cache.region import _backend_loader
 from ._fixtures import _GenericBackendTest
 from ._fixtures import _GenericMutexTest
-
-MONGODB_LOCAL_STRING = ""
 
 
 class _TestMongoConn(object):
