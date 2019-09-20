@@ -4,7 +4,54 @@ Changelog
 
 .. changelog::
     :version: 0.8.0
-    :include_notes_from: unreleased
+    :released: Fri Sep 20 2019
+
+    .. change::
+        :tags: bug, setup
+        :tickets: 157
+
+        Removed the "python setup.py test" feature in favor of a straight run of
+        "tox".   Per Pypa / pytest developers, "setup.py" commands are in general
+        headed towards deprecation in favor of tox.  The tox.ini script has been
+        updated such that running "tox" with no arguments will perform a single run
+        of the test suite against the default installed Python interpreter.
+
+        .. seealso::
+
+            https://github.com/pypa/setuptools/issues/1684
+
+            https://github.com/pytest-dev/pytest/issues/5534
+
+
+    .. change::
+        :tags: bug, py3k
+        :tickets: 154
+
+        Replaced the Python compatbility routines for ``getfullargspec()`` with a
+        fully vendored version from Python 3.3.  Originally, Python was emitting
+        deprecation warnings for this function in Python 3.8 alphas.  While this
+        change was reverted, it was observed that Python 3 implementations for
+        ``getfullargspec()`` are an order of magnitude slower as of the 3.4 series
+        where it was rewritten against ``Signature``.  While Python plans to
+        improve upon this situation, SQLAlchemy projects for now are using a simple
+        replacement to avoid any future issues.
+
+
+
+    .. change::
+        :tags: bug, installation
+        :tickets: 160
+
+        Pinned minimum version of Python decorator module at 4.0.0 (July, 2015) as
+        previous versions don't provide the API that dogpile is using.
+
+    .. change::
+        :tags: bug, py3k
+        :tickets: 159
+
+        Fixed the :func:`.sha1_mangle_key` key mangler to coerce incoming Unicode
+        objects into bytes as is required by the Py3k version of this function.
+
 
 .. changelog::
     :version: 0.7.1
