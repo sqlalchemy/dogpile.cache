@@ -3,6 +3,7 @@ from __future__ import with_statement
 import datetime
 from functools import partial
 from functools import wraps
+import logging
 from numbers import Number
 import threading
 import time
@@ -31,6 +32,8 @@ so that new versions of dogpile.cache can detect cached
 values from a previous, backwards-incompatible version.
 
 """
+
+log = logging.getLogger(__name__)
 
 
 class RegionInvalidationStrategy(object):
@@ -777,6 +780,20 @@ class CacheRegion(object):
             )
         ]
 
+    def _is_cache_miss(self, value, orig_key):
+        if value is NO_VALUE:
+            log.debug('Generate cache for key: %r', orig_key)
+        elif value.metadata["v"] != value_version:
+            log.debug('Update cache for key: %r', orig_key)
+        elif self.region_invalidator.is_hard_invalidated(
+                value.metadata["ct"]
+        ):
+            log.debug('Update hard invalidated cache for key: %r', orig_key)
+        else:
+            return False
+
+        return True
+
     def get_or_create(
         self,
         key,
@@ -872,14 +889,9 @@ class CacheRegion(object):
 
         def get_value():
             value = self.backend.get(key)
-            if (
-                value is NO_VALUE
-                or value.metadata["v"] != value_version
-                or self.region_invalidator.is_hard_invalidated(
-                    value.metadata["ct"]
-                )
-            ):
+            if self._is_cache_miss(value, orig_key):
                 raise NeedRegenerationException()
+
             ct = value.metadata["ct"]
             if self.region_invalidator.is_soft_invalidated(ct):
                 ct = time.time() - expiration_time - 0.0001
@@ -887,10 +899,15 @@ class CacheRegion(object):
             return value.payload, ct
 
         def gen_value():
+            start_time = time.time()
             if creator_args:
                 created_value = creator(*creator_args[0], **creator_args[1])
             else:
                 created_value = creator()
+            log.debug(
+                'Generate cache in %.2f s. for key: %r',
+                time.time() - start_time, orig_key
+            )
             value = self._value(created_value)
 
             if not should_cache_fn or should_cache_fn(created_value):
@@ -988,13 +1005,7 @@ class CacheRegion(object):
         def get_value(key):
             value = values.get(key, NO_VALUE)
 
-            if (
-                value is NO_VALUE
-                or value.metadata["v"] != value_version
-                or self.region_invalidator.is_hard_invalidated(
-                    value.metadata["ct"]
-                )
-            ):
+            if self._is_cache_miss(value, orig_key):
                 # dogpile.core understands a 0 here as
                 # "the value is not available", e.g.
                 # _has_value() will return False.
@@ -1053,7 +1064,12 @@ class CacheRegion(object):
                 # sort the keys, the idea is to prevent deadlocks.
                 # though haven't been able to simulate one anyway.
                 keys_to_get = sorted(mutexes)
+                start_time = time.time()
                 new_values = creator(*keys_to_get)
+                log.debug(
+                    'Generate cache in %.2f s. for key: %r',
+                    time.time() - start_time, orig_key
+                )
 
                 values_w_created = dict(
                     (orig_to_mangled[k], self._value(v))
