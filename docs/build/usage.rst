@@ -268,3 +268,26 @@ requests on behalf of the original dogpile.cache.pylibmc backend.
 
 .. versionadded:: 0.4.4  Added support for the :class:`.ProxyBackend` class.
 
+
+Configuring Logging
+====================
+
+.. versionadded:: 0.9.0
+
+:class:`.CacheRegion` includes logging facilities that will emit debug log
+messages when key cache events occur, including when keys are regenerated as
+well as when hard invalidations occur.   Using the `Python logging
+<https://docs.python.org/3/library/logging.html>`_ module, set the log level to
+``dogpile.cache`` to ``logging.DEBUG``::
+
+    logging.basicConfig()
+    logging.getLogger("dogpile.cache").setLevel(logging.DEBUG)
+
+Debug logging will indicate time spent regenerating keys as well as when
+keys are missing::
+
+    DEBUG:dogpile.cache.region:No value present for key: '__main__:load_user_info|2'
+    DEBUG:dogpile.cache.region:No value present for key: '__main__:load_user_info|1'
+    DEBUG:dogpile.cache.region:Cache value generated in 0.501 seconds for keys: ['__main__:load_user_info|2', '__main__:load_user_info|3', '__main__:load_user_info|4', '__main__:load_user_info|5']
+    DEBUG:dogpile.cache.region:Hard invalidation detected for key: '__main__:load_user_info|3'
+    DEBUG:dogpile.cache.region:Hard invalidation detected for key: '__main__:load_user_info|2'

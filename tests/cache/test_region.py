@@ -9,12 +9,14 @@ import mock
 from dogpile.cache import CacheRegion
 from dogpile.cache import exception
 from dogpile.cache import make_region
+from dogpile.cache import util
 from dogpile.cache.api import CacheBackend
 from dogpile.cache.api import CachedValue
 from dogpile.cache.api import NO_VALUE
 from dogpile.cache.proxy import ProxyBackend
 from dogpile.cache.region import _backend_loader
 from dogpile.cache.region import RegionInvalidationStrategy
+from dogpile.cache.region import value_version
 from dogpile.util import compat
 from . import assert_raises_message
 from . import configparser
@@ -839,3 +841,109 @@ class ProxyBackendTest(TestCase):
         reg = self._region()
         assert isinstance(reg.backend, CacheBackend)
         assert isinstance(reg.actual_backend, CacheBackend)
+
+
+class LoggingTest(TestCase):
+    def _region(self, init_args={}, config_args={}, backend="mock"):
+        reg = CacheRegion(**init_args)
+        reg.configure(backend, **config_args)
+        return reg
+
+    def test_log_time(self):
+        reg = self._region()
+
+        times = [50, 55, 60]
+
+        def mock_time():
+            return times.pop(0)
+
+        with mock.patch("dogpile.cache.region.log") as mock_log, mock.patch(
+            "dogpile.cache.region.time", mock.Mock(time=mock_time)
+        ):
+            with reg._log_time(["foo", "bar", "bat"]):
+                pass
+
+        eq_(
+            mock_log.mock_calls,
+            [
+                mock.call.debug(
+                    "Cache value generated in %(seconds).3f "
+                    "seconds for key(s): %(keys)r",
+                    {
+                        "seconds": 5,
+                        "keys": util.repr_obj(["foo", "bar", "bat"]),
+                    },
+                )
+            ],
+        )
+
+    def test_repr_obj_truncated(self):
+
+        eq_(
+            repr(util.repr_obj(["some_big_long_name" for i in range(200)])),
+            "['some_big_long_name', 'some_big_long_name', "
+            "'some_big_long_name', 'some_big_long_name', 'some_big_long_name',"
+            " 'some_big_long_name', 'some_big_long_na ... "
+            "(4100 characters truncated) ... me_big_long_name', "
+            "'some_big_long_name', 'some_big_long_name', 'some_big_long_"
+            "name', 'some_big_long_name', 'some_big_long_name', "
+            "'some_big_long_name']",
+        )
+
+    def test_log_is_cache_miss(self):
+        reg = self._region()
+
+        with mock.patch("dogpile.cache.region.log") as mock_log:
+            is_(reg._is_cache_miss(NO_VALUE, "some key"), True)
+        eq_(
+            mock_log.mock_calls,
+            [mock.call.debug("No value present for key: %r", "some key")],
+        )
+
+    def test_log_is_value_version_miss(self):
+
+        reg = self._region()
+        inv = mock.Mock(is_hard_invalidated=lambda val: True)
+        with mock.patch(
+            "dogpile.cache.region.log"
+        ) as mock_log, mock.patch.object(reg, "region_invalidator", inv):
+            is_(
+                reg._is_cache_miss(
+                    CachedValue(
+                        "some value", {"v": value_version - 5, "ct": 500}
+                    ),
+                    "some key",
+                ),
+                True,
+            )
+        eq_(
+            mock_log.mock_calls,
+            [
+                mock.call.debug(
+                    "Dogpile version update for key: %r", "some key"
+                )
+            ],
+        )
+
+    def test_log_is_hard_invalidated(self):
+
+        reg = self._region()
+        inv = mock.Mock(is_hard_invalidated=lambda val: True)
+        with mock.patch(
+            "dogpile.cache.region.log"
+        ) as mock_log, mock.patch.object(reg, "region_invalidator", inv):
+            is_(
+                reg._is_cache_miss(
+                    CachedValue("some value", {"v": value_version, "ct": 500}),
+                    "some key",
+                ),
+                True,
+            )
+        eq_(
+            mock_log.mock_calls,
+            [
+                mock.call.debug(
+                    "Hard invalidation detected for key: %r", "some key"
+                )
+            ],
+        )

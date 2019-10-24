@@ -1,8 +1,10 @@
 from __future__ import with_statement
 
+import contextlib
 import datetime
 from functools import partial
 from functools import wraps
+import logging
 from numbers import Number
 import threading
 import time
@@ -17,6 +19,7 @@ from .backends import register_backend  # noqa
 from .proxy import ProxyBackend
 from .util import function_key_generator
 from .util import function_multi_key_generator
+from .util import repr_obj
 from .. import Lock
 from .. import NeedRegenerationException
 from ..util import coerce_string_conf
@@ -31,6 +34,8 @@ so that new versions of dogpile.cache can detect cached
 values from a previous, backwards-incompatible version.
 
 """
+
+log = logging.getLogger(__name__)
 
 
 class RegionInvalidationStrategy(object):
@@ -777,6 +782,29 @@ class CacheRegion(object):
             )
         ]
 
+    @contextlib.contextmanager
+    def _log_time(self, keys):
+        start_time = time.time()
+        yield
+        seconds = time.time() - start_time
+        log.debug(
+            "Cache value generated in %(seconds).3f seconds for key(s): "
+            "%(keys)r",
+            {"seconds": seconds, "keys": repr_obj(keys)},
+        )
+
+    def _is_cache_miss(self, value, orig_key):
+        if value is NO_VALUE:
+            log.debug("No value present for key: %r", orig_key)
+        elif value.metadata["v"] != value_version:
+            log.debug("Dogpile version update for key: %r", orig_key)
+        elif self.region_invalidator.is_hard_invalidated(value.metadata["ct"]):
+            log.debug("Hard invalidation detected for key: %r", orig_key)
+        else:
+            return False
+
+        return True
+
     def get_or_create(
         self,
         key,
@@ -872,14 +900,9 @@ class CacheRegion(object):
 
         def get_value():
             value = self.backend.get(key)
-            if (
-                value is NO_VALUE
-                or value.metadata["v"] != value_version
-                or self.region_invalidator.is_hard_invalidated(
-                    value.metadata["ct"]
-                )
-            ):
+            if self._is_cache_miss(value, orig_key):
                 raise NeedRegenerationException()
+
             ct = value.metadata["ct"]
             if self.region_invalidator.is_soft_invalidated(ct):
                 ct = time.time() - expiration_time - 0.0001
@@ -887,10 +910,13 @@ class CacheRegion(object):
             return value.payload, ct
 
         def gen_value():
-            if creator_args:
-                created_value = creator(*creator_args[0], **creator_args[1])
-            else:
-                created_value = creator()
+            with self._log_time(orig_key):
+                if creator_args:
+                    created_value = creator(
+                        *creator_args[0], **creator_args[1]
+                    )
+                else:
+                    created_value = creator()
             value = self._value(created_value)
 
             if not should_cache_fn or should_cache_fn(created_value):
@@ -988,13 +1014,7 @@ class CacheRegion(object):
         def get_value(key):
             value = values.get(key, NO_VALUE)
 
-            if (
-                value is NO_VALUE
-                or value.metadata["v"] != value_version
-                or self.region_invalidator.is_hard_invalidated(
-                    value.metadata["ct"]
-                )
-            ):
+            if self._is_cache_miss(value, orig_key):
                 # dogpile.core understands a 0 here as
                 # "the value is not available", e.g.
                 # _has_value() will return False.
@@ -1053,7 +1073,9 @@ class CacheRegion(object):
                 # sort the keys, the idea is to prevent deadlocks.
                 # though haven't been able to simulate one anyway.
                 keys_to_get = sorted(mutexes)
-                new_values = creator(*keys_to_get)
+
+                with self._log_time(keys_to_get):
+                    new_values = creator(*keys_to_get)
 
                 values_w_created = dict(
                     (orig_to_mangled[k], self._value(v))
