@@ -56,5 +56,6 @@ setup(
     """,
     zip_safe=False,
     install_requires=["decorator>=4.0.0"],
+    tests_require=["decorator>=4.0.0"],
     cmdclass={"test": UseTox},
 )
