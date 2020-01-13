@@ -420,8 +420,7 @@ class CacheRegion(object):
             raise exception.RegionAlreadyConfigured(
                 "This region is already "
                 "configured with backend: %s.  "
-                "Specify replace_existing_backend=True to replace."
-                % self.backend
+                "Specify replace_existing_backend=True to replace." % self.backend
             )
 
         try:
@@ -441,9 +440,7 @@ class CacheRegion(object):
         if not expiration_time or isinstance(expiration_time, Number):
             self.expiration_time = expiration_time
         elif isinstance(expiration_time, datetime.timedelta):
-            self.expiration_time = int(
-                compat.timedelta_total_seconds(expiration_time)
-            )
+            self.expiration_time = int(compat.timedelta_total_seconds(expiration_time))
         else:
             raise exception.ValidationError(
                 "expiration_time is not a number or timedelta."
@@ -473,9 +470,7 @@ class CacheRegion(object):
             proxy = proxy()
 
         if not issubclass(type(proxy), ProxyBackend):
-            raise TypeError(
-                "Type %s is not a valid ProxyBackend" % type(proxy)
-            )
+            raise TypeError("Type %s is not a valid ProxyBackend" % type(proxy))
 
         self.backend = proxy.wrap(self.backend)
 
@@ -598,9 +593,7 @@ class CacheRegion(object):
         config_dict = coerce_string_conf(config_dict)
         return self.configure(
             config_dict["%sbackend" % prefix],
-            expiration_time=config_dict.get(
-                "%sexpiration_time" % prefix, None
-            ),
+            expiration_time=config_dict.get("%sexpiration_time" % prefix, None),
             _config_argument_dict=config_dict,
             _config_prefix="%sarguments." % prefix,
             wrap=config_dict.get("%swrap" % prefix, None),
@@ -611,9 +604,7 @@ class CacheRegion(object):
 
     @memoized_property
     def backend(self):
-        raise exception.RegionNotConfigured(
-            "No backend is configured on this region."
-        )
+        raise exception.RegionNotConfigured("No backend is configured on this region.")
 
     @property
     def is_configured(self):
@@ -700,9 +691,7 @@ class CacheRegion(object):
         if self.key_mangler:
             key = self.key_mangler(key)
         value = self.backend.get(key)
-        value = self._unexpired_value_fn(expiration_time, ignore_expiration)(
-            value
-        )
+        value = self._unexpired_value_fn(expiration_time, ignore_expiration)(value)
 
         return value.payload
 
@@ -723,9 +712,7 @@ class CacheRegion(object):
                     and current_time - value.metadata["ct"] > expiration_time
                 ):
                     return NO_VALUE
-                elif self.region_invalidator.is_invalidated(
-                    value.metadata["ct"]
-                ):
+                elif self.region_invalidator.is_invalidated(value.metadata["ct"]):
                     return NO_VALUE
                 else:
                     return value
@@ -777,9 +764,7 @@ class CacheRegion(object):
         )
         return [
             value.payload if value is not NO_VALUE else value
-            for value in (
-                _unexpired_value_fn(value) for value in backend_values
-            )
+            for value in (_unexpired_value_fn(value) for value in backend_values)
         ]
 
     @contextlib.contextmanager
@@ -788,8 +773,7 @@ class CacheRegion(object):
         yield
         seconds = time.time() - start_time
         log.debug(
-            "Cache value generated in %(seconds).3f seconds for key(s): "
-            "%(keys)r",
+            "Cache value generated in %(seconds).3f seconds for key(s): " "%(keys)r",
             {"seconds": seconds, "keys": repr_obj(keys)},
         )
 
@@ -912,9 +896,7 @@ class CacheRegion(object):
         def gen_value():
             with self._log_time(orig_key):
                 if creator_args:
-                    created_value = creator(
-                        *creator_args[0], **creator_args[1]
-                    )
+                    created_value = creator(*creator_args[0], **creator_args[1])
                 else:
                     created_value = creator()
             value = self._value(created_value)
@@ -927,10 +909,7 @@ class CacheRegion(object):
         if expiration_time is None:
             expiration_time = self.expiration_time
 
-        if (
-            expiration_time is None
-            and self.region_invalidator.was_soft_invalidated()
-        ):
+        if expiration_time is None and self.region_invalidator.was_soft_invalidated():
             raise exception.DogpileCacheException(
                 "Non-None expiration time required " "for soft invalidation"
             )
@@ -955,11 +934,7 @@ class CacheRegion(object):
             async_creator = None
 
         with Lock(
-            self._mutex(key),
-            gen_value,
-            get_value,
-            expiration_time,
-            async_creator,
+            self._mutex(key), gen_value, get_value, expiration_time, async_creator,
         ) as value:
             return value
 
@@ -1035,10 +1010,7 @@ class CacheRegion(object):
         if expiration_time is None:
             expiration_time = self.expiration_time
 
-        if (
-            expiration_time is None
-            and self.region_invalidator.was_soft_invalidated()
-        ):
+        if expiration_time is None and self.region_invalidator.was_soft_invalidated():
             raise exception.DogpileCacheException(
                 "Non-None expiration time required " "for soft invalidation"
             )
@@ -1122,8 +1094,7 @@ class CacheRegion(object):
 
         if self.key_mangler:
             mapping = dict(
-                (self.key_mangler(k), self._value(v))
-                for k, v in mapping.items()
+                (self.key_mangler(k), self._value(v)) for k, v in mapping.items()
             )
         else:
             mapping = dict((k, self._value(v)) for k, v in mapping.items())
@@ -1352,9 +1323,7 @@ class CacheRegion(object):
             key = key_generator(*arg, **kw)
 
             timeout = (
-                expiration_time()
-                if expiration_time_is_callable
-                else expiration_time
+                expiration_time() if expiration_time_is_callable else expiration_time
             )
             return self.get_or_create(
                 key, user_func, timeout, should_cache_fn, (arg, kw)
@@ -1544,18 +1513,14 @@ class CacheRegion(object):
                 return user_func(*[key_lookup[k] for k in keys_to_create])
 
             timeout = (
-                expiration_time()
-                if expiration_time_is_callable
-                else expiration_time
+                expiration_time() if expiration_time_is_callable else expiration_time
             )
 
             if asdict:
 
                 def dict_create(*keys):
                     d_values = creator(*keys)
-                    return [
-                        d_values.get(key_lookup[k], NO_VALUE) for k in keys
-                    ]
+                    return [d_values.get(key_lookup[k], NO_VALUE) for k in keys]
 
                 def wrap_cache_fn(value):
                     if value is NO_VALUE:
@@ -1569,9 +1534,7 @@ class CacheRegion(object):
                     keys, dict_create, timeout, wrap_cache_fn
                 )
                 result = dict(
-                    (k, v)
-                    for k, v in zip(cache_keys, result)
-                    if v is not NO_VALUE
+                    (k, v) for k, v in zip(cache_keys, result) if v is not NO_VALUE
                 )
             else:
                 result = self.get_or_create_multi(
@@ -1594,8 +1557,7 @@ class CacheRegion(object):
                 gen_keys = key_generator(*keys)
                 self.set_multi(
                     dict(
-                        (gen_key, mapping[key])
-                        for gen_key, key in zip(gen_keys, keys)
+                        (gen_key, mapping[key]) for gen_key, key in zip(gen_keys, keys)
                     )
                 )
 

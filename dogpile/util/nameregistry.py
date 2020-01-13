@@ -82,9 +82,7 @@ class NameRegistry(object):
                     )
                     return value
             except KeyError:
-                self._values[identifier] = value = self.creator(
-                    identifier, *args, **kw
-                )
+                self._values[identifier] = value = self.creator(identifier, *args, **kw)
                 return value
         finally:
             self._mutex.release()

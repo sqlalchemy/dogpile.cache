@@ -69,8 +69,7 @@ class ReadWriteMutex(object):
                     self.condition.notifyAll()
             elif self.async_ < 0:
                 raise LockError(
-                    "Synchronizer error - too many "
-                    "release_read_locks called"
+                    "Synchronizer error - too many " "release_read_locks called"
                 )
             log.debug("%s released read lock", self)
         finally:
@@ -120,8 +119,7 @@ class ReadWriteMutex(object):
         try:
             if self.current_sync_operation is not threading.currentThread():
                 raise LockError(
-                    "Synchronizer error - current thread doesn't "
-                    "have the write lock"
+                    "Synchronizer error - current thread doesn't " "have the write lock"
                 )
 
             # reset the current sync operation so

@@ -6,6 +6,16 @@ Changelog
     :version: 0.9.1
     :include_notes_from: unreleased
 
+    .. change::
+        :tags: feature
+
+        Applied ``black`` module formatting to this library (v19.10b0).
+
+        .. seealso::
+
+            https://pypi.org/project/black/
+
+
 .. changelog::
     :version: 0.9.0
     :released: Mon Oct 28 2019

@@ -53,12 +53,7 @@ class Lock(object):
     """
 
     def __init__(
-        self,
-        mutex,
-        creator,
-        value_and_created_fn,
-        expiretime,
-        async_creator=None,
+        self, mutex, creator, value_and_created_fn, expiretime, async_creator=None,
     ):
         self.mutex = mutex
         self.creator = creator
@@ -71,8 +66,7 @@ class Lock(object):
         value is available."""
 
         return not self._has_value(createdtime) or (
-            self.expiretime is not None
-            and time.time() - createdtime > self.expiretime
+            self.expiretime is not None and time.time() - createdtime > self.expiretime
         )
 
     def _has_value(self, createdtime):
@@ -124,9 +118,7 @@ class Lock(object):
         if self._has_value(createdtime):
             has_value = True
             if not self.mutex.acquire(False):
-                log.debug(
-                    "creation function in progress elsewhere, returning"
-                )
+                log.debug("creation function in progress elsewhere, returning")
                 return NOT_REGENERATED
         else:
             has_value = False

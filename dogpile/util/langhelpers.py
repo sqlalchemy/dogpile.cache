@@ -40,9 +40,7 @@ class PluginLoader(object):
                 self.impls[name] = impl.load
                 return impl.load()
             else:
-                raise self.NotFound(
-                    "Can't load plugin %s %s" % (self.group, name)
-                )
+                raise self.NotFound("Can't load plugin %s %s" % (self.group, name))
 
     def register(self, name, modulepath, objname):
         def load():

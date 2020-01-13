@@ -13,9 +13,7 @@ try:
 except ImportError:
     raise pytest.skip("this test suite requires mako templates")
 
-register_plugin(
-    "dogpile.cache", "dogpile.cache.plugins.mako_cache", "MakoPlugin"
-)
+register_plugin("dogpile.cache", "dogpile.cache.plugins.mako_cache", "MakoPlugin")
 
 
 class TestMakoPlugin(TestCase):
@@ -24,10 +22,7 @@ class TestMakoPlugin(TestCase):
         reg.get_or_create.return_value = "hello world"
         my_regions = {"myregion": reg}
         return (
-            {
-                "cache_impl": "dogpile.cache",
-                "cache_args": {"regions": my_regions},
-            },
+            {"cache_impl": "dogpile.cache", "cache_args": {"regions": my_regions},},
             reg,
         )
 

@@ -112,9 +112,7 @@ def kwarg_function_key_generator(namespace, fn, to_str=compat.string_type):
         as_kwargs = dict(
             [
                 (argspec.args[idx], arg)
-                for idx, arg in enumerate(
-                    args[arg_index_start:], arg_index_start
-                )
+                for idx, arg in enumerate(args[arg_index_start:], arg_index_start)
             ]
         )
         as_kwargs.update(kwargs)
@@ -180,10 +178,7 @@ class repr_obj(object):
             segment_length = self.max_chars // 2
             rep = (
                 rep[0:segment_length]
-                + (
-                    " ... (%d characters truncated) ... "
-                    % (lenrep - self.max_chars)
-                )
+                + (" ... (%d characters truncated) ... " % (lenrep - self.max_chars))
                 + rep[-segment_length:]
             )
         return rep

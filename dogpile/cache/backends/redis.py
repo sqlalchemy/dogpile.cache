@@ -132,10 +132,7 @@ class RedisBackend(CacheBackend):
             return redis.StrictRedis.from_url(**args)
         else:
             args.update(
-                host=self.host,
-                password=self.password,
-                port=self.port,
-                db=self.db,
+                host=self.host, password=self.password, port=self.port, db=self.db,
             )
             return redis.StrictRedis(**args)
 
@@ -171,8 +168,7 @@ class RedisBackend(CacheBackend):
 
     def set_multi(self, mapping):
         mapping = dict(
-            (k, pickle.dumps(v, pickle.HIGHEST_PROTOCOL))
-            for k, v in mapping.items()
+            (k, pickle.dumps(v, pickle.HIGHEST_PROTOCOL)) for k, v in mapping.items()
         )
 
         if not self.redis_expiration_time:

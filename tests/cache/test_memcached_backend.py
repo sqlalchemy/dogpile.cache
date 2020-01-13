@@ -31,8 +31,7 @@ class _TestMemcachedConn(object):
         except Exception:
             if not expect_memcached_running:
                 pytest.skip(
-                    "memcached is not running or "
-                    "otherwise not functioning correctly"
+                    "memcached is not running or " "otherwise not functioning correctly"
                 )
             else:
                 raise
@@ -43,9 +42,7 @@ class _NonDistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     config_args = {"arguments": {"url": MEMCACHED_URL}}
 
 
-class _DistributedMemcachedWithTimeoutTest(
-    _TestMemcachedConn, _GenericBackendTest
-):
+class _DistributedMemcachedWithTimeoutTest(_TestMemcachedConn, _GenericBackendTest):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
     config_args = {
         "arguments": {
@@ -58,20 +55,14 @@ class _DistributedMemcachedWithTimeoutTest(
 
 class _DistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
-    config_args = {
-        "arguments": {"url": MEMCACHED_URL, "distributed_lock": True}
-    }
+    config_args = {"arguments": {"url": MEMCACHED_URL, "distributed_lock": True}}
 
 
 class _DistributedMemcachedMutexTest(_TestMemcachedConn, _GenericMutexTest):
-    config_args = {
-        "arguments": {"url": MEMCACHED_URL, "distributed_lock": True}
-    }
+    config_args = {"arguments": {"url": MEMCACHED_URL, "distributed_lock": True}}
 
 
-class _DistributedMemcachedMutexWithTimeoutTest(
-    _TestMemcachedConn, _GenericMutexTest
-):
+class _DistributedMemcachedMutexWithTimeoutTest(_TestMemcachedConn, _GenericMutexTest):
     config_args = {
         "arguments": {
             "url": MEMCACHED_URL,
@@ -121,9 +112,7 @@ class BMemcachedDistributedTest(BMemcachedSkips, _DistributedMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedMutexTest(
-    BMemcachedSkips, _DistributedMemcachedMutexTest
-):
+class BMemcachedDistributedMutexTest(BMemcachedSkips, _DistributedMemcachedMutexTest):
     backend = "dogpile.cache.bmemcached"
 
 
@@ -166,9 +155,7 @@ class MockPylibmcBackend(PylibmcBackend):
         pass
 
     def _create_client(self):
-        return MockClient(
-            self.url, binary=self.binary, behaviors=self.behaviors
-        )
+        return MockClient(self.url, binary=self.binary, behaviors=self.behaviors)
 
 
 class MockClient(object):
@@ -214,9 +201,7 @@ class PylibmcArgsTest(TestCase):
         eq_(backend._create_client().arg[0], ["foo"])
 
     def test_behaviors(self):
-        backend = MockPylibmcBackend(
-            arguments={"url": "foo", "behaviors": {"q": "p"}}
-        )
+        backend = MockPylibmcBackend(arguments={"url": "foo", "behaviors": {"q": "p"}})
         eq_(backend._create_client().kw["behaviors"], {"q": "p"})
 
     def test_set_time(self):
@@ -227,9 +212,7 @@ class PylibmcArgsTest(TestCase):
         eq_(backend._clients.memcached.canary, [{"time": 20}])
 
     def test_set_min_compress_len(self):
-        backend = MockPylibmcBackend(
-            arguments={"url": "foo", "min_compress_len": 20}
-        )
+        backend = MockPylibmcBackend(arguments={"url": "foo", "min_compress_len": 20})
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"min_compress_len": 20}])
 
@@ -248,9 +231,7 @@ class MemcachedArgstest(TestCase):
         eq_(backend._clients.memcached.canary, [{"time": 20}])
 
     def test_set_min_compress_len(self):
-        backend = MockMemcacheBackend(
-            arguments={"url": "foo", "min_compress_len": 20}
-        )
+        backend = MockMemcacheBackend(arguments={"url": "foo", "min_compress_len": 20})
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"min_compress_len": 20}])
 

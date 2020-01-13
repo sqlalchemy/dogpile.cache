@@ -26,8 +26,7 @@ class _TestRedisConn(object):
         except Exception:
             if not expect_redis_running:
                 pytest.skip(
-                    "redis is not running or "
-                    "otherwise not functioning correctly"
+                    "redis is not running or " "otherwise not functioning correctly"
                 )
             else:
                 raise
@@ -36,12 +35,7 @@ class _TestRedisConn(object):
 class RedisTest(_TestRedisConn, _GenericBackendTest):
     backend = "dogpile.cache.redis"
     config_args = {
-        "arguments": {
-            "host": REDIS_HOST,
-            "port": REDIS_PORT,
-            "db": 0,
-            "foo": "barf",
-        }
+        "arguments": {"host": REDIS_HOST, "port": REDIS_PORT, "db": 0, "foo": "barf",}
     }
 
 
@@ -118,9 +112,7 @@ class RedisConnectionTest(TestCase):
         pool = Mock()
         arguments = {"connection_pool": pool, "socket_timeout": 0.5}
         expected_args = {"connection_pool": pool}
-        self._test_helper(
-            MockStrictRedis, expected_args, connection_args=arguments
-        )
+        self._test_helper(MockStrictRedis, expected_args, connection_args=arguments)
 
     def test_connect_with_url(self, MockStrictRedis):
         arguments = {"url": "redis://redis:password@127.0.0.1:6379/0"}

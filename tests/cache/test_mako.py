@@ -11,7 +11,5 @@ class MakoTest(TestCase):
 
         # if the entrypoint isn't there, just pass, as the tests can be run
         # without any setuptools install
-        for impl in pkg_resources.iter_entry_points(
-            "mako.cache", "dogpile.cache"
-        ):
+        for impl in pkg_resources.iter_entry_points("mako.cache", "dogpile.cache"):
             impl.load()

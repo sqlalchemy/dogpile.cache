@@ -139,9 +139,7 @@ class DBMBackend(CacheBackend):
     """
 
     def __init__(self, arguments):
-        self.filename = os.path.abspath(
-            os.path.normpath(arguments["filename"])
-        )
+        self.filename = os.path.abspath(os.path.normpath(arguments["filename"]))
         dir_, filename = os.path.split(self.filename)
 
         self.lock_factory = arguments.get("lock_factory", FileLock)
@@ -168,9 +166,7 @@ class DBMBackend(CacheBackend):
         if argument is None:
             lock = self.lock_factory(os.path.join(basedir, basefile + suffix))
         elif argument is not False:
-            lock = self.lock_factory(
-                os.path.abspath(os.path.normpath(argument))
-            )
+            lock = self.lock_factory(os.path.abspath(os.path.normpath(argument)))
         else:
             return None
         if wrapper:
@@ -238,16 +234,12 @@ class DBMBackend(CacheBackend):
 
     def set(self, key, value):
         with self._dbm_file(True) as dbm:
-            dbm[key] = compat.pickle.dumps(
-                value, compat.pickle.HIGHEST_PROTOCOL
-            )
+            dbm[key] = compat.pickle.dumps(value, compat.pickle.HIGHEST_PROTOCOL)
 
     def set_multi(self, mapping):
         with self._dbm_file(True) as dbm:
             for key, value in mapping.items():
-                dbm[key] = compat.pickle.dumps(
-                    value, compat.pickle.HIGHEST_PROTOCOL
-                )
+                dbm[key] = compat.pickle.dumps(value, compat.pickle.HIGHEST_PROTOCOL)
 
     def delete(self, key):
         with self._dbm_file(True) as dbm:

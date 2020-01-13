@@ -64,8 +64,7 @@ class MemoryBackend(CacheBackend):
         ret = [self._cache.get(key, NO_VALUE) for key in keys]
         if self.pickle_values:
             ret = [
-                pickle.loads(value) if value is not NO_VALUE else value
-                for value in ret
+                pickle.loads(value) if value is not NO_VALUE else value for value in ret
             ]
         return ret
 

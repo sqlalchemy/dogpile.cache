@@ -47,9 +47,7 @@ if has_fcntl:
 class DBMBackendConditionTest(_GenericBackendTest):
     backend = "dogpile.cache.dbm"
 
-    config_args = {
-        "arguments": {"filename": test_fname, "lock_factory": MutexLock}
-    }
+    config_args = {"arguments": {"filename": test_fname, "lock_factory": MutexLock}}
 
 
 class DBMBackendNoLockTest(_GenericBackendTest):
@@ -95,9 +93,7 @@ if has_fcntl:
 
 
 class DBMMutexConditionTest(_DBMMutexTest):
-    config_args = {
-        "arguments": {"filename": test_fname, "lock_factory": MutexLock}
-    }
+    config_args = {"arguments": {"filename": test_fname, "lock_factory": MutexLock}}
 
 
 def teardown():

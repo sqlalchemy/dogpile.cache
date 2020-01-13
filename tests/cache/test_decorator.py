@@ -16,9 +16,7 @@ from ._fixtures import _GenericBackendFixture
 class DecoratorTest(_GenericBackendFixture, TestCase):
     backend = "dogpile.cache.memory"
 
-    def _fixture(
-        self, namespace=None, expiration_time=None, key_generator=None
-    ):
+    def _fixture(self, namespace=None, expiration_time=None, key_generator=None):
         reg = self._region(config_args={"expiration_time": 0.25})
 
         counter = itertools.count(1)
@@ -34,9 +32,7 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
 
         return go
 
-    def _multi_fixture(
-        self, namespace=None, expiration_time=None, key_generator=None
-    ):
+    def _multi_fixture(self, namespace=None, expiration_time=None, key_generator=None):
 
         reg = self._region(config_args={"expiration_time": 0.25})
 
@@ -205,9 +201,7 @@ class KeyGenerationTest(TestCase):
         canary = []
 
         def decorate(fn):
-            canary.append(
-                util.function_multi_key_generator(namespace, fn, **kw)
-            )
+            canary.append(util.function_multi_key_generator(namespace, fn, **kw))
             return fn
 
         return decorate, canary
@@ -216,9 +210,7 @@ class KeyGenerationTest(TestCase):
         canary = []
 
         def decorate(fn):
-            canary.append(
-                util.kwarg_function_key_generator(namespace, fn, **kw)
-            )
+            canary.append(util.kwarg_function_key_generator(namespace, fn, **kw))
             return fn
 
         return decorate, canary
@@ -309,10 +301,7 @@ class KeyGenerationTest(TestCase):
 
         eq_(
             gen(1, 2),
-            [
-                "tests.cache.test_decorator:one|1",
-                "tests.cache.test_decorator:one|2",
-            ],
+            ["tests.cache.test_decorator:one|1", "tests.cache.test_decorator:one|2",],
         )
 
     def test_keygen_fn_namespace(self):
@@ -374,10 +363,7 @@ class KeyGenerationTest(TestCase):
 
         eq_(
             gen(compat.u("méil"), compat.u("drôle")),
-            compat.ue(
-                "tests.cache.test_decorator:"
-                "one|mynamespace|m\xe9il dr\xf4le"
-            ),
+            compat.ue("tests.cache.test_decorator:" "one|mynamespace|m\xe9il dr\xf4le"),
         )
 
     def test_unicode_key_kwarg_generator(self):
@@ -393,10 +379,7 @@ class KeyGenerationTest(TestCase):
 
         eq_(
             gen(compat.u("méil"), compat.u("drôle")),
-            compat.ue(
-                "tests.cache.test_decorator:"
-                "one|mynamespace|m\xe9il dr\xf4le"
-            ),
+            compat.ue("tests.cache.test_decorator:" "one|mynamespace|m\xe9il dr\xf4le"),
         )
 
     def test_unicode_key_multi(self):
@@ -413,12 +396,8 @@ class KeyGenerationTest(TestCase):
         eq_(
             gen(compat.u("méil"), compat.u("drôle")),
             [
-                compat.ue(
-                    "tests.cache.test_decorator:one|mynamespace|m\xe9il"
-                ),
-                compat.ue(
-                    "tests.cache.test_decorator:one|mynamespace|dr\xf4le"
-                ),
+                compat.ue("tests.cache.test_decorator:one|mynamespace|m\xe9il"),
+                compat.ue("tests.cache.test_decorator:one|mynamespace|dr\xf4le"),
             ],
         )
 
@@ -473,8 +452,7 @@ class KeyGenerationTest(TestCase):
         key = gen(1, 2)
 
         eq_(
-            util.sha1_mangle_key(key),
-            "aead490a8ace2d69a00160f1fd8fd8a16552c24f",
+            util.sha1_mangle_key(key), "aead490a8ace2d69a00160f1fd8fd8a16552c24f",
         )
 
     def test_sha1_key_mangler_unicode_py2k(self):
@@ -566,9 +544,7 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
 
         @reg.cache_multi_on_arguments(asdict=True)
         def generate(*args):
-            return dict(
-                [(arg, "%d %d" % (arg, next(counter))) for arg in args]
-            )
+            return dict([(arg, "%d %d" % (arg, next(counter))) for arg in args])
 
         eq_(generate(2, 8, 10), {2: "2 2", 8: "8 3", 10: "10 1"})
         eq_(generate(2, 9, 10), {2: "2 2", 9: "9 4", 10: "10 1"})
@@ -590,11 +566,7 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         @reg.cache_multi_on_arguments(asdict=True)
         def generate(*args):
             return dict(
-                [
-                    (arg, "%d %d" % (arg, next(counter)))
-                    for arg in args
-                    if arg != 10
-                ]
+                [(arg, "%d %d" % (arg, next(counter))) for arg in args if arg != 10]
             )
 
         eq_(generate(2, 8, 10), {2: "2 1", 8: "8 2"})
@@ -618,11 +590,7 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         )
         def generate(*args):
             return dict(
-                [
-                    (arg, "%d %d" % (arg, next(counter)))
-                    for arg in args
-                    if arg != 10
-                ]
+                [(arg, "%d %d" % (arg, next(counter))) for arg in args if arg != 10]
             )
 
         eq_(generate(2, 8, 10), {2: "2 1", 8: "8 2"})

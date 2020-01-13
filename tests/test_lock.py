@@ -40,9 +40,7 @@ class ConcurrencyTest(TestCase):
         self._test_multi(10, 2, 2.5, 50, 0.05, 0.1)
 
     def test_get_value_plus_created_registry_unsafe_cache(self):
-        self._test_multi(
-            10, 1, 0.6, 100, 0.05, 0.1, cache_expire_time="unsafe"
-        )
+        self._test_multi(10, 1, 0.6, 100, 0.05, 0.1, cache_expire_time="unsafe")
 
     def test_get_value_plus_created_registry_safe_cache_quick(self):
         self._test_multi(10, 2, 0.5, 50, 0.05, 0.1, cache_expire_time="safe")
@@ -107,10 +105,7 @@ class ConcurrencyTest(TestCase):
         effective_creation_time = creation_time
 
         max_stale = (
-            effective_expiretime
-            + effective_creation_time
-            + usage_time
-            + delay_time
+            effective_expiretime + effective_creation_time + usage_time + delay_time
         ) * 1.1
 
         the_resource = []
@@ -119,9 +114,7 @@ class ConcurrencyTest(TestCase):
 
         def create_resource():
             with self._assert_synchronized():
-                log.debug(
-                    "creating resource, will take %f sec" % creation_time
-                )
+                log.debug("creating resource, will take %f sec" % creation_time)
                 time.sleep(creation_time)
 
                 if slow_write_time:
@@ -153,8 +146,7 @@ class ConcurrencyTest(TestCase):
                     # honors this).
                     self._assert_log(
                         cache_expire_time < expiretime,
-                        "Cache expiration hit, cache "
-                        "expire time %s, expiretime %s",
+                        "Cache expiration hit, cache " "expire time %s, expiretime %s",
                         cache_expire_time,
                         expiretime,
                     )
@@ -172,9 +164,7 @@ class ConcurrencyTest(TestCase):
             try:
                 for i in range(num_usages):
                     now = time.time()
-                    with Lock(
-                        mutex, create_resource, get_value, expiretime
-                    ) as value:
+                    with Lock(mutex, create_resource, get_value, expiretime) as value:
                         waited = time.time() - now
                         if waited > 0.01:
                             slow_waiters[0] += 1
@@ -213,9 +203,7 @@ class ConcurrencyTest(TestCase):
         # time spent starts with num usages * time per usage, with a 10% fudge
         expected_run_time = (num_usages * (usage_time + delay_time)) * 1.1
 
-        expected_generations = math.ceil(
-            expected_run_time / effective_expiretime
-        )
+        expected_generations = math.ceil(expected_run_time / effective_expiretime)
 
         if unsafe_cache:
             expected_slow_waiters = expected_generations * num_threads
@@ -248,9 +236,7 @@ class ConcurrencyTest(TestCase):
             delay_time,
         )
         log.info(
-            "cache expire time: %s; unsafe cache: %s",
-            cache_expire_time,
-            unsafe_cache,
+            "cache expire time: %s; unsafe cache: %s", cache_expire_time, unsafe_cache,
         )
         log.info(
             "Estimated run time %.2f actual run time %.2f",

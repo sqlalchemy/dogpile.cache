@@ -148,12 +148,9 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         reg.delete_multi(["key1", "key2", "key3", "key4", "key5"])
         values = {"key1": "value1", "key3": "value3", "key5": "value5"}
         reg.set_multi(values)
-        reg_values = reg.get_multi(
-            ["key1", "key2", "key3", "key4", "key5", "key6"]
-        )
+        reg_values = reg.get_multi(["key1", "key2", "key3", "key4", "key5", "key6"])
         eq_(
-            reg_values,
-            ["value1", NO_VALUE, "value3", NO_VALUE, "value5", NO_VALUE],
+            reg_values, ["value1", NO_VALUE, "value3", NO_VALUE, "value5", NO_VALUE],
         )
 
     def test_region_get_empty_multiple(self):
@@ -245,10 +242,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         def f():
             for x in range(5):
                 reg.get_or_create_multi(
-                    [
-                        str(random.randint(1, 10))
-                        for i in range(random.randint(1, 5))
-                    ],
+                    [str(random.randint(1, 10)) for i in range(random.randint(1, 5))],
                     creator,
                 )
                 time.sleep(0.5)
@@ -316,9 +310,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         def boom():
             raise Exception("boom")
 
-        assert_raises_message(
-            Exception, "boom", reg.get_or_create, "some_key", boom
-        )
+        assert_raises_message(Exception, "boom", reg.get_or_create, "some_key", boom)
 
 
 class _GenericMutexTest(_GenericBackendFixture, TestCase):

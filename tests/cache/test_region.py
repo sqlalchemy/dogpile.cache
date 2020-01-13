@@ -71,9 +71,7 @@ class RegionTest(TestCase):
         config = configparser.ConfigParser()
         compat.read_config_file(config, io.StringIO(my_conf))
 
-        my_region.configure_from_config(
-            dict(config.items("xyz")), "cache.example."
-        )
+        my_region.configure_from_config(dict(config.items("xyz")), "cache.example.")
         eq_(my_region.expiration_time, 600)
         assert isinstance(my_region.backend, MockBackend) is True
         eq_(
@@ -118,8 +116,7 @@ class RegionTest(TestCase):
         eq_(list(reg.backend._cache), ["HI!some key"])
         eq_(reg.get("some key"), "some value")
         eq_(
-            reg.get_or_create("some key", lambda: "some new value"),
-            "some value",
+            reg.get_or_create("some key", lambda: "some new value"), "some value",
         )
         reg.delete("some key")
         eq_(reg.get("some key"), NO_VALUE)
@@ -232,8 +229,7 @@ class RegionTest(TestCase):
         is_(reg.get("some key"), NO_VALUE)
         eq_(reg.get("some key", ignore_expiration=True), "some value 1")
         eq_(
-            reg.get_or_create("some key", creator, expiration_time=-1),
-            "some value 1",
+            reg.get_or_create("some key", creator, expiration_time=-1), "some value 1",
         )
         eq_(reg.get_or_create("some key", creator), "some value 2")
         eq_(reg.get("some key"), "some value 2")
@@ -292,14 +288,12 @@ class RegionTest(TestCase):
             return "some value %d" % next(counter)
 
         eq_(
-            reg.get_or_create("some key", creator, expiration_time=1),
-            "some value 1",
+            reg.get_or_create("some key", creator, expiration_time=1), "some value 1",
         )
         time.sleep(2)
         eq_(reg.get("some key"), "some value 1")
         eq_(
-            reg.get_or_create("some key", creator, expiration_time=1),
-            "some value 2",
+            reg.get_or_create("some key", creator, expiration_time=1), "some value 2",
         )
         eq_(reg.get("some key"), "some value 2")
 
@@ -430,22 +424,16 @@ class RegionTest(TestCase):
             return values.pop(0)
 
         should_cache_fn = lambda val: val in (1, 3)  # noqa
-        ret = reg.get_or_create(
-            "some key", creator, should_cache_fn=should_cache_fn
-        )
+        ret = reg.get_or_create("some key", creator, should_cache_fn=should_cache_fn)
         eq_(ret, 1)
         eq_(reg.backend._cache["some key"][0], 1)
         time.sleep(0.1)
         reg.invalidate()
-        ret = reg.get_or_create(
-            "some key", creator, should_cache_fn=should_cache_fn
-        )
+        ret = reg.get_or_create("some key", creator, should_cache_fn=should_cache_fn)
         eq_(ret, 2)
         eq_(reg.backend._cache["some key"][0], 1)
         reg.invalidate()
-        ret = reg.get_or_create(
-            "some key", creator, should_cache_fn=should_cache_fn
-        )
+        ret = reg.get_or_create("some key", creator, should_cache_fn=should_cache_fn)
         eq_(ret, 3)
         eq_(reg.backend._cache["some key"][0], 3)
 
@@ -458,23 +446,17 @@ class RegionTest(TestCase):
             return [v for k in keys]
 
         should_cache_fn = lambda val: val in (1, 3)  # noqa
-        ret = reg.get_or_create_multi(
-            [1, 2], creator, should_cache_fn=should_cache_fn
-        )
+        ret = reg.get_or_create_multi([1, 2], creator, should_cache_fn=should_cache_fn)
         eq_(ret, [1, 1])
         eq_(reg.backend._cache[1][0], 1)
         time.sleep(0.1)
         reg.invalidate()
-        ret = reg.get_or_create_multi(
-            [1, 2], creator, should_cache_fn=should_cache_fn
-        )
+        ret = reg.get_or_create_multi([1, 2], creator, should_cache_fn=should_cache_fn)
         eq_(ret, [2, 2])
         eq_(reg.backend._cache[1][0], 1)
         time.sleep(0.1)
         reg.invalidate()
-        ret = reg.get_or_create_multi(
-            [1, 2], creator, should_cache_fn=should_cache_fn
-        )
+        ret = reg.get_or_create_multi([1, 2], creator, should_cache_fn=should_cache_fn)
         eq_(ret, [3, 3])
         eq_(reg.backend._cache[1][0], 3)
 
@@ -545,9 +527,7 @@ class CustomInvalidationStrategyTest(RegionTest):
                 self._hard_invalidated = None
 
         def is_invalidated(self, timestamp):
-            return (
-                self._soft_invalidated and timestamp < self._soft_invalidated
-            ) or (
+            return (self._soft_invalidated and timestamp < self._soft_invalidated) or (
                 self._hard_invalidated and timestamp < self._hard_invalidated
             )
 
@@ -555,17 +535,13 @@ class CustomInvalidationStrategyTest(RegionTest):
             return bool(self._hard_invalidated)
 
         def is_hard_invalidated(self, timestamp):
-            return (
-                self._hard_invalidated and timestamp < self._hard_invalidated
-            )
+            return self._hard_invalidated and timestamp < self._hard_invalidated
 
         def was_soft_invalidated(self):
             return bool(self._soft_invalidated)
 
         def is_soft_invalidated(self, timestamp):
-            return (
-                self._soft_invalidated and timestamp < self._soft_invalidated
-            )
+            return self._soft_invalidated and timestamp < self._soft_invalidated
 
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)
@@ -607,11 +583,7 @@ class AsyncCreatorTest(TestCase):
         eq_(reg.get_or_create("some key", some_new_value), "some new value")
         eq_(
             acr.mock_calls,
-            [
-                mock.call(
-                    reg, "some key", some_new_value, reg._mutex("some key")
-                )
-            ],
+            [mock.call(reg, "some key", some_new_value, reg._mutex("some key"))],
         )
 
     def test_fn_decorator(self):
@@ -640,8 +612,7 @@ class AsyncCreatorTest(TestCase):
         eq_(go(1, 2), 3)
 
         eq_(
-            canary.mock_calls,
-            [mock.call(1, 2), mock.call(3, 4), mock.call(1, 2)],
+            canary.mock_calls, [mock.call(1, 2), mock.call(3, 4), mock.call(1, 2)],
         )
 
         eq_(
@@ -697,9 +668,7 @@ class ProxyBackendTest(TestCase):
         """ Keep a counter of hose often we set a particular key"""
 
         def __init__(self, *args, **kwargs):
-            super(ProxyBackendTest.UsedKeysProxy, self).__init__(
-                *args, **kwargs
-            )
+            super(ProxyBackendTest.UsedKeysProxy, self).__init__(*args, **kwargs)
             self._key_count = defaultdict(lambda: 0)
 
         def setcount(self, key):
@@ -715,9 +684,7 @@ class ProxyBackendTest(TestCase):
         Never set a key that matches never_set """
 
         def __init__(self, never_set, *args, **kwargs):
-            super(ProxyBackendTest.NeverSetProxy, self).__init__(
-                *args, **kwargs
-            )
+            super(ProxyBackendTest.NeverSetProxy, self).__init__(*args, **kwargs)
             self.never_set = never_set
             self._key_count = defaultdict(lambda: 0)
 
@@ -869,10 +836,7 @@ class LoggingTest(TestCase):
                 mock.call.debug(
                     "Cache value generated in %(seconds).3f "
                     "seconds for key(s): %(keys)r",
-                    {
-                        "seconds": 5,
-                        "keys": util.repr_obj(["foo", "bar", "bat"]),
-                    },
+                    {"seconds": 5, "keys": util.repr_obj(["foo", "bar", "bat"]),},
                 )
             ],
         )
@@ -904,34 +868,28 @@ class LoggingTest(TestCase):
 
         reg = self._region()
         inv = mock.Mock(is_hard_invalidated=lambda val: True)
-        with mock.patch(
-            "dogpile.cache.region.log"
-        ) as mock_log, mock.patch.object(reg, "region_invalidator", inv):
+        with mock.patch("dogpile.cache.region.log") as mock_log, mock.patch.object(
+            reg, "region_invalidator", inv
+        ):
             is_(
                 reg._is_cache_miss(
-                    CachedValue(
-                        "some value", {"v": value_version - 5, "ct": 500}
-                    ),
+                    CachedValue("some value", {"v": value_version - 5, "ct": 500}),
                     "some key",
                 ),
                 True,
             )
         eq_(
             mock_log.mock_calls,
-            [
-                mock.call.debug(
-                    "Dogpile version update for key: %r", "some key"
-                )
-            ],
+            [mock.call.debug("Dogpile version update for key: %r", "some key")],
         )
 
     def test_log_is_hard_invalidated(self):
 
         reg = self._region()
         inv = mock.Mock(is_hard_invalidated=lambda val: True)
-        with mock.patch(
-            "dogpile.cache.region.log"
-        ) as mock_log, mock.patch.object(reg, "region_invalidator", inv):
+        with mock.patch("dogpile.cache.region.log") as mock_log, mock.patch.object(
+            reg, "region_invalidator", inv
+        ):
             is_(
                 reg._is_cache_miss(
                     CachedValue("some value", {"v": value_version, "ct": 500}),
@@ -941,9 +899,5 @@ class LoggingTest(TestCase):
             )
         eq_(
             mock_log.mock_calls,
-            [
-                mock.call.debug(
-                    "Hard invalidation detected for key: %r", "some key"
-                )
-            ],
+            [mock.call.debug("Hard invalidation detected for key: %r", "some key")],
         )

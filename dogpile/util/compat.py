@@ -27,9 +27,7 @@ FullArgSpec = collections.namedtuple(
     ],
 )
 
-ArgSpec = collections.namedtuple(
-    "ArgSpec", ["args", "varargs", "keywords", "defaults"]
-)
+ArgSpec = collections.namedtuple("ArgSpec", ["args", "varargs", "keywords", "defaults"])
 
 
 def inspect_getfullargspec(func):
@@ -136,6 +134,4 @@ def timedelta_total_seconds(td):
     if py27:
         return td.total_seconds()
     else:
-        return (
-            td.microseconds + (td.seconds + td.days * 24 * 3600) * 1e6
-        ) / 1e6
+        return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 1e6) / 1e6

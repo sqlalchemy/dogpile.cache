@@ -158,9 +158,7 @@ class GenericMemcachedBackend(CacheBackend):
 
     def get_mutex(self, key):
         if self.distributed_lock:
-            return MemcachedLock(
-                lambda: self.client, key, timeout=self.lock_timeout
-            )
+            return MemcachedLock(lambda: self.client, key, timeout=self.lock_timeout)
         else:
             return None
 
@@ -201,9 +199,7 @@ class MemcacheArgs(object):
         if "memcached_expire_time" in arguments:
             self.set_arguments["time"] = arguments["memcached_expire_time"]
         if "min_compress_len" in arguments:
-            self.set_arguments["min_compress_len"] = arguments[
-                "min_compress_len"
-            ]
+            self.set_arguments["min_compress_len"] = arguments["min_compress_len"]
         super(MemcacheArgs, self).__init__(arguments)
 
 
@@ -254,9 +250,7 @@ class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
         import pylibmc  # noqa
 
     def _create_client(self):
-        return pylibmc.Client(
-            self.url, binary=self.binary, behaviors=self.behaviors
-        )
+        return pylibmc.Client(self.url, binary=self.binary, behaviors=self.behaviors)
 
 
 memcache = None
@@ -345,18 +339,14 @@ class BMemcachedBackend(GenericMemcachedBackend):
 
             def add(self, key, value, timeout=0):
                 try:
-                    return super(RepairBMemcachedAPI, self).add(
-                        key, value, timeout
-                    )
+                    return super(RepairBMemcachedAPI, self).add(key, value, timeout)
                 except ValueError:
                     return False
 
         self.Client = RepairBMemcachedAPI
 
     def _create_client(self):
-        return self.Client(
-            self.url, username=self.username, password=self.password
-        )
+        return self.Client(self.url, username=self.username, password=self.password)
 
     def delete_multi(self, keys):
         """python-binary-memcached api does not implements delete_multi"""
