@@ -14,7 +14,7 @@ caching backends of any variety, and additionally provides API hooks which
 integrate these cache backends with the locking mechanism of ``dogpile``.
 
 Overall, dogpile.cache is intended as a replacement to the `Beaker
-<http://beaker.groovie.org>`_ caching system, the internals of which are
+<https://pypi.org/project/Beaker/>`_ caching system, the internals of which are
 written by the same author.   All the ideas of Beaker which "work" are re-
 implemented in dogpile.cache in a more efficient and succinct manner, and all
 the cruft (Beaker's internals were first written in 2005) relegated to the
@@ -24,7 +24,7 @@ Documentation
 -------------
 
 See dogpile.cache's full documentation at
-`dogpile.cache documentation <http://dogpilecache.sqlalchemy.org>`_.  The
+`dogpile.cache documentation <https://dogpilecache.sqlalchemy.org>`_.  The
 sections below provide a brief synopsis of the ``dogpile`` packages.
 
 Features
@@ -63,3 +63,30 @@ Features
 * Space for third party plugins, including one which provides the
   dogpile.cache engine to Mako templates.
 
+
+The SQLAlchemy Project
+----------------------
+
+Dogpile is part of the `SQLAlchemy Project <https://www.sqlalchemy.org>`_ and
+adheres to the same standards and conventions as the core project.
+
+Development / Bug reporting / Pull requests
+___________________________________________
+
+Please refer to the
+`SQLAlchemy Community Guide <https://www.sqlalchemy.org/develop.html>`_ for
+guidelines on coding and participating in this project.
+
+Code of Conduct
+_______________
+
+Above all, SQLAlchemy places great emphasis on polite, thoughtful, and
+constructive communication between users and developers.
+Please see our current Code of Conduct at
+`Code of Conduct <https://www.sqlalchemy.org/codeofconduct.html>`_.
+
+License
+-------
+
+Dogpile is distributed under the `MIT license
+<https://opensource.org/licenses/MIT>`_.
