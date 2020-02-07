@@ -20,8 +20,8 @@ from .proxy import ProxyBackend
 from .util import function_key_generator
 from .util import function_multi_key_generator
 from .util import repr_obj
-from .. import Lock
-from .. import NeedRegenerationException
+from ..lock import Lock
+from ..lock import NeedRegenerationException
 from ..util import coerce_string_conf
 from ..util import compat
 from ..util import memoized_property
