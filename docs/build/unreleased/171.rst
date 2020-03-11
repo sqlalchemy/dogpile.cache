@@ -1,0 +1,7 @@
+.. change::
+    :tags: bug, redis
+    :tickets: 171
+
+    Added an optional argument to :class:`.RedisBackend` that specifies
+    whether or not a thread-local Redis lock should be used.  This is the
+    default, but it breaks asynchronous runner compatibility.
