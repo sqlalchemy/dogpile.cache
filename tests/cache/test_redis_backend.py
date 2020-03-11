@@ -1,6 +1,6 @@
 import os
 import time
-from concurrent.futures.thread import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from threading import Event
 from unittest import TestCase
 
