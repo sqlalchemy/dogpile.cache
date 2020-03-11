@@ -1,7 +1,7 @@
-import os
-import time
 from concurrent.futures import ThreadPoolExecutor
+import os
 from threading import Event
+import time
 from unittest import TestCase
 
 from mock import Mock
@@ -79,17 +79,17 @@ class RedisAsyncCreationTest(_TestRedisConn, _GenericBackendFixture, TestCase):
         pool = ThreadPoolExecutor(max_workers=1)
         ev = Event()
 
-        # A simple example of how people may implement an async runner - plugged into
-        # a thread pool executor.
+        # A simple example of how people may implement an async runner -
+        # plugged into a thread pool executor.
         def asyncer(cache, key, creator, mutex):
             def _call():
                 try:
                     value = creator()
                     cache.set(key, value)
                 finally:
-                    # If a thread-local lock is used here, this will fail because
-                    # generally the async calls run in a different thread (that's the
-                    # point of async creators).
+                    # If a thread-local lock is used here, this will fail
+                    # because generally the async calls run in a different
+                    # thread (that's the point of async creators).
                     try:
                         mutex.release()
                     except Exception:
@@ -108,18 +108,18 @@ class RedisAsyncCreationTest(_TestRedisConn, _GenericBackendFixture, TestCase):
         def blah(k):
             return k * 2
 
-        # First call creates/add to the cache without calling the async creator.
+        # First call adds to the cache without calling the async creator.
         eq_(blah("asd"), "asdasd")
 
         # Wait long enough to cause the cached value to get stale.
         time.sleep(0.3)
 
-        # This will trigger the async runner and immediately return the stale value.
+        # This will trigger the async runner and return the stale value.
         eq_(blah("asd"), "asdasd")
 
-        # Wait for the the async runner to finish or timeout. If the mutex release
-        # errored, then the event won't be set and we'll timeout.
-        # On <= Python 3.1, wait returned nothing. So need to check is_set later.
+        # Wait for the the async runner to finish or timeout. If the mutex
+        # release errored, then the event won't be set and we'll timeout.
+        # On <= Python 3.1, wait returned nothing. So check is_set after.
         ev.wait(timeout=1.0)
         eq_(ev.is_set(), True)
 
