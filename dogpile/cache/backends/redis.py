@@ -97,7 +97,7 @@ class RedisBackend(CacheBackend):
      asynchronous runners, as they run in a different thread than the one
      used to create the lock.
 
-     .. versionadded:: 0.9.2
+     .. versionadded:: 0.9.1
 
     """
 
