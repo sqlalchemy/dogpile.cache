@@ -1,3 +1,11 @@
+[build-system]
+requires = [
+  "pip >= 19.3.1",
+  "setuptools >= 41.4.0",
+  "wheel >= 0.33.6",
+]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 79
 target-version = ['py27']
