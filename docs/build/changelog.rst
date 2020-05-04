@@ -4,7 +4,18 @@ Changelog
 
 .. changelog::
     :version: 0.9.2
-    :include_notes_from: unreleased
+    :released: Mon May 4 2020
+
+    .. change::
+        :tags: bug, installation
+        :tickets: 178
+
+        Ensured that the "pyproject.toml" file is not included in builds, as the
+        presence of this file indicates to pip that a pep-517 installation process
+        should be used.  As this mode of operation appears to be not well supported
+        by current tools / distros, these problems are avoided within the scope of
+        dogpile.cache installation by omitting the file.
+
 
 .. changelog::
     :version: 0.9.1
