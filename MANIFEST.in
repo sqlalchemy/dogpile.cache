@@ -5,4 +5,7 @@ include README* LICENSE CHANGES* log_tests.ini tox.ini hash_port.py
 
 prune docs/build/output
 
+# omit pyproject so that pip installers
+# don't use poorly supported pep517 mode
+exclude pyproject.toml
 
