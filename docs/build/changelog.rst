@@ -3,6 +3,10 @@ Changelog
 =========
 
 .. changelog::
+    :version: 0.9.3
+    :include_notes_from: unreleased
+
+.. changelog::
     :version: 0.9.2
     :released: Mon May 4 2020
 
