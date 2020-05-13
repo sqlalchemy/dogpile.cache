@@ -1,0 +1,6 @@
+.. change::
+    :tags: feature, memcached
+    :tickets: 173
+
+    Added support for TLS connections to the bmemcached backend.  Pull request
+    courtesy Moisés Guimarães de Medeiros.

@@ -213,8 +213,6 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         assert len(canary) > 2
         if not reg.backend.has_lock_timeout():
             assert False not in canary
-        else:
-            assert False in canary
 
     def test_threaded_get_multi(self):
         reg = self._region(config_args={"expiration_time": 0.25})
@@ -273,16 +271,27 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         eq_(reg.get("some key"), NO_VALUE)
 
     def test_region_expire(self):
-        reg = self._region(config_args={"expiration_time": 0.25})
+        # TODO: ideally tests like these would not be using actual
+        # time(); instead, an artificial function where the increment
+        # can be controlled would be preferred.  this way tests need not
+        # have any delay in running and additionally there is no issue
+        # with very slow processing missing a timeout, as is often the
+        # case with this particular test
+
+        reg = self._region(config_args={"expiration_time": 0.75})
         counter = itertools.count(1)
 
         def creator():
             return "some value %d" % next(counter)
 
         eq_(reg.get_or_create("some key", creator), "some value 1")
-        time.sleep(0.4)
+        time.sleep(0.85)
+        # expiration is definitely hit
         eq_(reg.get("some key", ignore_expiration=True), "some value 1")
         eq_(reg.get_or_create("some key", creator), "some value 2")
+
+        # this line needs to run less the .75 sec before the previous
+        # two or it hits the expiration
         eq_(reg.get("some key"), "some value 2")
 
     def test_decorated_fn_functionality(self):

@@ -1,4 +1,5 @@
 import os
+import ssl
 from threading import Thread
 import time
 from unittest import TestCase
@@ -17,6 +18,11 @@ from ._fixtures import _GenericMutexTest
 MEMCACHED_PORT = os.getenv("DOGPILE_MEMCACHED_PORT", "11211")
 MEMCACHED_URL = "127.0.0.1:%s" % MEMCACHED_PORT
 expect_memcached_running = bool(os.getenv("DOGPILE_MEMCACHED_PORT"))
+
+TLS_CONTEXT = ssl.create_default_context(cafile="tests/tls/ca-root.crt")
+TLS_MEMCACHED_PORT = os.getenv("DOGPILE_TLS_MEMCACHED_PORT", "11212")
+TLS_MEMCACHED_URL = "localhost:%s" % TLS_MEMCACHED_PORT
+expect_tls_memcached_running = bool(os.getenv("DOGPILE_TLS_MEMCACHED_PORT"))
 
 LOCK_TIMEOUT = 1
 
@@ -38,9 +44,38 @@ class _TestMemcachedConn(object):
                 raise
 
 
+class _TestTLSMemcachedConn(object):
+    @classmethod
+    def _check_backend_available(cls, backend):
+        try:
+            client = backend._create_client()
+            client.set("x", "y")
+            assert client.get("x") == "y"
+        except Exception:
+            if not expect_tls_memcached_running:
+                pytest.skip(
+                    "TLS memcached is not running or "
+                    "otherwise not functioning correctly"
+                )
+            else:
+                raise
+
+
 class _NonDistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
     config_args = {"arguments": {"url": MEMCACHED_URL}}
+
+
+class _NonDistributedTLSMemcachedTest(
+    _TestTLSMemcachedConn, _GenericBackendTest
+):
+    region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
+    config_args = {
+        "arguments": {
+            "url": TLS_MEMCACHED_URL,
+            "tls_context": TLS_CONTEXT,
+        }
+    }
 
 
 class _DistributedMemcachedWithTimeoutTest(
@@ -93,42 +128,30 @@ class PylibmcDistributedMutexTest(_DistributedMemcachedMutexTest):
     backend = "dogpile.cache.pylibmc"
 
 
-class BMemcachedSkips(object):
-    def test_threaded_dogpile(self):
-        pytest.skip("bmemcached is too unreliable here")
-
-    def test_threaded_get_multi(self):
-        pytest.skip("bmemcached is too unreliable here")
-
-    def test_mutex_threaded_dogpile(self):
-        pytest.skip("bmemcached is too unreliable here")
-
-    def test_mutex_threaded(self):
-        pytest.skip("bmemcached is too unreliable here")
-
-
-class BMemcachedTest(BMemcachedSkips, _NonDistributedMemcachedTest):
+class BMemcachedTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
 
 class BMemcachedDistributedWithTimeoutTest(
-    BMemcachedSkips, _DistributedMemcachedWithTimeoutTest
+    _DistributedMemcachedWithTimeoutTest
 ):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedTest(BMemcachedSkips, _DistributedMemcachedTest):
+class BMemcachedTLSTest(_NonDistributedTLSMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedMutexTest(
-    BMemcachedSkips, _DistributedMemcachedMutexTest
-):
+class BMemcachedDistributedTest(_DistributedMemcachedTest):
+    backend = "dogpile.cache.bmemcached"
+
+
+class BMemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
     backend = "dogpile.cache.bmemcached"
 
 
 class BMemcachedDistributedMutexWithTimeoutTest(
-    BMemcachedSkips, _DistributedMemcachedMutexWithTimeoutTest
+    _DistributedMemcachedMutexWithTimeoutTest
 ):
     backend = "dogpile.cache.bmemcached"
 
