@@ -1,5 +1,6 @@
 import os
 from threading import Thread
+import ssl
 import time
 from unittest import TestCase
 import weakref
@@ -17,6 +18,11 @@ from ._fixtures import _GenericMutexTest
 MEMCACHED_PORT = os.getenv("DOGPILE_MEMCACHED_PORT", "11211")
 MEMCACHED_URL = "127.0.0.1:%s" % MEMCACHED_PORT
 expect_memcached_running = bool(os.getenv("DOGPILE_MEMCACHED_PORT"))
+
+TLS_CONTEXT = ssl.create_default_context(cafile="tests/tls/ca-root.crt")
+TLS_MEMCACHED_PORT = os.getenv("DOGPILE_TLS_MEMCACHED_PORT", "11212")
+TLS_MEMCACHED_URL = "localhost:%s" % TLS_MEMCACHED_PORT
+expect_tls_memcached_running = bool(os.getenv("DOGPILE_TLS_MEMCACHED_PORT"))
 
 LOCK_TIMEOUT = 1
 
@@ -41,6 +47,16 @@ class _TestMemcachedConn(object):
 class _NonDistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
     config_args = {"arguments": {"url": MEMCACHED_URL}}
+
+
+class _NonDistributedTLSMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
+    region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
+    config_args = {
+        "arguments": {
+            "url": TLS_MEMCACHED_URL,
+            "tls_context": TLS_CONTEXT,
+        }
+    }
 
 
 class _DistributedMemcachedWithTimeoutTest(
@@ -100,6 +116,10 @@ class BMemcachedTest(_NonDistributedMemcachedTest):
 class BMemcachedDistributedWithTimeoutTest(
     _DistributedMemcachedWithTimeoutTest
 ):
+    backend = "dogpile.cache.bmemcached"
+
+
+class BMemcachedTLSTest(_NonDistributedTLSMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
 
