@@ -23,11 +23,11 @@ class _TestRedisConn(object):
     @classmethod
     def _check_backend_available(cls, backend):
         try:
-            client = backend._create_client()
-            client.set("x", "y")
+            backend._create_client()
+            backend.set("x", "y")
             # on py3k it appears to return b"y"
-            assert client.get("x").decode("ascii") == "y"
-            client.delete("x")
+            assert backend.get("x") == "y"
+            backend.delete("x")
         except Exception:
             if not expect_redis_running:
                 pytest.skip(
