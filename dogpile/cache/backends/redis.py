@@ -8,12 +8,11 @@ Provides backends for talking to `Redis <http://redis.io>`_.
 
 from __future__ import absolute_import
 
+import pickle
 import warnings
 
 from ..api import CacheBackend
 from ..api import NO_VALUE
-from ...util.compat import pickle
-from ...util.compat import u
 
 redis = None
 
@@ -162,7 +161,7 @@ class RedisBackend(CacheBackend):
     def get_mutex(self, key):
         if self.distributed_lock:
             return self.writer_client.lock(
-                u("_lock{0}").format(key),
+                "_lock{0}".format(key),
                 timeout=self.lock_timeout,
                 sleep=self.lock_sleep,
                 thread_local=self.thread_local_lock,

@@ -1,5 +1,7 @@
 from collections import defaultdict
+import configparser
 import datetime
+import io
 import itertools
 import time
 from unittest import TestCase
@@ -17,11 +19,8 @@ from dogpile.cache.proxy import ProxyBackend
 from dogpile.cache.region import _backend_loader
 from dogpile.cache.region import RegionInvalidationStrategy
 from dogpile.cache.region import value_version
-from dogpile.util import compat
 from . import assert_raises_message
-from . import configparser
 from . import eq_
-from . import io
 from . import is_
 from ._fixtures import MockBackend
 
@@ -69,7 +68,8 @@ class RegionTest(TestCase):
 
         my_region = make_region()
         config = configparser.ConfigParser()
-        compat.read_config_file(config, io.StringIO(my_conf))
+
+        config.read_file(io.StringIO(my_conf))
 
         my_region.configure_from_config(
             dict(config.items("xyz")), "cache.example."

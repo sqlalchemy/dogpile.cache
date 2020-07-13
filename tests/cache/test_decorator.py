@@ -8,7 +8,6 @@ from dogpile.cache import util
 from dogpile.cache.api import NO_VALUE
 from dogpile.util import compat
 from . import eq_
-from . import requires_py3k
 from . import winsleep
 from ._fixtures import _GenericBackendFixture
 
@@ -362,9 +361,7 @@ class KeyGenerationTest(TestCase):
         assert isinstance(gen("foo"), str)
 
     def test_unicode_key(self):
-        decorate, canary = self._keygen_decorator(
-            "mynamespace", to_str=compat.text_type
-        )
+        decorate, canary = self._keygen_decorator("mynamespace", to_str=str)
 
         @decorate
         def one(a, b):
@@ -373,16 +370,13 @@ class KeyGenerationTest(TestCase):
         gen = canary[0]
 
         eq_(
-            gen(compat.u("méil"), compat.u("drôle")),
-            compat.ue(
-                "tests.cache.test_decorator:"
-                "one|mynamespace|m\xe9il dr\xf4le"
-            ),
+            gen("méil", "drôle"),
+            "tests.cache.test_decorator:one|mynamespace|m\xe9il dr\xf4le",
         )
 
     def test_unicode_key_kwarg_generator(self):
         decorate, canary = self._kwarg_keygen_decorator(
-            "mynamespace", to_str=compat.text_type
+            "mynamespace", to_str=str
         )
 
         @decorate
@@ -392,16 +386,13 @@ class KeyGenerationTest(TestCase):
         gen = canary[0]
 
         eq_(
-            gen(compat.u("méil"), compat.u("drôle")),
-            compat.ue(
-                "tests.cache.test_decorator:"
-                "one|mynamespace|m\xe9il dr\xf4le"
-            ),
+            gen("méil", "drôle"),
+            "tests.cache.test_decorator:one|mynamespace|m\xe9il dr\xf4le",
         )
 
     def test_unicode_key_multi(self):
         decorate, canary = self._multi_keygen_decorator(
-            "mynamespace", to_str=compat.text_type
+            "mynamespace", to_str=str
         )
 
         @decorate
@@ -411,22 +402,15 @@ class KeyGenerationTest(TestCase):
         gen = canary[0]
 
         eq_(
-            gen(compat.u("méil"), compat.u("drôle")),
+            gen("méil", "drôle"),
             [
-                compat.ue(
-                    "tests.cache.test_decorator:one|mynamespace|m\xe9il"
-                ),
-                compat.ue(
-                    "tests.cache.test_decorator:one|mynamespace|dr\xf4le"
-                ),
+                "tests.cache.test_decorator:one|mynamespace|m\xe9il",
+                "tests.cache.test_decorator:one|mynamespace|dr\xf4le",
             ],
         )
 
-    @requires_py3k
     def test_unicode_key_by_default(self):
-        decorate, canary = self._keygen_decorator(
-            "mynamespace", to_str=compat.text_type
-        )
+        decorate, canary = self._keygen_decorator("mynamespace", to_str=str)
 
         @decorate
         def one(a, b):
@@ -441,10 +425,9 @@ class KeyGenerationTest(TestCase):
             "tests.cache.test_decorator:" "one|mynamespace|m\xe9il dr\xf4le",
         )
 
-    @requires_py3k
     def test_unicode_key_by_default_kwarg_generator(self):
         decorate, canary = self._kwarg_keygen_decorator(
-            "mynamespace", to_str=compat.text_type
+            "mynamespace", to_str=str
         )
 
         @decorate

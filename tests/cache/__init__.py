@@ -1,12 +1,6 @@
-from functools import wraps
 import re
+import sys
 import time
-
-import pytest
-
-from dogpile.util import compat
-from dogpile.util.compat import configparser  # noqa
-from dogpile.util.compat import io  # noqa
 
 
 def eq_(a, b, msg=None):
@@ -36,15 +30,5 @@ def winsleep():
     # sleep a for an amount of time
     # sufficient for windows time.time()
     # to change
-    if compat.win32:
+    if sys.platform.startswith("win"):
         time.sleep(0.001)
-
-
-def requires_py3k(fn):
-    @wraps(fn)
-    def wrap(*arg, **kw):
-        if compat.py2k:
-            pytest.skip("Python 3 required")
-        return fn(*arg, **kw)
-
-    return wrap

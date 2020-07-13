@@ -1,13 +1,12 @@
 import collections
 import re
-
-from . import compat
+import threading
 
 
 def coerce_string_conf(d):
     result = {}
     for k, v in d.items():
-        if not isinstance(v, compat.string_types):
+        if not isinstance(v, str):
             result[k] = v
             continue
 
@@ -99,7 +98,7 @@ class KeyReentrantMutex(object):
         return fac
 
     def acquire(self, wait=True):
-        current_thread = compat.threading.current_thread().ident
+        current_thread = threading.current_thread().ident
         keys = self.keys.get(current_thread)
         if keys is not None and self.key not in keys:
             # current lockholder, new key. add it in
@@ -113,7 +112,7 @@ class KeyReentrantMutex(object):
             return False
 
     def release(self):
-        current_thread = compat.threading.current_thread().ident
+        current_thread = threading.current_thread().ident
         keys = self.keys.get(current_thread)
         assert keys is not None, "this thread didn't do the acquire"
         assert self.key in keys, "No acquire held for key '%s'" % self.key
