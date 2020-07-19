@@ -1,5 +1,0 @@
-.. change::
-   :tags: feature
-
-   Improved plugin scanner performance by switching from pkg_resources
-   to stevedore.

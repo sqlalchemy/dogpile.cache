@@ -4,7 +4,27 @@ Changelog
 
 .. changelog::
     :version: 1.0.0
-    :include_notes_from: unreleased
+    :released: Sun Jul 19 2020
+
+    .. change::
+        :tags: change: py3k
+
+        For version 1.0.0, dogpile.cache now supports Python 3.5 and above
+        only.
+
+
+    .. change::
+       :tags: feature
+
+       Improved plugin scanner performance by switching from pkg_resources
+       to stevedore.
+
+    .. change::
+        :tags: feature, redis
+        :tickets: 181
+
+        Added support for Redis Sentinel.  Pull request courtesy Stéphane Brunner.
+        See :class:`.RedisSentinelBackend`.
 
 .. changelog::
     :version: 0.9.2

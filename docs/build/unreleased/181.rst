@@ -1,6 +1,0 @@
-.. change::
-    :tags: feature, redis
-    :tickets: 181
-
-    Added support for Redis Sentinel.  Pull request courtesy Stéphane Brunner.
-    See :class:`.RedisSentinelBackend`.
