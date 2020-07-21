@@ -1,7 +1,0 @@
-.. change::
-    :tags: bug, installation
-    :tickets: 185
-
-    Removed the "universal=1" directive from setup.cfg as this would create
-    py2/py3 wheels.   dogpile 1.0.x is Python 3 only so a py3-only wheel is now
-    created.

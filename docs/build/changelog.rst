@@ -4,7 +4,24 @@ Changelog
 
 .. changelog::
     :version: 1.0.1
-    :include_notes_from: unreleased
+    :released: Tue Jul 21 2020
+
+    .. change::
+        :tags: bug, install
+        :tickets: 184
+
+        dogpile.cache 1.0.0 was released with a minimum Python version of 3.5.
+        However, due to a dependency issue, the minimum version is now Python 3.6.
+        The 1.0.0 release will be removed from PyPI so that Python versions prior
+        to 3.6 will continue to make use of the previous dogpile.cache 0.9.2.
+
+    .. change::
+        :tags: bug, installation
+        :tickets: 185
+
+        Removed the "universal=1" directive from setup.cfg as this would create
+        py2/py3 wheels.   dogpile 1.0.x is Python 3 only so a py3-only wheel is now
+        created.
 
 .. changelog::
     :version: 1.0.0

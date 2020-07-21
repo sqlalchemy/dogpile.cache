@@ -1,8 +1,0 @@
-.. change::
-    :tags: bug, install
-    :tickets: 184
-
-    dogpile.cache 1.0.0 was released with a minimum Python version of 3.5.
-    However, due to a dependency issue, the minimum version is now Python 3.6.
-    The 1.0.0 release will be removed from PyPI so that Python versions prior
-    to 3.6 will continue to make use of the previous dogpile.cache 0.9.2.
