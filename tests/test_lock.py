@@ -3,9 +3,8 @@ import logging
 import math
 import threading
 import time
+from unittest import mock
 from unittest import TestCase
-
-import mock
 
 from dogpile import Lock
 from dogpile import NeedRegenerationException

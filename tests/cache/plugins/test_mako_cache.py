@@ -1,8 +1,8 @@
+from unittest import mock
 from unittest import TestCase
 
 from mako.cache import register_plugin
 from mako.template import Template
-import mock
 import pytest
 
 from .. import eq_
