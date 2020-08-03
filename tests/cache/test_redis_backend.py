@@ -3,9 +3,9 @@ import os
 from threading import Event
 import time
 from unittest import TestCase
+from unittest.mock import Mock
+from unittest.mock import patch
 
-from mock import Mock
-from mock import patch
 import pytest
 
 from dogpile.cache.region import _backend_loader

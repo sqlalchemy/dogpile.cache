@@ -4,9 +4,8 @@ import datetime
 import io
 import itertools
 import time
+from unittest import mock
 from unittest import TestCase
-
-import mock
 
 from dogpile.cache import CacheRegion
 from dogpile.cache import exception
