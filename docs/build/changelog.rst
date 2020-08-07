@@ -4,7 +4,22 @@ Changelog
 
 .. changelog::
     :version: 1.0.2
-    :include_notes_from: unreleased
+    :released: Fri Aug 7 2020
+
+    .. change::
+        :tags: feature, memcached
+        :tickets: 173
+
+        Added support for TLS connections to the bmemcached backend.  Pull request
+        courtesy Moisés Guimarães de Medeiros.
+
+    .. change::
+        :tags: bug, installation
+
+        Repaired the setup.cfg file so that the source and wheel distributions will
+        not add the "tests" directory to the Python environment.   Pull request
+        courtesy Michał Górny.
+
 
 .. changelog::
     :version: 1.0.1
