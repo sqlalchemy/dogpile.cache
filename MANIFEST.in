@@ -1,5 +1,5 @@
 recursive-include docs *.html *.css *.txt *.js *.jpg *.png *.py Makefile *.rst *.sty
-recursive-include tests *.py *.dat
+recursive-include tests *.py *.dat *.crt *.pem *.key *.sh
 
 include README* LICENSE CHANGES* log_tests.ini tox.ini hash_port.py
 
