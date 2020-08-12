@@ -299,9 +299,21 @@ class BMemcachedBackend(GenericMemcachedBackend):
     python-binary-memcached>`_
     memcached client.
 
-    This is a pure Python memcached client which
-    includes the ability to authenticate with a memcached
-    server using SASL.
+    This is a pure Python memcached client which includes
+    security features like SASL and SSL/TLS.
+
+    SASL is a standard for adding authentication mechanisms
+    to protocols in a way that is protocol independent.
+
+    SSL/TLS is a security layer on end-to-end communication.
+    It provides following benefits:
+
+    * Encryption: Data is encrypted on the wire between
+      Memcached client and server.
+    * Authentication: Optionally, both server and client
+      authenticate each other.
+    * Integrity: Data is not tampered or altered when
+      transmitted between client and server
 
     A typical configuration using username/password::
 
@@ -316,6 +328,25 @@ class BMemcachedBackend(GenericMemcachedBackend):
                 'password':'tiger'
             }
         )
+
+    A typical configuration using tls_context::
+
+        import ssl
+        from dogpile.cache import make_region
+
+        ctx = ssl.create_default_context(cafile="/path/to/my-ca.pem")
+
+        region = make_region().configure(
+            'dogpile.cache.bmemcached',
+            expiration_time = 3600,
+            arguments = {
+                'url':["127.0.0.1"],
+                'tls_context':ctx,
+            }
+        )
+
+    For advanced ways to configure TLS creating a more complex
+    tls_context visit https://docs.python.org/3/library/ssl.html
 
     Arguments which can be passed to the ``arguments``
     dictionary include:
