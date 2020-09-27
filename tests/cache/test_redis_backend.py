@@ -1,3 +1,4 @@
+import pickle
 from concurrent.futures import ThreadPoolExecutor
 import os
 from threading import Event
@@ -46,6 +47,19 @@ class RedisTest(_TestRedisConn, _GenericBackendTest):
             "port": REDIS_PORT,
             "db": 0,
             "foo": "barf",
+        }
+    }
+
+
+class RedisCustomPickleParamsTest(_TestRedisConn, _GenericBackendTest):
+    backend = "dogpile.cache.redis"
+    config_args = {
+        "arguments": {
+            "host": REDIS_HOST,
+            "port": REDIS_PORT,
+            "db": 0,
+            "pickler": lambda value: b'XX' + pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL),
+            "unpickler": lambda value: pickle.loads(value[2:]),
         }
     }
 

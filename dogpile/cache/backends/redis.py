@@ -114,6 +114,8 @@ class RedisBackend(CacheBackend):
         self.lock_timeout = arguments.get("lock_timeout", None)
         self.lock_sleep = arguments.get("lock_sleep", 0.1)
         self.thread_local_lock = arguments.get("thread_local_lock", True)
+        self.pickler = arguments.get("pickler", pickle.dumps)
+        self.unpickler = arguments.get("unpickler", pickle.loads)
 
         if self.distributed_lock and self.thread_local_lock:
             warnings.warn(
@@ -173,29 +175,29 @@ class RedisBackend(CacheBackend):
         value = self.reader_client.get(key)
         if value is None:
             return NO_VALUE
-        return pickle.loads(value)
+        return self.unpickler(value)
 
     def get_multi(self, keys):
         if not keys:
             return []
         values = self.reader_client.mget(keys)
-        return [pickle.loads(v) if v is not None else NO_VALUE for v in values]
+        return [self.unpickler(v) if v is not None else NO_VALUE for v in values]
 
     def set(self, key, value):
         if self.redis_expiration_time:
             self.writer_client.setex(
                 key,
                 self.redis_expiration_time,
-                pickle.dumps(value, pickle.HIGHEST_PROTOCOL),
+                self.pickler(value),
             )
         else:
             self.writer_client.set(
-                key, pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+                key, self.pickler(value)
             )
 
     def set_multi(self, mapping):
         mapping = dict(
-            (k, pickle.dumps(v, pickle.HIGHEST_PROTOCOL))
+            (k, self.pickler(v))
             for k, v in mapping.items()
         )
 
