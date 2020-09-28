@@ -58,7 +58,9 @@ class RedisCustomPickleParamsTest(_TestRedisConn, _GenericBackendTest):
             "host": REDIS_HOST,
             "port": REDIS_PORT,
             "db": 0,
-            "pickler": lambda value: b'XX' + pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL),
+            "pickler": lambda value: (
+                b"XX" + pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+            ),
             "unpickler": lambda value: pickle.loads(value[2:]),
         }
     }
