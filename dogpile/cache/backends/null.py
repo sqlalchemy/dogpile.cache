@@ -38,9 +38,6 @@ class NullBackend(CacheBackend):
 
     """
 
-    def __init__(self, arguments):
-        pass
-
     def get_mutex(self, key):
         return NullLock()
 

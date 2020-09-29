@@ -140,6 +140,13 @@ class DBMBackend(CacheBackend):
     """
 
     def __init__(self, arguments):
+        super().__init__(
+            {
+                "pickler": pickle.dumps,
+                "unpickler": pickle.loads,
+                **arguments
+            },
+        )
         self.filename = os.path.abspath(
             os.path.normpath(arguments["filename"])
         )

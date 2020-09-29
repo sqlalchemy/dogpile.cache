@@ -1,6 +1,10 @@
 import operator
 
 
+def _noop(x):
+    return x
+
+
 class NoValue(object):
     """Describe a missing cache value.
 
@@ -75,7 +79,29 @@ class CacheBackend(object):
          passed to :func:`.make_registry`.
 
         """
-        raise NotImplementedError()
+        # TODO: We can probably use a better name than pickler/unpickler,
+        #  as pickle is just one of the possible protocols to use
+        #  Maybe use just one single object, like Serializer, and delegate to it
+
+        # For example, it could look like this:
+        # class AConcreteBackend(CacheBackend):
+        #     def set(self, key, value):
+        #         value = self.serializer.serialize(value)
+        #         self.client.set(key, value)
+        #     def get(self, key):
+        #         value = self.client.get(key)
+        #         return self.serializer.deserialize(value)
+
+        pickler = arguments.get("pickler")
+        if pickler is None:
+            pickler = _noop
+
+        unpickler = arguments.get("unpickler")
+        if unpickler is None:
+            unpickler = _noop
+
+        self.pickler = pickler
+        self.unpickler = unpickler
 
     @classmethod
     def from_config_dict(cls, config_dict, prefix):

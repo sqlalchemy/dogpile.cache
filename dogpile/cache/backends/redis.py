@@ -101,6 +101,13 @@ class RedisBackend(CacheBackend):
     """
 
     def __init__(self, arguments):
+        super().__init__(
+            {
+                "pickler": pickle.dumps,
+                "unpickler": pickle.loads,
+                **arguments
+            },
+        )
         arguments = arguments.copy()
         self._imports()
         self.url = arguments.pop("url", None)
@@ -114,8 +121,6 @@ class RedisBackend(CacheBackend):
         self.lock_timeout = arguments.get("lock_timeout", None)
         self.lock_sleep = arguments.get("lock_sleep", 0.1)
         self.thread_local_lock = arguments.get("thread_local_lock", True)
-        self.pickler = arguments.get("pickler", pickle.dumps)
-        self.unpickler = arguments.get("unpickler", pickle.loads)
 
         if self.distributed_lock and self.thread_local_lock:
             warnings.warn(
@@ -290,6 +295,7 @@ class RedisSentinelBackend(RedisBackend):
     """
 
     def __init__(self, arguments):
+        # TODO: Call super(), so that pickler, unpickler are correctly initialized
         arguments = arguments.copy()
         self._imports()
         self.password = arguments.pop("password", None)

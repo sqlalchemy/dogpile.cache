@@ -56,6 +56,7 @@ class ProxyBackend(CacheBackend):
     """
 
     def __init__(self, *args, **kwargs):
+        super().__init__({})
         self.proxied = None
 
     def wrap(self, backend):

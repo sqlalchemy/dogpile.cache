@@ -50,36 +50,31 @@ class MemoryBackend(CacheBackend):
 
     """
 
-    pickle_values = False
-
     def __init__(self, arguments):
+        super().__init__(arguments)
         self._cache = arguments.pop("cache_dict", {})
 
     def get(self, key):
         value = self._cache.get(key, NO_VALUE)
-        if value is not NO_VALUE and self.pickle_values:
-            value = pickle.loads(value)
+        if value is not NO_VALUE:
+            value = self.unpickler(value)
         return value
 
     def get_multi(self, keys):
-        ret = [self._cache.get(key, NO_VALUE) for key in keys]
-        if self.pickle_values:
-            ret = [
-                pickle.loads(value) if value is not NO_VALUE else value
-                for value in ret
-            ]
-        return ret
+        raw_values = [self._cache.get(key, NO_VALUE) for key in keys]
+        values = [
+            self.unpickler(value) if value is not NO_VALUE else value
+            for value in raw_values
+        ]
+        return values
 
     def set(self, key, value):
-        if self.pickle_values:
-            value = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+        value = self.pickler(value)
         self._cache[key] = value
 
     def set_multi(self, mapping):
-        pickle_values = self.pickle_values
         for key, value in mapping.items():
-            if pickle_values:
-                value = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+            value = self.pickler(value)
             self._cache[key] = value
 
     def delete(self, key):
@@ -122,4 +117,11 @@ class MemoryPickleBackend(MemoryBackend):
 
     """
 
-    pickle_values = True
+    def __init__(self, arguments):
+        super().__init__(
+            {
+                "pickler": pickle.dumps,
+                "unpickler": pickle.loads,
+                **arguments
+            },
+        )
