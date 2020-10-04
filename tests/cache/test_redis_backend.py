@@ -51,7 +51,8 @@ class RedisTest(_TestRedisConn, _GenericBackendTest):
     }
 
 
-class RedisCustomPickleParamsTest(_TestRedisConn, _GenericBackendTest):
+# TODO: This can probably be a test that we should run for every backend
+class RedisCustomSerializerTest(_TestRedisConn, _GenericBackendTest):
     backend = "dogpile.cache.redis"
     config_args = {
         "arguments": {
