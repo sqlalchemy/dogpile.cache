@@ -112,8 +112,9 @@ class GenericMemcachedBackend(CacheBackend):
     to the :meth:`set` method."""
 
     def __init__(self, arguments):
-        # No need to override serializer, as all the memcached libraries will do it.
-        # Still, we support customizing the serializer/deserializer to use better default pickle protocol
+        # No need to override serializer, as all the memcached libraries
+        # handles that themselves. Still, we support customizing the
+        # serializer/deserializer to use better default pickle protocol
         # or completely different serialization mechanism
 
         super().__init__(arguments)
