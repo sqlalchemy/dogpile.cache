@@ -295,30 +295,20 @@ class RedisSentinelBackend(RedisBackend):
     """
 
     def __init__(self, arguments):
-        # TODO: Call super(), so that serializer, deserializer are correctly initialized
         arguments = arguments.copy()
-        self._imports()
-        self.password = arguments.pop("password", None)
-        self.db = arguments.pop("db", 0)
-        self.distributed_lock = arguments.get("distributed_lock", True)
-        self.socket_timeout = arguments.pop("socket_timeout", None)
+
         self.sentinels = arguments.pop("sentinels", None)
         self.service_name = arguments.pop("service_name", "mymaster")
         self.sentinel_kwargs = arguments.pop("sentinel_kwargs", {})
         self.connection_kwargs = arguments.pop("connection_kwargs", {})
 
-        self.lock_timeout = arguments.get("lock_timeout", None)
-        self.lock_sleep = arguments.get("lock_sleep", 0.1)
-        self.thread_local_lock = arguments.get("thread_local_lock", False)
-
-        if self.distributed_lock and self.thread_local_lock:
-            warnings.warn(
-                "The Redis backend thread_local_lock parameter should be "
-                "set to False when distributed_lock is True"
-            )
-
-        self.redis_expiration_time = arguments.pop("redis_expiration_time", 0)
-        self._create_client()
+        super().__init__(
+            arguments={
+                "distributed_lock": True,
+                "thread_local_lock": False,
+                 **arguments
+            },
+        )
 
     def _imports(self):
         # defer imports until backend is used

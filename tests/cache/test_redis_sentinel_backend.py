@@ -1,3 +1,4 @@
+import pickle
 from concurrent.futures import ThreadPoolExecutor
 import os
 from threading import Event
@@ -21,7 +22,6 @@ class _TestRedisSentinelConn(object):
     @classmethod
     def _check_backend_available(cls, backend):
         try:
-            backend._create_client()
             backend.set("x", "y")
             # on py3k it appears to return b"y"
             assert backend.get("x") == "y"
@@ -44,6 +44,22 @@ class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTest):
             "service_name": "pifpaf",
             "db": 0,
             "distributed_lock": False,
+        }
+    }
+
+
+class RedisSentinelCustomSerializerTest(_TestRedisSentinelConn, _GenericBackendTest):
+    backend = "dogpile.cache.redis"
+    config_args = {
+        "arguments": {
+            "sentinels": [[REDIS_HOST, REDIS_PORT]],
+            "service_name": "pifpaf",
+            "db": 0,
+            "distributed_lock": False,
+            "serializer": lambda value: (
+                b"XX" + pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+            ),
+            "deserializer": lambda value: pickle.loads(value[2:]),
         }
     }
 

@@ -24,7 +24,6 @@ class _TestRedisConn(object):
     @classmethod
     def _check_backend_available(cls, backend):
         try:
-            backend._create_client()
             backend.set("x", "y")
             # on py3k it appears to return b"y"
             assert backend.get("x") == "y"
