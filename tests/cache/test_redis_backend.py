@@ -1,6 +1,6 @@
-import pickle
 from concurrent.futures import ThreadPoolExecutor
 import os
+import pickle
 from threading import Event
 import time
 from unittest import TestCase
