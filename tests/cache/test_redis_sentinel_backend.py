@@ -18,7 +18,6 @@ expect_redis_running = os.getenv("DOGPILE_REDIS_SENTINEL_PORT") is not None
 
 
 class _TestRedisSentinelConn(object):
-
     @classmethod
     def _check_backend_available(cls, backend):
         try:
@@ -48,7 +47,9 @@ class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTest):
     }
 
 
-class RedisSentinelCustomSerializerTest(_TestRedisSentinelConn, _GenericBackendTest):
+class RedisSentinelCustomSerializerTest(
+    _TestRedisSentinelConn, _GenericBackendTest
+):
     backend = "dogpile.cache.redis"
     config_args = {
         "arguments": {

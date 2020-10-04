@@ -105,7 +105,7 @@ class RedisBackend(CacheBackend):
             {
                 "serializer": pickle.dumps,
                 "deserializer": pickle.loads,
-                **arguments
+                **arguments,
             },
         )
         arguments = arguments.copy()
@@ -186,25 +186,20 @@ class RedisBackend(CacheBackend):
         if not keys:
             return []
         values = self.reader_client.mget(keys)
-        return [self.deserializer(v) if v is not None else NO_VALUE for v in values]
+        return [
+            self.deserializer(v) if v is not None else NO_VALUE for v in values
+        ]
 
     def set(self, key, value):
         if self.redis_expiration_time:
             self.writer_client.setex(
-                key,
-                self.redis_expiration_time,
-                self.serializer(value),
+                key, self.redis_expiration_time, self.serializer(value),
             )
         else:
-            self.writer_client.set(
-                key, self.serializer(value)
-            )
+            self.writer_client.set(key, self.serializer(value))
 
     def set_multi(self, mapping):
-        mapping = dict(
-            (k, self.serializer(v))
-            for k, v in mapping.items()
-        )
+        mapping = dict((k, self.serializer(v)) for k, v in mapping.items())
 
         if not self.redis_expiration_time:
             self.writer_client.mset(mapping)
@@ -306,7 +301,7 @@ class RedisSentinelBackend(RedisBackend):
             arguments={
                 "distributed_lock": True,
                 "thread_local_lock": False,
-                 **arguments
+                **arguments,
             },
         )
 

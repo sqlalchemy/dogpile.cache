@@ -122,6 +122,6 @@ class MemoryPickleBackend(MemoryBackend):
             {
                 "serializer": pickle.dumps,
                 "deserializer": pickle.loads,
-                **arguments
+                **arguments,
             },
         )

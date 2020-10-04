@@ -144,7 +144,7 @@ class DBMBackend(CacheBackend):
             {
                 "serializer": pickle.dumps,
                 "deserializer": pickle.loads,
-                **arguments
+                **arguments,
             },
         )
         self.filename = os.path.abspath(
