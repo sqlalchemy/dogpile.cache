@@ -50,7 +50,7 @@ class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTest):
 class RedisSentinelCustomSerializerTest(
     _TestRedisSentinelConn, _GenericBackendTest
 ):
-    backend = "dogpile.cache.redis"
+    backend = "dogpile.cache.redis_sentinel"
     config_args = {
         "arguments": {
             "sentinels": [[REDIS_HOST, REDIS_PORT]],
