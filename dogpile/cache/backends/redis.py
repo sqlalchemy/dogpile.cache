@@ -103,8 +103,8 @@ class RedisBackend(CacheBackend):
     def __init__(self, arguments):
         super().__init__(
             {
-                "pickler": pickle.dumps,
-                "unpickler": pickle.loads,
+                "serializer": pickle.dumps,
+                "deserializer": pickle.loads,
                 **arguments
             },
         )
@@ -180,29 +180,29 @@ class RedisBackend(CacheBackend):
         value = self.reader_client.get(key)
         if value is None:
             return NO_VALUE
-        return self.unpickler(value)
+        return self.deserializer(value)
 
     def get_multi(self, keys):
         if not keys:
             return []
         values = self.reader_client.mget(keys)
-        return [self.unpickler(v) if v is not None else NO_VALUE for v in values]
+        return [self.deserializer(v) if v is not None else NO_VALUE for v in values]
 
     def set(self, key, value):
         if self.redis_expiration_time:
             self.writer_client.setex(
                 key,
                 self.redis_expiration_time,
-                self.pickler(value),
+                self.serializer(value),
             )
         else:
             self.writer_client.set(
-                key, self.pickler(value)
+                key, self.serializer(value)
             )
 
     def set_multi(self, mapping):
         mapping = dict(
-            (k, self.pickler(v))
+            (k, self.serializer(v))
             for k, v in mapping.items()
         )
 
@@ -295,7 +295,7 @@ class RedisSentinelBackend(RedisBackend):
     """
 
     def __init__(self, arguments):
-        # TODO: Call super(), so that pickler, unpickler are correctly initialized
+        # TODO: Call super(), so that serializer, deserializer are correctly initialized
         arguments = arguments.copy()
         self._imports()
         self.password = arguments.pop("password", None)

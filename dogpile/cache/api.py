@@ -79,29 +79,18 @@ class CacheBackend(object):
          passed to :func:`.make_registry`.
 
         """
-        # TODO: We can probably use a better name than pickler/unpickler,
-        #  as pickle is just one of the possible protocols to use
-        #  Maybe use just one single object, like Serializer, and delegate to it
+        # TODO: Maybe use just one single object, like Serializer, and delegate to it
 
-        # For example, it could look like this:
-        # class AConcreteBackend(CacheBackend):
-        #     def set(self, key, value):
-        #         value = self.serializer.serialize(value)
-        #         self.client.set(key, value)
-        #     def get(self, key):
-        #         value = self.client.get(key)
-        #         return self.serializer.deserialize(value)
+        serializer = arguments.get("serializer")
+        if serializer is None:
+            serializer = _noop
 
-        pickler = arguments.get("pickler")
-        if pickler is None:
-            pickler = _noop
+        deserializer = arguments.get("deserializer")
+        if deserializer is None:
+            deserializer = _noop
 
-        unpickler = arguments.get("unpickler")
-        if unpickler is None:
-            unpickler = _noop
-
-        self.pickler = pickler
-        self.unpickler = unpickler
+        self.serializer = serializer
+        self.deserializer = deserializer
 
     @classmethod
     def from_config_dict(cls, config_dict, prefix):

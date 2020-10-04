@@ -142,8 +142,8 @@ class DBMBackend(CacheBackend):
     def __init__(self, arguments):
         super().__init__(
             {
-                "pickler": pickle.dumps,
-                "unpickler": pickle.loads,
+                "serializer": pickle.dumps,
+                "deserializer": pickle.loads,
                 **arguments
             },
         )
@@ -235,7 +235,7 @@ class DBMBackend(CacheBackend):
                 except KeyError:
                     value = NO_VALUE
             if value is not NO_VALUE:
-                value = pickle.loads(value)
+                value = self.deserializer(value)
             return value
 
     def get_multi(self, keys):
@@ -243,12 +243,12 @@ class DBMBackend(CacheBackend):
 
     def set(self, key, value):
         with self._dbm_file(True) as dbm:
-            dbm[key] = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+            dbm[key] = self.serializer(value)
 
     def set_multi(self, mapping):
         with self._dbm_file(True) as dbm:
             for key, value in mapping.items():
-                dbm[key] = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+                dbm[key] = self.serializer(value)
 
     def delete(self, key):
         with self._dbm_file(True) as dbm:

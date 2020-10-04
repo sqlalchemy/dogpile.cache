@@ -57,24 +57,24 @@ class MemoryBackend(CacheBackend):
     def get(self, key):
         value = self._cache.get(key, NO_VALUE)
         if value is not NO_VALUE:
-            value = self.unpickler(value)
+            value = self.deserializer(value)
         return value
 
     def get_multi(self, keys):
         raw_values = [self._cache.get(key, NO_VALUE) for key in keys]
         values = [
-            self.unpickler(value) if value is not NO_VALUE else value
+            self.deserializer(value) if value is not NO_VALUE else value
             for value in raw_values
         ]
         return values
 
     def set(self, key, value):
-        value = self.pickler(value)
+        value = self.serializer(value)
         self._cache[key] = value
 
     def set_multi(self, mapping):
         for key, value in mapping.items():
-            value = self.pickler(value)
+            value = self.serializer(value)
             self._cache[key] = value
 
     def delete(self, key):
@@ -120,8 +120,8 @@ class MemoryPickleBackend(MemoryBackend):
     def __init__(self, arguments):
         super().__init__(
             {
-                "pickler": pickle.dumps,
-                "unpickler": pickle.loads,
+                "serializer": pickle.dumps,
+                "deserializer": pickle.loads,
                 **arguments
             },
         )
