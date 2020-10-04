@@ -79,7 +79,6 @@ class CacheBackend(object):
          passed to :func:`.make_registry`.
 
         """
-        # TODO: Maybe use just one single object, like Serializer, and delegate to it
 
         serializer = arguments.get("serializer")
         if serializer is None:
