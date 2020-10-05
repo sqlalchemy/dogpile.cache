@@ -252,6 +252,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
                 time.sleep(0.5)
 
         f()
+        # TODO: Is this test doing anything useful, given that we return here?
         return
         threads = [Thread(target=f) for i in range(5)]
         for t in threads:
