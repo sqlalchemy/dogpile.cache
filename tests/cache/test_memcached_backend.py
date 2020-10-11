@@ -13,6 +13,7 @@ from dogpile.cache.backends.memcached import PylibmcBackend
 from . import eq_
 from ._fixtures import _GenericBackendTest
 from ._fixtures import _GenericMutexTest
+from ._fixtures import _GenericSerializerTest
 
 
 MEMCACHED_PORT = os.getenv("DOGPILE_MEMCACHED_PORT", "11211")
@@ -71,10 +72,7 @@ class _NonDistributedTLSMemcachedTest(
 ):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
     config_args = {
-        "arguments": {
-            "url": TLS_MEMCACHED_URL,
-            "tls_context": TLS_CONTEXT,
-        }
+        "arguments": {"url": TLS_MEMCACHED_URL, "tls_context": TLS_CONTEXT}
     }
 
 
@@ -128,6 +126,12 @@ class PylibmcDistributedMutexTest(_DistributedMemcachedMutexTest):
     backend = "dogpile.cache.pylibmc"
 
 
+class PylibmcSerializerTest(
+    _GenericSerializerTest, _NonDistributedMemcachedTest
+):
+    backend = "dogpile.cache.pylibmc"
+
+
 class BMemcachedTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.bmemcached"
 
@@ -156,6 +160,12 @@ class BMemcachedDistributedMutexWithTimeoutTest(
     backend = "dogpile.cache.bmemcached"
 
 
+class BMemcachedSerializerTest(
+    _GenericSerializerTest, _NonDistributedMemcachedTest
+):
+    backend = "dogpile.cache.bmemcached"
+
+
 class MemcachedTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.memcached"
 
@@ -166,6 +176,12 @@ class MemcachedDistributedTest(_DistributedMemcachedTest):
 
 class MemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
     backend = "dogpile.cache.memcached"
+
+
+class MemcachedSerializerTest(
+    _GenericSerializerTest, _NonDistributedMemcachedTest
+):
+    backend = "dogpile.cache.pylibmc"
 
 
 class MockGenericMemcachedBackend(GenericMemcachedBackend):

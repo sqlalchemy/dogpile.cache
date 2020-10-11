@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 import os
-import pickle
 from threading import Event
 import time
 from unittest import TestCase
@@ -11,6 +10,7 @@ from . import eq_
 from ._fixtures import _GenericBackendFixture
 from ._fixtures import _GenericBackendTest
 from ._fixtures import _GenericMutexTest
+from ._fixtures import _GenericSerializerTest
 
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = int(os.getenv("DOGPILE_REDIS_SENTINEL_PORT", "26379"))
@@ -47,22 +47,8 @@ class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTest):
     }
 
 
-class RedisSentinelCustomSerializerTest(
-    _TestRedisSentinelConn, _GenericBackendTest
-):
-    backend = "dogpile.cache.redis_sentinel"
-    config_args = {
-        "arguments": {
-            "sentinels": [[REDIS_HOST, REDIS_PORT]],
-            "service_name": "pifpaf",
-            "db": 0,
-            "distributed_lock": False,
-            "serializer": lambda value: (
-                b"XX" + pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
-            ),
-            "deserializer": lambda value: pickle.loads(value[2:]),
-        }
-    }
+class RedisSerializerTest(_GenericSerializerTest, RedisSentinelTest):
+    pass
 
 
 class RedisSentinelDistributedMutexTest(

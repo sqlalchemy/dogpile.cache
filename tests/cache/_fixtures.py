@@ -1,5 +1,6 @@
 import collections
 import itertools
+import json
 import random
 from threading import Lock
 from threading import Thread
@@ -42,6 +43,7 @@ class _GenericBackendFixture(object):
 
     region_args = {}
     config_args = {}
+    extra_arguments = {}
 
     _region_inst = None
     _backend_inst = None
@@ -73,6 +75,7 @@ class _GenericBackendFixture(object):
         backend_cls = _backend_loader.load(self.backend)
         _config_args = self.config_args.copy()
         arguments = _config_args.get("arguments", {})
+        arguments = {**arguments, **self.extra_arguments}
         self._backend_inst = backend_cls(arguments)
         return self._backend_inst
 
@@ -329,6 +332,41 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         assert_raises_message(
             Exception, "boom", reg.get_or_create, "some_key", boom
         )
+
+
+class _GenericSerializerTest(TestCase):
+    # Inheriting from this class will make test cases
+    # use these serialization arguments
+    extra_arguments = {
+        "serializer": lambda v: json.dumps(v).encode("utf-8"),
+        "deserializer": json.loads,
+    }
+
+    def test_uses_serializer(self):
+        self.extra_arguments = self.extra_arguments.copy()
+        # disable deserializer, so that we can inspect the stored value
+        self.extra_arguments["deserializer"] = None
+        backend = self._backend()
+        value = {"foo": ["bar", 1, False, None]}
+        backend.set("k", value)
+
+        raw = backend.get("k")
+
+        assert isinstance(raw, bytes)
+        assert json.loads(raw) == value
+
+    def test_uses_deserializer(self):
+        self.extra_arguments = self.extra_arguments.copy()
+        self.extra_arguments[
+            "serializer"
+        ] = lambda _: b'{"foo": 42}'  # fixed value, so that we can assert it
+        backend = self._backend()
+        value = {"foo": ["bar", 1, False, None]}
+        backend.set("k", value)
+
+        assert backend.get("k") == {"foo": 42}
+
+    # TODO: test set_multi, get_multi
 
 
 class _GenericMutexTest(_GenericBackendFixture, TestCase):

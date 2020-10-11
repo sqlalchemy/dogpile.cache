@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 import os
-import pickle
 from threading import Event
 import time
 from unittest import TestCase
@@ -14,6 +13,7 @@ from . import eq_
 from ._fixtures import _GenericBackendFixture
 from ._fixtures import _GenericBackendTest
 from ._fixtures import _GenericMutexTest
+from ._fixtures import _GenericSerializerTest
 
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = int(os.getenv("DOGPILE_REDIS_PORT", "6379"))
@@ -50,20 +50,8 @@ class RedisTest(_TestRedisConn, _GenericBackendTest):
     }
 
 
-# TODO: This can probably be a test that we should run for every backend
-class RedisCustomSerializerTest(_TestRedisConn, _GenericBackendTest):
-    backend = "dogpile.cache.redis"
-    config_args = {
-        "arguments": {
-            "host": REDIS_HOST,
-            "port": REDIS_PORT,
-            "db": 0,
-            "serializer": lambda value: (
-                b"XX" + pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
-            ),
-            "deserializer": lambda value: pickle.loads(value[2:]),
-        }
-    }
+class RedisSerializerTest(_GenericSerializerTest, RedisTest):
+    pass
 
 
 class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTest):
