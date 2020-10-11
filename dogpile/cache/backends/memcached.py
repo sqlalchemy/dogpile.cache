@@ -179,14 +179,17 @@ class GenericMemcachedBackend(CacheBackend):
 
     def get_multi(self, keys):
         values = self.client.get_multi(keys)
-        return [NO_VALUE if key not in values else self.deserializer(values[key]) for key in keys]
+        return [
+            NO_VALUE if key not in values else self.deserializer(values[key])
+            for key in keys
+        ]
 
     def set(self, key, value):
         self.client.set(key, self.serializer(value), **self.set_arguments)
 
     def set_multi(self, mapping):
         mapping = {
-            key: self.serializer(value) for key, value in mapping
+            key: self.serializer(value) for key, value in mapping.items()
         }
         self.client.set_multi(mapping, **self.set_arguments)
 
