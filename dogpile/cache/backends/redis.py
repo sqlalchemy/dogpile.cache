@@ -191,12 +191,13 @@ class RedisBackend(CacheBackend):
         ]
 
     def set(self, key, value):
+        serialized = self.serializer(value)
         if self.redis_expiration_time:
             self.writer_client.setex(
-                key, self.redis_expiration_time, self.serializer(value),
+                key, self.redis_expiration_time, serialized,
             )
         else:
-            self.writer_client.set(key, self.serializer(value))
+            self.writer_client.set(key, serialized)
 
     def set_multi(self, mapping):
         mapping = dict((k, self.serializer(v)) for k, v in mapping.items())
