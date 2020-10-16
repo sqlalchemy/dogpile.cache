@@ -24,12 +24,7 @@ __all__ = (
 
 
 class MemcachedLock(object):
-    """Simple distributed lock using memcached.
-
-    This is an adaptation of the lock featured at
-    http://amix.dk/blog/post/19386
-
-    """
+    """Simple distributed lock using memcached."""
 
     def __init__(self, client_fn, key, timeout=0):
         self.client_fn = client_fn
