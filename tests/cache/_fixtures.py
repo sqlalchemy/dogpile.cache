@@ -1,5 +1,6 @@
 import collections
 import itertools
+import json
 import random
 from threading import Lock
 from threading import Thread
@@ -42,6 +43,7 @@ class _GenericBackendFixture(object):
 
     region_args = {}
     config_args = {}
+    extra_arguments = {}
 
     _region_inst = None
     _backend_inst = None
@@ -49,7 +51,15 @@ class _GenericBackendFixture(object):
     _keys = set()
 
     def _region(self, backend=None, region_args={}, config_args={}):
-        _region_args = self.region_args.copy()
+        _region_args = {}
+
+        # TODO: maybe we use a class-level naming convention instead
+        # of a dict here so that arguments merge naturally
+
+        for cls in reversed(self.__class__.__mro__):
+            if "region_args" in cls.__dict__:
+                _region_args.update(cls.__dict__["region_args"])
+
         _region_args.update(**region_args)
         _config_args = self.config_args.copy()
         _config_args.update(config_args)
@@ -73,6 +83,7 @@ class _GenericBackendFixture(object):
         backend_cls = _backend_loader.load(self.backend)
         _config_args = self.config_args.copy()
         arguments = _config_args.get("arguments", {})
+        arguments = {**arguments, **self.extra_arguments}
         self._backend_inst = backend_cls(arguments)
         return self._backend_inst
 
@@ -80,7 +91,7 @@ class _GenericBackendFixture(object):
 class _GenericBackendTest(_GenericBackendFixture, TestCase):
     def test_backend_get_nothing(self):
         backend = self._backend()
-        eq_(backend.get("some_key"), NO_VALUE)
+        eq_(backend.get_serialized("some_key"), NO_VALUE)
 
     def test_backend_delete_nothing(self):
         backend = self._backend()
@@ -88,14 +99,14 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
 
     def test_backend_set_get_value(self):
         backend = self._backend()
-        backend.set("some_key", "some value")
-        eq_(backend.get("some_key"), "some value")
+        backend.set_serialized("some_key", b"some value")
+        eq_(backend.get_serialized("some_key"), b"some value")
 
     def test_backend_delete(self):
         backend = self._backend()
-        backend.set("some_key", "some value")
+        backend.set_serialized("some_key", b"some value")
         backend.delete("some_key")
-        eq_(backend.get("some_key"), NO_VALUE)
+        eq_(backend.get_serialized("some_key"), NO_VALUE)
 
     def test_region_set_get_value(self):
         reg = self._region()
@@ -254,7 +265,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
                 time.sleep(0.5)
 
         f()
-        return
+
         threads = [Thread(target=f) for i in range(5)]
         for t in threads:
             t.start()
@@ -331,6 +342,43 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         assert_raises_message(
             Exception, "boom", reg.get_or_create, "some_key", boom
         )
+
+
+class _GenericSerializerTest(TestCase):
+    # Inheriting from this class will make test cases
+    # use these serialization arguments
+    region_args = {
+        "serializer": lambda v: json.dumps(v).encode("ascii"),
+        "deserializer": json.loads,
+    }
+
+    def test_uses_serializer(self):
+        region = self._region()
+
+        backend = region.backend
+        value = {"foo": ["bar", 1, False, None]}
+        region.set("k", value)
+
+        raw = backend.get_serialized("k")
+
+        assert isinstance(raw, bytes)
+
+        pipe = raw.find(b"|")
+        payload = raw[pipe + 1 :]
+        eq_(payload, self.region_args["serializer"](value))
+        eq_(region._parse_serialized_from_backend(raw).payload, value)
+
+    def test_uses_deserializer(self):
+        region = self._region()
+
+        value = {"foo": ["bar", 1, False, None]}
+        region.set("k", value)
+
+        asserted = region.get("k")
+
+        eq_(asserted, value)
+
+    # TODO: test set_multi, get_multi
 
 
 class _GenericMutexTest(_GenericBackendFixture, TestCase):

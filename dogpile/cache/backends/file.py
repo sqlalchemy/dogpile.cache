@@ -10,17 +10,16 @@ from __future__ import with_statement
 
 from contextlib import contextmanager
 import os
-import pickle
 import threading
 
-from ..api import CacheBackend
+from ..api import BytesBackend
 from ..api import NO_VALUE
 from ... import util
 
 __all__ = ["DBMBackend", "FileLock", "AbstractFileLock"]
 
 
-class DBMBackend(CacheBackend):
+class DBMBackend(BytesBackend):
     """A file-backend using a dbm file to store keys.
 
     Basic usage::
@@ -217,7 +216,7 @@ class DBMBackend(CacheBackend):
             yield dbm
             dbm.close()
 
-    def get(self, key):
+    def get_serialized(self, key):
         with self._dbm_file(False) as dbm:
             if hasattr(dbm, "get"):
                 value = dbm.get(key, NO_VALUE)
@@ -227,21 +226,19 @@ class DBMBackend(CacheBackend):
                     value = dbm[key]
                 except KeyError:
                     value = NO_VALUE
-            if value is not NO_VALUE:
-                value = pickle.loads(value)
             return value
 
-    def get_multi(self, keys):
-        return [self.get(key) for key in keys]
+    def get_serialized_multi(self, keys):
+        return [self.get_serialized(key) for key in keys]
 
-    def set(self, key, value):
+    def set_serialized(self, key, value):
         with self._dbm_file(True) as dbm:
-            dbm[key] = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+            dbm[key] = value
 
-    def set_multi(self, mapping):
+    def set_serialized_multi(self, mapping):
         with self._dbm_file(True) as dbm:
             for key, value in mapping.items():
-                dbm[key] = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+                dbm[key] = value
 
     def delete(self, key):
         with self._dbm_file(True) as dbm:

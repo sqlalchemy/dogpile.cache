@@ -13,6 +13,7 @@ from . import eq_
 from ._fixtures import _GenericBackendFixture
 from ._fixtures import _GenericBackendTest
 from ._fixtures import _GenericMutexTest
+from ._fixtures import _GenericSerializerTest
 
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = int(os.getenv("DOGPILE_REDIS_PORT", "6379"))
@@ -23,10 +24,8 @@ class _TestRedisConn(object):
     @classmethod
     def _check_backend_available(cls, backend):
         try:
-            backend._create_client()
-            backend.set("x", "y")
-            # on py3k it appears to return b"y"
-            assert backend.get("x") == "y"
+            backend.set_serialized("x", b"y")
+            assert backend.get_serialized("x") == b"y"
             backend.delete("x")
         except Exception:
             if not expect_redis_running:
@@ -48,6 +47,10 @@ class RedisTest(_TestRedisConn, _GenericBackendTest):
             "foo": "barf",
         }
     }
+
+
+class RedisSerializerTest(_GenericSerializerTest, RedisTest):
+    pass
 
 
 class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTest):

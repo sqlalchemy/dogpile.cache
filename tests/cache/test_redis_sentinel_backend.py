@@ -4,36 +4,16 @@ from threading import Event
 import time
 from unittest import TestCase
 
-import pytest
-
 from . import eq_
 from ._fixtures import _GenericBackendFixture
 from ._fixtures import _GenericBackendTest
 from ._fixtures import _GenericMutexTest
+from ._fixtures import _GenericSerializerTest
+from .test_redis_backend import _TestRedisConn as _TestRedisSentinelConn
 
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = int(os.getenv("DOGPILE_REDIS_SENTINEL_PORT", "26379"))
 expect_redis_running = os.getenv("DOGPILE_REDIS_SENTINEL_PORT") is not None
-
-
-class _TestRedisSentinelConn(object):
-
-    @classmethod
-    def _check_backend_available(cls, backend):
-        try:
-            backend._create_client()
-            backend.set("x", "y")
-            # on py3k it appears to return b"y"
-            assert backend.get("x") == "y"
-            backend.delete("x")
-        except Exception:
-            if not expect_redis_running:
-                pytest.skip(
-                    "redis is not running or "
-                    "otherwise not functioning correctly"
-                )
-            else:
-                raise
 
 
 class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTest):
@@ -46,6 +26,10 @@ class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTest):
             "distributed_lock": False,
         }
     }
+
+
+class RedisSerializerTest(_GenericSerializerTest, RedisSentinelTest):
+    pass
 
 
 class RedisSentinelDistributedMutexTest(

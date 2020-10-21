@@ -1,0 +1,32 @@
+.. change::
+    :tags: feature, region
+    :tickets: 191
+
+    Reworked the means by which values are serialized and deserialized from
+    backends, and provided for custom serialization of values.  Added the
+    :paramref:`.CacheRegion.serializer` and
+    :paramref:`.CacheRegion.deserializer` parameters which may be set to any
+    serializer.
+
+    Serialization and deserialization now take place within the
+    :class:`.CacheRegion` so that backends may now assume string values
+    in all cases.  This simplifies the existing backends and also makes
+    custom backends easier to write and maintain.
+
+    Additionally, the serializer is now applied to the user-defined value
+    portion of the :class:`.CachedValue` and not to the metadata or other
+    portions of :class:`.CachedValue` object itself, so the serialized portion
+    is effectively a "payload" within the larger :class:`.CachedValue`
+    structure that is passed as part of the larger string format.  The overall
+    format is a separate JSON of the cached value metadata, followed by the
+    serialized form.  This allows for end-user serialization schemes that are
+    hardwired to the values themselves without the need to serialize dogpile's
+    internal structures as well.
+
+    Existing custom backends should continue to work without issue;  they
+    now have the option to forego any separate serialization steps, and
+    can also subclass a new backend :class:`.BytesBackend` that marks them
+    as a backend that only deals with bytes coming in and out; all
+    internal serialization logic from such a backend can be removed.
+
+    Pull request courtesy Alessio Bogon.

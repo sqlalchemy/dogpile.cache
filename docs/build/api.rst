@@ -8,6 +8,7 @@ Region
 
 .. automodule:: dogpile.cache.region
     :members:
+    :show-inheritance:
 
 Backend API
 =============
@@ -18,6 +19,7 @@ how to alter the behavior of existing backends.
 
 .. automodule:: dogpile.cache.api
     :members:
+    :show-inheritance:
 
 
 Backends
@@ -25,33 +27,41 @@ Backends
 
 .. automodule:: dogpile.cache.backends.memory
     :members:
+    :show-inheritance:
 
 .. automodule:: dogpile.cache.backends.memcached
     :members:
+    :show-inheritance:
 
 .. automodule:: dogpile.cache.backends.redis
     :members:
+    :show-inheritance:
 
 .. automodule:: dogpile.cache.backends.file
     :members:
+    :show-inheritance:
 
 .. automodule:: dogpile.cache.proxy
     :members:
+    :show-inheritance:
 
 .. automodule:: dogpile.cache.backends.null
     :members:
+    :show-inheritance:
 
 Exceptions
 ==========
 
 .. automodule:: dogpile.cache.exception
     :members:
+    :show-inheritance:
 
 Plugins
 ========
 
 .. automodule:: dogpile.cache.plugins.mako_cache
     :members:
+    :show-inheritance:
 
 Utilities
 =========

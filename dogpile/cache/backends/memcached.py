@@ -106,6 +106,13 @@ class GenericMemcachedBackend(CacheBackend):
     """Additional arguments which will be passed
     to the :meth:`set` method."""
 
+    # No need to override serializer, as all the memcached libraries
+    # handles that themselves. Still, we support customizing the
+    # serializer/deserializer to use better default pickle protocol
+    # or completely different serialization mechanism
+    serializer = None
+    deserializer = None
+
     def __init__(self, arguments):
         self._imports()
         # using a plain threading.local here.   threading.local
@@ -174,6 +181,7 @@ class GenericMemcachedBackend(CacheBackend):
         self.client.set(key, value, **self.set_arguments)
 
     def set_multi(self, mapping):
+        mapping = {key: value for key, value in mapping.items()}
         self.client.set_multi(mapping, **self.set_arguments)
 
     def delete(self, key):

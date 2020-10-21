@@ -6,6 +6,7 @@ from dogpile.util.readwrite_lock import ReadWriteMutex
 from . import assert_raises_message
 from ._fixtures import _GenericBackendTest
 from ._fixtures import _GenericMutexTest
+from ._fixtures import _GenericSerializerTest
 
 try:
     import fcntl  # noqa
@@ -50,6 +51,12 @@ class DBMBackendConditionTest(_GenericBackendTest):
     config_args = {
         "arguments": {"filename": test_fname, "lock_factory": MutexLock}
     }
+
+
+class DBMBackendSerializerTest(
+    _GenericSerializerTest, DBMBackendConditionTest
+):
+    pass
 
 
 class DBMBackendNoLockTest(_GenericBackendTest):
