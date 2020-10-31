@@ -26,6 +26,6 @@ def is_unittest(obj):
 
 def pytest_pycollect_makeitem(collector, name, obj):
     if is_unittest(obj) and not obj.__name__.startswith("_"):
-        return UnitTestCase(name, parent=collector)
+        return UnitTestCase.from_parent(collector, name=name)
     else:
         return []
