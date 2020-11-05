@@ -184,6 +184,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
 
         eq_(reg.get_or_create("some key", creator), "some value")
 
+    @pytest.mark.time_intensive
     def test_threaded_dogpile(self):
         # run a basic dogpile concurrency test.
         # note the concurrency of dogpile itself
@@ -214,6 +215,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         if not reg.backend.has_lock_timeout():
             assert False not in canary
 
+    @pytest.mark.time_intensive
     def test_threaded_get_multi(self):
         reg = self._region(config_args={"expiration_time": 0.25})
         locks = dict((str(i), Lock()) for i in range(11))
@@ -270,6 +272,7 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         reg.delete("some key")
         eq_(reg.get("some key"), NO_VALUE)
 
+    @pytest.mark.time_intensive
     def test_region_expire(self):
         # TODO: ideally tests like these would not be using actual
         # time(); instead, an artificial function where the increment
@@ -344,6 +347,7 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
         assert ac3
         mutex.release()
 
+    @pytest.mark.time_intensive
     def test_mutex_threaded(self):
         backend = self._backend()
         backend.get_mutex("foo")

@@ -6,6 +6,8 @@ import time
 from unittest import mock
 from unittest import TestCase
 
+import pytest
+
 from dogpile import Lock
 from dogpile import NeedRegenerationException
 from dogpile.util import ReadWriteMutex
@@ -18,9 +20,11 @@ class ConcurrencyTest(TestCase):
 
     _assertion_lock = threading.Lock()
 
+    @pytest.mark.time_intensive
     def test_quick(self):
         self._test_multi(10, 2, 0.5, 50, 0.05, 0.1)
 
+    @pytest.mark.time_intensive
     def test_slow(self):
         self._test_multi(10, 5, 2, 50, 0.1, 0.1)
 
@@ -32,20 +36,25 @@ class ConcurrencyTest(TestCase):
     #        slow_write_time=2
     #    )
 
+    @pytest.mark.time_intensive
     def test_return_while_in_progress(self):
         self._test_multi(10, 5, 2, 50, 1, 0.1)
 
+    @pytest.mark.time_intensive
     def test_get_value_plus_created_long_create(self):
         self._test_multi(10, 2, 2.5, 50, 0.05, 0.1)
 
+    @pytest.mark.time_intensive
     def test_get_value_plus_created_registry_unsafe_cache(self):
         self._test_multi(
             10, 1, 0.6, 100, 0.05, 0.1, cache_expire_time="unsafe"
         )
 
+    @pytest.mark.time_intensive
     def test_get_value_plus_created_registry_safe_cache_quick(self):
         self._test_multi(10, 2, 0.5, 50, 0.05, 0.1, cache_expire_time="safe")
 
+    @pytest.mark.time_intensive
     def test_get_value_plus_created_registry_safe_cache_slow(self):
         self._test_multi(10, 5, 2, 50, 0.1, 0.1, cache_expire_time="safe")
 
