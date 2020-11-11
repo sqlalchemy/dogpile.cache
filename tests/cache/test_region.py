@@ -399,8 +399,9 @@ class RegionTest(TestCase):
         ret = reg.get_or_create_multi([1, 2], creator)
         eq_(ret, [2, 2])
 
-    def test_soft_invalidate_requires_expire_time_get(self):
+    def test_soft_invalidate_requires_expire_time_get_first_call(self):
         reg = self._region()
+
         reg.invalidate(hard=False)
         assert_raises_message(
             exception.DogpileCacheException,
@@ -410,7 +411,20 @@ class RegionTest(TestCase):
             lambda: "x",
         )
 
-    def test_soft_invalidate_requires_expire_time_get_multi(self):
+    def test_soft_invalidate_requires_expire_time_get_second_call(self):
+        reg = self._region()
+        reg.get_or_create("some key", lambda: "x")
+
+        reg.invalidate(hard=False)
+        assert_raises_message(
+            exception.DogpileCacheException,
+            "Non-None expiration time required for soft invalidation",
+            reg.get_or_create,
+            "some key",
+            lambda: "x",
+        )
+
+    def test_soft_invalidate_requires_expire_time_get_multi_first_call(self):
         reg = self._region()
         reg.invalidate(hard=False)
         assert_raises_message(
@@ -418,7 +432,20 @@ class RegionTest(TestCase):
             "Non-None expiration time required for soft invalidation",
             reg.get_or_create_multi,
             ["k1", "k2"],
-            lambda k: "x",
+            lambda *k: ["x" for key in k],
+        )
+
+    def test_soft_invalidate_requires_expire_time_get_multi_second_call(self):
+        reg = self._region()
+        reg.get_or_create_multi(["k1", "k2"], lambda *k: ["x" for key in k])
+
+        reg.invalidate(hard=False)
+        assert_raises_message(
+            exception.DogpileCacheException,
+            "Non-None expiration time required for soft invalidation",
+            reg.get_or_create_multi,
+            ["k1", "k2"],
+            lambda *k: ["x" for key in k],
         )
 
     def test_should_cache_fn(self):

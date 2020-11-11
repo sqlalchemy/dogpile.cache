@@ -9,10 +9,23 @@ Provides backends for talking to `memcached <http://memcached.org>`_.
 import random
 import threading
 import time
+import typing
+from typing import Any
+from typing import Mapping
 
 from ..api import CacheBackend
 from ..api import NO_VALUE
 from ... import util
+
+if typing.TYPE_CHECKING:
+    import memcache
+    import pylibmc
+    import bmemcached
+else:
+    # delayed import
+    memcache = None
+    pylibmc = None
+    bmemcached = None
 
 __all__ = (
     "GenericMemcachedBackend",
@@ -102,7 +115,7 @@ class GenericMemcachedBackend(CacheBackend):
 
     """
 
-    set_arguments = {}
+    set_arguments: Mapping[str, Any] = {}
     """Additional arguments which will be passed
     to the :meth:`set` method."""
 
@@ -191,7 +204,7 @@ class GenericMemcachedBackend(CacheBackend):
         self.client.delete_multi(keys)
 
 
-class MemcacheArgs(object):
+class MemcacheArgs(GenericMemcachedBackend):
     """Mixin which provides support for the 'time' argument to set(),
     'min_compress_len' to other methods.
 

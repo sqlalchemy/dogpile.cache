@@ -9,6 +9,7 @@ Provides backends that deal with local filesystem access.
 from __future__ import with_statement
 
 from contextlib import contextmanager
+import dbm
 import os
 import threading
 
@@ -156,9 +157,6 @@ class DBMBackend(BytesBackend):
             util.KeyReentrantMutex.factory,
         )
 
-        import dbm
-
-        self.dbmmodule = dbm
         self._init_dbm_file()
 
     def _init_lock(self, argument, suffix, basedir, basefile, wrapper=None):
@@ -182,7 +180,7 @@ class DBMBackend(BytesBackend):
                     exists = True
                     break
         if not exists:
-            fh = self.dbmmodule.open(self.filename, "c")
+            fh = dbm.open(self.filename, "c")
             fh.close()
 
     def get_mutex(self, key):
@@ -212,18 +210,17 @@ class DBMBackend(BytesBackend):
     @contextmanager
     def _dbm_file(self, write):
         with self._use_rw_lock(write):
-            dbm = self.dbmmodule.open(self.filename, "w" if write else "r")
-            yield dbm
-            dbm.close()
+            with dbm.open(self.filename, "w" if write else "r") as dbm_obj:
+                yield dbm_obj
 
     def get_serialized(self, key):
-        with self._dbm_file(False) as dbm:
-            if hasattr(dbm, "get"):
-                value = dbm.get(key, NO_VALUE)
+        with self._dbm_file(False) as dbm_obj:
+            if hasattr(dbm_obj, "get"):
+                value = dbm_obj.get(key, NO_VALUE)
             else:
                 # gdbm objects lack a .get method
                 try:
-                    value = dbm[key]
+                    value = dbm_obj[key]
                 except KeyError:
                     value = NO_VALUE
             return value
@@ -232,31 +229,31 @@ class DBMBackend(BytesBackend):
         return [self.get_serialized(key) for key in keys]
 
     def set_serialized(self, key, value):
-        with self._dbm_file(True) as dbm:
-            dbm[key] = value
+        with self._dbm_file(True) as dbm_obj:
+            dbm_obj[key] = value
 
     def set_serialized_multi(self, mapping):
-        with self._dbm_file(True) as dbm:
+        with self._dbm_file(True) as dbm_obj:
             for key, value in mapping.items():
-                dbm[key] = value
+                dbm_obj[key] = value
 
     def delete(self, key):
-        with self._dbm_file(True) as dbm:
+        with self._dbm_file(True) as dbm_obj:
             try:
-                del dbm[key]
+                del dbm_obj[key]
             except KeyError:
                 pass
 
     def delete_multi(self, keys):
-        with self._dbm_file(True) as dbm:
+        with self._dbm_file(True) as dbm_obj:
             for key in keys:
                 try:
-                    del dbm[key]
+                    del dbm_obj[key]
                 except KeyError:
                     pass
 
 
-class AbstractFileLock(object):
+class AbstractFileLock:
     """Coordinate read/write access to a file.
 
     typically is a file-based lock but doesn't necessarily have to be.

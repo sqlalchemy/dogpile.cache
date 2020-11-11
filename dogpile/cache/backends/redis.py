@@ -8,12 +8,17 @@ Provides backends for talking to `Redis <http://redis.io>`_.
 
 from __future__ import absolute_import
 
+import typing
 import warnings
 
 from ..api import BytesBackend
 from ..api import NO_VALUE
 
-redis = None
+if typing.TYPE_CHECKING:
+    import redis
+else:
+    # delayed import
+    redis = None
 
 __all__ = ("RedisBackend", "RedisSentinelBackend")
 

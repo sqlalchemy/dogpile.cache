@@ -46,6 +46,11 @@ ValuePayload = Any
 """An object to be placed in the cache against a key."""
 
 
+KeyManglerType = Callable[[KeyType], KeyType]
+Serializer = Callable[[ValuePayload], bytes]
+Deserializer = Callable[[bytes], ValuePayload]
+
+
 class CacheMutex(abc.ABC):
     """Describes a mutexing object with acquire and release methods.
 
@@ -78,7 +83,7 @@ class CacheMutex(abc.ABC):
     def release(self) -> None:
         """Release the mutex."""
 
-        self.lock.release()
+        raise NotImplementedError()
 
 
 class CachedValue(NamedTuple):
@@ -132,7 +137,7 @@ class CacheBackend:
 
     """
 
-    serializer: Optional[Callable[[ValuePayload], bytes]] = None
+    serializer: Optional[Serializer] = None
     """Serializer function that will be used by default if not overridden
     by the region.
 
@@ -140,7 +145,7 @@ class CacheBackend:
 
     """
 
-    deserializer: Optional[Callable[[bytes], ValuePayload]] = None
+    deserializer: Optional[Deserializer] = None
     """deserializer function that will be used by default if not overridden
     by the region.
 
@@ -405,7 +410,9 @@ class CacheBackend:
         """
         raise NotImplementedError()
 
-    def delete_multi(self, keys: Sequence[KeyType]):  # pragma NO COVERAGE
+    def delete_multi(
+        self, keys: Sequence[KeyType]
+    ) -> None:  # pragma NO COVERAGE
         """Delete multiple values from the cache.
 
         :param keys: sequence of string keys that was passed to the
@@ -424,8 +431,8 @@ class CacheBackend:
 
 
 class DefaultSerialization:
-    serializer: Optional[Callable] = pickle.dumps
-    deserializer: Optional[Callable] = pickle.loads
+    serializer: Optional[Serializer] = pickle.dumps
+    deserializer: Optional[Deserializer] = pickle.loads
 
 
 class BytesBackend(DefaultSerialization, CacheBackend):
