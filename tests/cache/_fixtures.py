@@ -12,6 +12,7 @@ import pytest
 from dogpile.cache import CacheRegion
 from dogpile.cache import register_backend
 from dogpile.cache.api import CacheBackend
+from dogpile.cache.api import CacheMutex
 from dogpile.cache.api import NO_VALUE
 from dogpile.cache.region import _backend_loader
 from . import assert_raises_message
@@ -394,6 +395,12 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
         ac3 = mutex.acquire()
         assert ac3
         mutex.release()
+
+    def test_subclass_match(self):
+        backend = self._backend()
+        mutex = backend.get_mutex("foo")
+
+        assert isinstance(mutex, CacheMutex)
 
     @pytest.mark.time_intensive
     def test_mutex_threaded(self):

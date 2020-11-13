@@ -85,6 +85,10 @@ class CacheMutex(abc.ABC):
 
         raise NotImplementedError()
 
+    @classmethod
+    def __subclasshook__(cls, C):
+        return hasattr(C, "acquire") and hasattr(C, "release")
+
 
 class CachedValue(NamedTuple):
     """Represent a value stored in the cache.

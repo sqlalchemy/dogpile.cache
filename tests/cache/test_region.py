@@ -13,6 +13,7 @@ from dogpile.cache import make_region
 from dogpile.cache import util
 from dogpile.cache.api import CacheBackend
 from dogpile.cache.api import CachedValue
+from dogpile.cache.api import CacheMutex
 from dogpile.cache.api import NO_VALUE
 from dogpile.cache.proxy import ProxyBackend
 from dogpile.cache.region import _backend_loader
@@ -603,6 +604,37 @@ class CustomInvalidationStrategyTest(RegionTest):
 class TestProxyValue(object):
     def __init__(self, value):
         self.value = value
+
+
+class MutexAPITest(TestCase):
+    def test_mutex_non_match(self):
+        assert not isinstance(5, CacheMutex)
+        assert not isinstance("some string", CacheMutex)
+
+        class Foo:
+            def release(self):
+                pass
+
+        assert not isinstance(Foo(), CacheMutex)
+
+        class Bar:
+            def acquire(self):
+                pass
+
+        assert not isinstance(Bar(), CacheMutex)
+
+    def test_mutex_match(self):
+        class Foo:
+            def acquire(self):
+                # note we are missing the "wait" parameter.  not sure
+                # how ABCs are supposed to efficiently test these
+                # things.
+                pass
+
+            def release(self):
+                pass
+
+        assert isinstance(Foo(), CacheMutex)
 
 
 class AsyncCreatorTest(TestCase):
