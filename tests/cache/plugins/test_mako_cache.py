@@ -47,7 +47,7 @@ class TestMakoPlugin(TestCase):
                 </%def>
                 ${mydef()}
                 """,
-            **kw
+            **kw,
         )
         t.render()
         eq_(reg.get_or_create.call_args[1], {"expiration_time": 20})

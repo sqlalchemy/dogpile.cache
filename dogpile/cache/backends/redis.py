@@ -174,7 +174,9 @@ class RedisBackend(BytesBackend):
     def set_serialized(self, key, value):
         if self.redis_expiration_time:
             self.writer_client.setex(
-                key, self.redis_expiration_time, value,
+                key,
+                self.redis_expiration_time,
+                value,
             )
         else:
             self.writer_client.set(key, value)
@@ -307,7 +309,7 @@ class RedisSentinelBackend(RedisBackend):
         sentinel = redis.sentinel.Sentinel(
             self.sentinels,
             sentinel_kwargs=sentinel_kwargs,
-            **connection_kwargs
+            **connection_kwargs,
         )
         self.writer_client = sentinel.master_for(self.service_name)
         self.reader_client = sentinel.slave_for(self.service_name)

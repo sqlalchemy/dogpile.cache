@@ -67,7 +67,7 @@ class ProxyBackend(CacheBackend):
         pass
 
     def wrap(self, backend: CacheBackend) -> "ProxyBackend":
-        """ Take a backend as an argument and setup the self.proxied property.
+        """Take a backend as an argument and setup the self.proxied property.
         Return an object that be used as a backend by a :class:`.CacheRegion`
         object.
         """

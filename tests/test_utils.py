@@ -5,8 +5,7 @@ from dogpile import util
 
 class UtilsTest(TestCase):
 
-    """ Test the relevant utils functionality.
-    """
+    """Test the relevant utils functionality."""
 
     def test_coerce_string_conf(self):
         settings = {"expiration_time": "-1"}
