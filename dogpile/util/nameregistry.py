@@ -44,10 +44,7 @@ class NameRegistry(object):
     _mutex = threading.RLock()
 
     def __init__(self, creator: Callable[..., Any]):
-        """Create a new :class:`.NameRegistry`.
-
-
-        """
+        """Create a new :class:`.NameRegistry`."""
         self._values: MutableMapping[str, Any] = weakref.WeakValueDictionary()
         self._mutex = threading.RLock()
         self.creator = creator

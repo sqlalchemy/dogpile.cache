@@ -462,7 +462,7 @@ class KeyGenerationTest(TestCase):
 
     def test_sha1_key_mangler_unicode_py2k(self):
         eq_(
-            util.sha1_mangle_key(u"some_key"),
+            util.sha1_mangle_key("some_key"),
             "53def077a4264bd3183d4eb21b1f56f883e1b572",
         )
 

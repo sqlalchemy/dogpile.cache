@@ -282,13 +282,17 @@ class ConcurrencyTest(TestCase):
         assert not failures[0], "%s failures occurred" % failures[0]
         assert actual_run_time <= expected_run_time
 
-        assert slow_waiters[0] <= expected_slow_waiters, (
-            "Number of slow waiters %s exceeds expected slow waiters %s"
-            % (slow_waiters[0], expected_slow_waiters)
+        assert (
+            slow_waiters[0] <= expected_slow_waiters
+        ), "Number of slow waiters %s exceeds expected slow waiters %s" % (
+            slow_waiters[0],
+            expected_slow_waiters,
         )
-        assert len(the_resource) <= expected_generations, (
-            "Number of resource generations %d exceeded "
-            "expected %d" % (len(the_resource), expected_generations)
+        assert (
+            len(the_resource) <= expected_generations
+        ), "Number of resource generations %d exceeded " "expected %d" % (
+            len(the_resource),
+            expected_generations,
         )
 
 

@@ -531,9 +531,9 @@ class RegionTest(TestCase):
 
 class ProxyRegionTest(RegionTest):
 
-    """ This is exactly the same as the region test above, but it goes through
+    """This is exactly the same as the region test above, but it goes through
     a dummy proxy.  The purpose of this is to make sure the tests  still run
-    successfully even when there is a proxy """
+    successfully even when there is a proxy"""
 
     class MockProxy(ProxyBackend):
         @property
@@ -737,8 +737,8 @@ class ProxyBackendTest(TestCase):
 
     class NeverSetProxy(ProxyBackend):
 
-        """ A totally contrived example of a Proxy that we pass arguments to.
-        Never set a key that matches never_set """
+        """A totally contrived example of a Proxy that we pass arguments to.
+        Never set a key that matches never_set"""
 
         def __init__(self, never_set, *args, **kwargs):
             super(ProxyBackendTest.NeverSetProxy, self).__init__(

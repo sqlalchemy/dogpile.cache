@@ -1753,7 +1753,7 @@ class CacheRegion:
             key_generator: Callable[..., Sequence[KeyType]],
             user_func: Callable[..., Sequence[ValuePayload]],
             *arg: Any,
-            **kw: Any
+            **kw: Any,
         ) -> Union[Sequence[ValuePayload], Mapping[KeyType, ValuePayload]]:
             cache_keys = arg
             keys = key_generator(*arg, **kw)

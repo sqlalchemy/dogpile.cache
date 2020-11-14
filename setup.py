@@ -19,4 +19,6 @@ class UseTox(TestCommand):
         sys.exit(1)
 
 
-setup(cmdclass={"test": UseTox},)
+setup(
+    cmdclass={"test": UseTox},
+)

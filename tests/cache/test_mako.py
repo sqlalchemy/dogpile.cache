@@ -3,8 +3,7 @@ from unittest import TestCase
 
 class MakoTest(TestCase):
 
-    """ Test entry point for Mako
-    """
+    """Test entry point for Mako"""
 
     def test_entry_point(self):
         import pkg_resources
