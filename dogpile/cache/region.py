@@ -1613,7 +1613,7 @@ class CacheRegion:
     def cache_multi_on_arguments(
         self,
         namespace: Optional[str] = None,
-        expiration_time: Optional[float] = None,
+        expiration_time: Union[float, ExpirationTimeCallable, None] = None,
         should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
         asdict: bool = False,
         to_str: ToStr = str,
@@ -1763,10 +1763,10 @@ class CacheRegion:
             def creator(*keys_to_create):
                 return user_func(*[key_lookup[k] for k in keys_to_create])
 
-            timeout = (
+            timeout: Optional[float] = (
                 cast(ExpirationTimeCallable, expiration_time)()
                 if expiration_time_is_callable
-                else expiration_time
+                else cast(Optional[float], expiration_time)
             )
 
             result: Union[
