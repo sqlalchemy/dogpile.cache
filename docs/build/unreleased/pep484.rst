@@ -1,4 +1,0 @@
-.. change::
-    :tags: change
-
-    Added pep-484 annotations to most of the dogpile.cache package.
