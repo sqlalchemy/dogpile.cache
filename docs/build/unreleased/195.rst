@@ -1,0 +1,9 @@
+.. change::
+    :tags: bug, region
+    :tickets: 195
+
+    Fixed regression where the serialization and deserialization functions
+    could be inadvertently turned into instance methods with an unexpected
+    argument signature, namely when pickle.dumps and pickle.loads are the pure
+    Python version as is the case in pypy.
+
