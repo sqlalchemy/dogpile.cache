@@ -4,7 +4,17 @@ Changelog
 
 .. changelog::
     :version: 1.1.1
-    :include_notes_from: unreleased
+    :released: Mon Nov 23 2020
+
+    .. change::
+        :tags: bug, region
+        :tickets: 195
+
+        Fixed regression where the serialization and deserialization functions
+        could be inadvertently turned into instance methods with an unexpected
+        argument signature, namely when pickle.dumps and pickle.loads are the pure
+        Python version as is the case in pypy.
+
 
 .. changelog::
     :version: 1.1.0
