@@ -169,6 +169,40 @@ class BMemcachedSerializerTest(
     backend = "dogpile.cache.bmemcached"
 
 
+class PyMemcacheTest(_NonDistributedMemcachedTest):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheDistributedWithTimeoutTest(
+    _DistributedMemcachedWithTimeoutTest
+):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheTLSTest(_NonDistributedTLSMemcachedTest):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheDistributedTest(_DistributedMemcachedTest):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheDistributedMutexTest(_DistributedMemcachedMutexTest):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheDistributedMutexWithTimeoutTest(
+    _DistributedMemcachedMutexWithTimeoutTest
+):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheSerializerTest(
+    _GenericSerializerTest, _NonDistributedMemcachedTest
+):
+    backend = "dogpile.cache.pymemcache"
+
+
 class MemcachedTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.memcached"
 

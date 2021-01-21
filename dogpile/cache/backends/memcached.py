@@ -21,16 +21,19 @@ if typing.TYPE_CHECKING:
     import memcache
     import pylibmc
     import bmemcached
+    import pymemcache
 else:
     # delayed import
     memcache = None
     pylibmc = None
     bmemcached = None
+    pymemcache = None
 
 __all__ = (
     "GenericMemcachedBackend",
     "MemcachedBackend",
     "PylibmcBackend",
+    "PyMemcacheBackend",
     "BMemcachedBackend",
     "MemcachedLock",
 )
@@ -417,3 +420,81 @@ class BMemcachedBackend(GenericMemcachedBackend):
         """python-binary-memcached api does not implements delete_multi"""
         for key in keys:
             self.delete(key)
+
+
+pymemcache = None
+
+
+class PyMemcacheBackend(GenericMemcachedBackend):
+    """A backend for the
+    `pymemcache <https://github.com/pinterest/pymemcache>`_
+    memcached client.
+
+    A comprehensive, fast, pure Python memcached client
+
+    pymemcache supports the following features:
+        * Complete implementation of the memcached text protocol.
+        * Configurable timeouts for socket connect and send/recv calls.
+        * Access to the "noreply" flag, which can significantly increase
+          the speed of writes.
+        * Flexible, simple approach to serialization and deserialization.
+        * The (optional) ability to treat network and memcached errors as
+          cache misses.
+
+    SSL/TLS is a security layer on end-to-end communication.
+    It provides following benefits:
+
+    * Encryption: Data is encrypted on the wire between
+      Memcached client and server.
+    * Authentication: Optionally, both server and client
+      authenticate each other.
+    * Integrity: Data is not tampered or altered when
+      transmitted between client and server
+
+    A typical configuration using tls_context::
+
+        import ssl
+        from dogpile.cache import make_region
+
+        ctx = ssl.create_default_context(cafile="/path/to/my-ca.pem")
+
+        region = make_region().configure(
+            'dogpile.cache.pymemcache',
+            expiration_time = 3600,
+            arguments = {
+                'url':["127.0.0.1"],
+                'tls_context':ctx,
+            }
+        )
+
+    For advanced ways to configure TLS creating a more complex
+    tls_context visit https://docs.python.org/3/library/ssl.html
+
+    Arguments which can be passed to the ``arguments``
+    dictionary include:
+
+    :param tls_context: optional TLS context, will be used for
+     TLS connections.
+
+     .. versionadded:: 1.1.2
+
+    """
+
+    def __init__(self, arguments):
+        super().__init__(arguments)
+
+        self.serde = arguments.get("serde", pymemcache.serde.pickle_serde)
+        self.default_noreply = arguments.get("default_noreply", False)
+        self.tls_context = arguments.get("tls_context", None)
+
+    def _imports(self):
+        global pymemcache
+        import pymemcache
+
+    def _create_client(self):
+        return pymemcache.client.hash.HashClient(
+            self.url,
+            serde=self.serde,
+            default_noreply=self.default_noreply,
+            tls_context=self.tls_context,
+        )
