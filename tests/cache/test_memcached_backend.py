@@ -141,9 +141,6 @@ class BMemcachedDistributedWithTimeoutTest(
 ):
     backend = "dogpile.cache.bmemcached"
 
-    def test_threaded_get_multi(self):
-        pytest.skip("failing on bmemcached right now")
-
 
 class BMemcachedTLSTest(_NonDistributedTLSMemcachedTest):
     backend = "dogpile.cache.bmemcached"
@@ -167,6 +164,40 @@ class BMemcachedSerializerTest(
     _GenericSerializerTest, _NonDistributedMemcachedTest
 ):
     backend = "dogpile.cache.bmemcached"
+
+
+class PyMemcacheTest(_NonDistributedMemcachedTest):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheDistributedWithTimeoutTest(
+    _DistributedMemcachedWithTimeoutTest
+):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheTLSTest(_NonDistributedTLSMemcachedTest):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheDistributedTest(_DistributedMemcachedTest):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheDistributedMutexTest(_DistributedMemcachedMutexTest):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheDistributedMutexWithTimeoutTest(
+    _DistributedMemcachedMutexWithTimeoutTest
+):
+    backend = "dogpile.cache.pymemcache"
+
+
+class PyMemcacheSerializerTest(
+    _GenericSerializerTest, _NonDistributedMemcachedTest
+):
+    backend = "dogpile.cache.pymemcache"
 
 
 class MemcachedTest(_NonDistributedMemcachedTest):

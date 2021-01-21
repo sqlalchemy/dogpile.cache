@@ -245,7 +245,17 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
 
     @pytest.mark.time_intensive
     def test_threaded_get_multi(self):
+        """This test is testing that when we get inside the "creator" for
+        a certain key, there are no other "creators" running at all for
+        that key.
+
+        With "distributed" locks, this is not 100% the case.
+
+        """
         reg = self._region(config_args={"expiration_time": 0.25})
+        backend_mutex = reg.backend.get_mutex("some_key")
+        is_custom_mutex = backend_mutex is not None
+
         locks = dict((str(i), Lock()) for i in range(11))
 
         canary = collections.defaultdict(list)
@@ -290,8 +300,12 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
             t.join()
 
         assert sum([len(v) for v in canary.values()]) > 10
-        for l in canary.values():
-            assert False not in l
+
+        # for non-custom mutex, check that we never had two creators
+        # running at once
+        if not is_custom_mutex:
+            for l in canary.values():
+                assert False not in l
 
     def test_region_delete(self):
         reg = self._region()
@@ -309,19 +323,24 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         # with very slow processing missing a timeout, as is often the
         # case with this particular test
 
-        reg = self._region(config_args={"expiration_time": 0.75})
+        expire_time = 1.00
+
+        reg = self._region(config_args={"expiration_time": expire_time})
         counter = itertools.count(1)
 
         def creator():
             return "some value %d" % next(counter)
 
         eq_(reg.get_or_create("some key", creator), "some value 1")
-        time.sleep(0.85)
+        time.sleep(expire_time + (0.2 * expire_time))
         # expiration is definitely hit
-        eq_(reg.get("some key", ignore_expiration=True), "some value 1")
+        post_expiration = reg.get("some key", ignore_expiration=True)
+        if post_expiration is not NO_VALUE:
+            eq_(post_expiration, "some value 1")
+
         eq_(reg.get_or_create("some key", creator), "some value 2")
 
-        # this line needs to run less the .75 sec before the previous
+        # this line needs to run less the expire_time sec before the previous
         # two or it hits the expiration
         eq_(reg.get("some key"), "some value 2")
 
