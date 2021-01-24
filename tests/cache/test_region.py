@@ -202,6 +202,11 @@ class RegionTest(TestCase):
 
         eq_(reg.get_or_create("some key", creator), "some value")
 
+    def test_key_is_locked(self):
+        reg = self._region()
+
+        eq_(reg.key_is_locked("some key"), False)
+
     def test_multi_creator(self):
         reg = self._region()
 

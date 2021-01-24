@@ -554,6 +554,9 @@ class CacheRegion:
         def release(self):
             self.lock.release()
 
+        def locked(self):
+            return self.lock.locked()
+
     def _create_mutex(self, key):
         mutex = self.backend.get_mutex(key)
         if mutex is not None:
@@ -864,6 +867,10 @@ class CacheRegion:
             return False
 
         return True
+
+    def key_is_locked(self, key: KeyType) -> bool:
+        mutex = self._mutex(key)
+        return mutex.locked()
 
     def get_or_create(
         self,

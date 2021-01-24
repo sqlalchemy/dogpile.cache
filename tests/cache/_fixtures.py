@@ -1,6 +1,7 @@
 import collections
 import itertools
 import json
+import uuid
 import random
 from threading import Lock
 from threading import Thread
@@ -108,6 +109,21 @@ class _GenericBackendTest(_GenericBackendFixture, TestCase):
         backend.set_serialized("some_key", b"some value")
         backend.delete("some_key")
         eq_(backend.get_serialized("some_key"), NO_VALUE)
+
+    def test_region_is_key_locked(self):
+        reg = self._region()
+        random_key = str(uuid.uuid1())
+        assert not reg.get(random_key)
+        eq_(reg.key_is_locked(random_key), False)
+        # ensures that calling key_is_locked doesn't acquire the lock
+        eq_(reg.key_is_locked(random_key), False)
+
+        mutex = reg.backend.get_mutex(random_key)
+        if mutex:
+            mutex.acquire()
+            eq_(reg.key_is_locked(random_key), True)
+            mutex.release()
+            eq_(reg.key_is_locked(random_key), False)
 
     def test_region_set_get_value(self):
         reg = self._region()
@@ -387,11 +403,15 @@ class _GenericMutexTest(_GenericBackendFixture, TestCase):
         backend = self._backend()
         mutex = backend.get_mutex("foo")
 
+        assert not mutex.locked()
         ac = mutex.acquire()
         assert ac
         ac2 = mutex.acquire(False)
+        assert mutex.locked()
         assert not ac2
         mutex.release()
+        assert not mutex.locked()
+
         ac3 = mutex.acquire()
         assert ac3
         mutex.release()
@@ -469,6 +489,9 @@ class MockMutex(object):
 
     def release(self):
         return
+
+    def locked(self):
+        return False
 
 
 class MockBackend(CacheBackend):
