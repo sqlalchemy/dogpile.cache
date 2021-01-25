@@ -1,12 +1,12 @@
 import collections
 import itertools
 import json
-import uuid
 import random
 from threading import Lock
 from threading import Thread
 import time
 from unittest import TestCase
+import uuid
 
 import pytest
 

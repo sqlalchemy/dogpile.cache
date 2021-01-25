@@ -870,7 +870,8 @@ class CacheRegion:
 
     def key_is_locked(self, key: KeyType) -> bool:
         mutex = self._mutex(key)
-        return mutex.locked()
+        locked: bool = mutex.locked()
+        return locked
 
     def get_or_create(
         self,
