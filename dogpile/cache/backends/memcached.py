@@ -58,6 +58,10 @@ class MemcachedLock(object):
             if i < 15:
                 i += 1
 
+    def locked(self):
+        client = self.client_fn()
+        return client.get(self.key) is not None
+
     def release(self):
         client = self.client_fn()
         client.delete(self.key)
