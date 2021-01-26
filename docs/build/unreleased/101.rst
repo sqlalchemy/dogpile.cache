@@ -1,8 +1,0 @@
-.. change::
-    :tags: feature, region
-    :tickets: 101
-
-    Added new region method :meth:`.CacheRegion.key_is_locked`. Returns True if
-    the given key is subject to the dogpile lock, which would indicate that the
-    generator function is running at that time. Pull request courtesy Bastien
-    Gerard.

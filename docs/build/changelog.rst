@@ -4,7 +4,28 @@ Changelog
 
 .. changelog::
     :version: 1.1.2
-    :include_notes_from: unreleased
+    :released: Tue Jan 26 2021
+
+    .. change::
+        :tags: feature, region
+        :tickets: 101
+
+        Added new region method :meth:`.CacheRegion.key_is_locked`. Returns True if
+        the given key is subject to the dogpile lock, which would indicate that the
+        generator function is running at that time. Pull request courtesy Bastien
+        Gerard.
+
+    .. change::
+        :tags: feature, memcached
+        :tickets: 134
+
+        Added support for the pymemcache backend, using the
+        ``"dogpile.cache.pymemcache"`` backend identifier. Pull request courtesy
+        Moisés Guimarães de Medeiros.
+
+        .. seealso::
+
+          :class:`.PyMemcacheBackend`
 
 .. changelog::
     :version: 1.1.1
