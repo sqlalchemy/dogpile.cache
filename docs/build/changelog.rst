@@ -4,7 +4,20 @@ Changelog
 
 .. changelog::
     :version: 1.1.3
-    :include_notes_from: unreleased
+    :released: Thu May 20 2021
+
+    .. change::
+        :tags: bug, regression, tests
+
+        Repaired the test suite to work with the 5.x series of the ``decorator``
+        module, which now appears to make use of the ``__signature__`` attribute.
+
+    .. change::
+        :tags: bug, regression
+        :tickets: 202
+
+        Fixed regression where :class:`.ProxyBackend` was missing several methods
+        that were added as part of the 1.1 release.
 
 .. changelog::
     :version: 1.1.2

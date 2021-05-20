@@ -1,6 +1,0 @@
-.. change::
-    :tags: bug, regression
-    :tickets: 202
-
-    Fixed regression where :class:`.ProxyBackend` was missing several methods
-    that were added as part of the 1.1 release.
