@@ -2,6 +2,7 @@ import os
 import sys
 
 from dogpile.cache.backends.file import AbstractFileLock
+from dogpile.cache.proxy import ProxyBackend
 from dogpile.util.readwrite_lock import ReadWriteMutex
 from . import assert_raises_message
 from ._fixtures import _GenericBackendTest
@@ -50,6 +51,15 @@ class DBMBackendConditionTest(_GenericBackendTest):
 
     config_args = {
         "arguments": {"filename": test_fname, "lock_factory": MutexLock}
+    }
+
+
+class DBMBackendProxyTest(_GenericBackendTest):
+    backend = "dogpile.cache.dbm"
+
+    config_args = {
+        "arguments": {"filename": test_fname, "lock_factory": MutexLock},
+        "wrap": [ProxyBackend],
     }
 
 
