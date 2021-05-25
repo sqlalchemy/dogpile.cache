@@ -1,0 +1,6 @@
+.. change::
+    :tags: bug, general
+    :tickets: 203
+
+    Fixed Python 3.10 deprecation warning involving threading. Pull request
+    courtesy Karthikeyan Singaravelan.
