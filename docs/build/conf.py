@@ -39,7 +39,7 @@ extensions = [
     "sphinx_paramlinks",
 ]
 
-changelog_sections = ["feature", "bug"]
+changelog_sections = ["feature", "usecase", "bug"]
 
 changelog_render_ticket = (
     "https://github.com/sqlalchemy/dogpile.cache/issues/%s"

@@ -1,0 +1,10 @@
+.. change::
+    :tags: usecase, memcached
+
+    Added support for pymemcache socket keepalive and retrying client.
+
+    .. seealso::
+
+        :paramref:`.PyMemcacheBackend.socket_keepalive`
+
+        :paramref:`.PyMemcacheBackend.enable_retry_client`
