@@ -200,6 +200,17 @@ class PyMemcacheSerializerTest(
     backend = "dogpile.cache.pymemcache"
 
 
+class PyMemcacheRetryTest(_NonDistributedMemcachedTest):
+    backend = "dogpile.cache.pymemcache"
+    config_args = {
+        "arguments": {
+            "url": MEMCACHED_URL,
+            "enable_retry_client": True,
+            "retry_attempts": 3,
+        }
+    }
+
+
 class MemcachedTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.memcached"
 

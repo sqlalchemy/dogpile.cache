@@ -173,11 +173,7 @@ class RedisBackend(BytesBackend):
 
     def set_serialized(self, key, value):
         if self.redis_expiration_time:
-            self.writer_client.setex(
-                key,
-                self.redis_expiration_time,
-                value,
-            )
+            self.writer_client.setex(key, self.redis_expiration_time, value)
         else:
             self.writer_client.set(key, value)
 
@@ -283,7 +279,7 @@ class RedisSentinelBackend(RedisBackend):
                 "distributed_lock": True,
                 "thread_local_lock": False,
                 **arguments,
-            },
+            }
         )
 
     def _imports(self):

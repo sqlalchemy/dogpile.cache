@@ -6,6 +6,7 @@ Provides backends for talking to `memcached <http://memcached.org>`_.
 
 """
 
+import logging
 import random
 import threading
 import time
@@ -16,6 +17,8 @@ from typing import Mapping
 from ..api import CacheBackend
 from ..api import NO_VALUE
 from ... import util
+
+log = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
     import bmemcached
@@ -421,6 +424,13 @@ class BMemcachedBackend(GenericMemcachedBackend):
             self.delete(key)
 
 
+pymemcache = None
+
+
+class PyMemcacheBackendCompatibilityException(Exception):
+    pass
+
+
 class PyMemcacheBackend(GenericMemcachedBackend):
     """A backend for the
     `pymemcache <https://github.com/pinterest/pymemcache>`_
@@ -480,6 +490,41 @@ class PyMemcacheBackend(GenericMemcachedBackend):
     For advanced ways to configure TLS creating a more complex
     tls_context visit https://docs.python.org/3/library/ssl.html
 
+    The ``socket_keepalive`` param defaults to ``None``. This parameter
+    `accept a ``pymemcache.client.base.KeepAliveOpts`` object
+    <https://pymemcache.readthedocs.io/en/latest/apidoc/
+    pymemcache.client.base.html#pymemcache.client.base.KeepaliveOpts>`_.
+
+    A typical configuration using ``socket_keepalive``::
+
+        from pymemcache import KeepaliveOpts
+        from dogpile.cache import make_region
+
+        # Using the default keepalive configuration
+        socket_keepalive = KeepaliveOpts()
+
+        region = make_region().configure(
+            'dogpile.cache.pymemcache',
+            expiration_time = 3600,
+            arguments = {
+                'url':["127.0.0.1"],
+                'socket_keepalive': socket_keepalive
+            }
+        )
+
+    The pymemcache library comes with retry mechanisms that can be used to
+    wrap all kind of pymemcache clients. The wrapper allow you to define the
+    exceptions that you want to handle with retries, which exceptions to
+    exclude, how many attempts to make and how long to wait between attempts.
+    Dogpile.cache allow you to use the rety mechanisms by passing arguments.
+
+    `Further details about the pymemcache retry mechanisms
+    <https://pymemcache.readthedocs.io/en/latest/getting_started.html#
+    using-the-built-in-retrying-mechanism>`_.
+
+    The socket keepalive feature and the retry mechanisms feature require at
+    least pymemcache 3.5.0.
+
     Arguments which can be passed to the ``arguments``
     dictionary include:
 
@@ -488,6 +533,22 @@ class PyMemcacheBackend(GenericMemcachedBackend):
     :param serde: optional "serde". Defaults to
      ``pymemcache.serde.pickle_serde``
     :param default_noreply: Defaults to False
+    :param socket_keepalive: optional socket keepalive, will be used for
+     TCP keepalive configuration.
+    :param enable_retry_client: optional flag to enable retry client
+     mechanisms to handle failure.  Defaults to False.
+    :param retry_attempts: how many times to attempt an action before
+     failing. Must be 1 or above. Defaults to None.
+    :param retry_delay: optional int|float, how many seconds to sleep between
+     each attempt. Defaults to None.
+    :param retry_for: optional None|tuple|set|list, what exceptions to
+     allow retries for. Will allow retries for all exceptions if None.
+     Example: `(MemcacheClientError, MemcacheUnexpectedCloseError)`
+     Accepts any class that is a subclass of Exception.  Defaults to None.
+    :param do_not_retry_for: optional None|tuple|set|list, what
+     exceptions should be retried. Will not block retries for any Exception if
+     None. Example: `(IOError, MemcacheIllegalInputError)`
+     Accepts any class that is a subclass of Exception. Defaults to None.
 
     """
 
@@ -497,15 +558,67 @@ class PyMemcacheBackend(GenericMemcachedBackend):
         self.serde = arguments.get("serde", pymemcache.serde.pickle_serde)
         self.default_noreply = arguments.get("default_noreply", False)
         self.tls_context = arguments.get("tls_context", None)
+        self.socket_keepalive = arguments.get("socket_keepalive", None)
+        self.enable_retry_client = arguments.get("enable_retry_client", False)
+        self.retry_attempts = arguments.get("retry_attempts", None)
+        self.retry_delay = arguments.get("retry_delay", None)
+        self.retry_for = arguments.get("retry_for", None)
+        self.do_not_retry_for = arguments.get("do_not_retry_for", None)
+        if (
+            self.retry_delay is not None
+            or self.retry_attempts is not None
+            or self.retry_for is not None
+            or self.do_not_retry_for is not None
+        ) and self.enable_retry_client is None:
+            raise ValueError(
+                "You try to configure pymemcache's retry "
+                "mechanisms without enabling them. You see this error "
+                "message because `enable_retry_client` is `False`. To "
+                "avoid this message please consider enabling the retry "
+                "mechanisms by passing `enable_retry_client` is `True`."
+            )
 
     def _imports(self):
         global pymemcache
         import pymemcache
 
     def _create_client(self):
-        return pymemcache.client.hash.HashClient(
-            self.url,
-            serde=self.serde,
-            default_noreply=self.default_noreply,
-            tls_context=self.tls_context,
-        )
+        _kwargs = {
+            "serde": self.serde,
+            "default_noreply": self.default_noreply,
+            "tls_context": self.tls_context,
+        }
+        if self.socket_keepalive is not None:
+            try:
+                # Check if pymemcache's keepalive features are supported
+                # by the installed version of pymemcache. They are supported
+                # since the version 3.5.0 of pymemcache. The import below
+                # will fail if the used version isn't compatible.
+                from pymemcache import KeepaliveOpts  # noqa
+
+                _kwargs.update({"socket_keepalive": self.socket_keepalive})
+            except ImportError:
+                raise PyMemcacheBackendCompatibilityException(
+                    "Socket keepalive isn't supported by your "
+                    "pymemcache version Consider "
+                    "upgrading pymemcache to the version 3.5.0"
+                )
+
+        client = pymemcache.client.hash.HashClient(self.url, **_kwargs)
+        if self.enable_retry_client:
+            try:
+                return pymemcache.client.retrying.RetryingClient(
+                    client,
+                    attempts=self.retry_attempts,
+                    retry_delay=self.retry_delay,
+                    retry_for=self.retry_for,
+                    do_not_retry_for=self.do_not_retry_for,
+                )
+            except AttributeError:
+                raise PyMemcacheBackendCompatibilityException(
+                    "Your version of pymemcache doesn't support "
+                    "pymemcache's retry mechanisms. Consider "
+                    "upgrading pymemcache to the version 3.5.0"
+                )
+
+        return client
