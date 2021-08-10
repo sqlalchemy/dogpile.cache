@@ -2,24 +2,26 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/python/black
-    rev: 20.8b1
+    rev: 21.5b1
     hooks:
     -   id: black
 
 -   repo: https://github.com/sqlalchemyorg/zimports
-    rev: master
+    rev: v0.4.0
     hooks:
     -   id: zimports
+        args:
+            - --keep-unused-type-checking
 
 -   repo: https://github.com/pycqa/flake8
-    rev: master
+    rev: 3.9.2
     hooks:
     -   id: flake8
         additional_dependencies:
           - flake8-import-order
           - flake8-builtins
-          - flake8-docstrings
+          - flake8-docstrings>=1.3.1
           - flake8-rst-docstrings
-          - pydocstyle<4.0.0
+          - pydocstyle
           - pygments
 

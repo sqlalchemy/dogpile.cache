@@ -757,7 +757,7 @@ class ProxyBackendTest(TestCase):
 
     class UsedKeysProxy(ProxyBackend):
 
-        """ Keep a counter of hose often we set a particular key"""
+        """Keep a counter of hose often we set a particular key"""
 
         def __init__(self, *args, **kwargs):
             super(ProxyBackendTest.UsedKeysProxy, self).__init__(

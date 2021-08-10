@@ -16,9 +16,10 @@ from ..api import NO_VALUE
 
 if typing.TYPE_CHECKING:
     import redis
-else:
+
+if not typing.TYPE_CHECKING:
     # delayed import
-    redis = None
+    redis = None  # noqa F811
 
 __all__ = ("RedisBackend", "RedisSentinelBackend")
 

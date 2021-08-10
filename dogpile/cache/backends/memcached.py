@@ -18,16 +18,17 @@ from ..api import NO_VALUE
 from ... import util
 
 if typing.TYPE_CHECKING:
+    import bmemcached
     import memcache
     import pylibmc
-    import bmemcached
     import pymemcache
-else:
+
+if not typing.TYPE_CHECKING:
     # delayed import
-    memcache = None
-    pylibmc = None
-    bmemcached = None
-    pymemcache = None
+    bmemcached = None  # noqa F811
+    memcache = None  # noqa F811
+    pylibmc = None  # noqa F811
+    pymemcache = None  # noqa F811
 
 __all__ = (
     "GenericMemcachedBackend",
@@ -234,9 +235,6 @@ class MemcacheArgs(GenericMemcachedBackend):
         super(MemcacheArgs, self).__init__(arguments)
 
 
-pylibmc = None
-
-
 class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
     """A backend for the
     `pylibmc <http://sendapatch.se/projects/pylibmc/index.html>`_
@@ -286,9 +284,6 @@ class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
         )
 
 
-memcache = None
-
-
 class MemcachedBackend(MemcacheArgs, GenericMemcachedBackend):
     """A backend using the standard
     `Python-memcached <http://www.tummy.com/Community/software/\
@@ -315,9 +310,6 @@ class MemcachedBackend(MemcacheArgs, GenericMemcachedBackend):
 
     def _create_client(self):
         return memcache.Client(self.url)
-
-
-bmemcached = None
 
 
 class BMemcachedBackend(GenericMemcachedBackend):
@@ -428,9 +420,6 @@ class BMemcachedBackend(GenericMemcachedBackend):
         """python-binary-memcached api does not implements delete_multi"""
         for key in keys:
             self.delete(key)
-
-
-pymemcache = None
 
 
 class PyMemcacheBackend(GenericMemcachedBackend):
