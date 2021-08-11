@@ -22,8 +22,7 @@ if typing.TYPE_CHECKING:
     import memcache
     import pylibmc
     import pymemcache
-
-if not typing.TYPE_CHECKING:
+else:
     # delayed import
     bmemcached = None  # noqa F811
     memcache = None  # noqa F811

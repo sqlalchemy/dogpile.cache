@@ -16,8 +16,7 @@ from ..api import NO_VALUE
 
 if typing.TYPE_CHECKING:
     import redis
-
-if not typing.TYPE_CHECKING:
+else:
     # delayed import
     redis = None  # noqa F811
 
