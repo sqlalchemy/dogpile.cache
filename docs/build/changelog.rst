@@ -4,7 +4,25 @@ Changelog
 
 .. changelog::
     :version: 1.1.4
-    :include_notes_from: unreleased
+    :released: Thu Sep 2 2021
+
+    .. change::
+        :tags: bug, general
+        :tickets: 203
+
+        Fixed Python 3.10 deprecation warning involving threading. Pull request
+        courtesy Karthikeyan Singaravelan.
+
+    .. change::
+        :tags: usecase, memcached
+
+        Added support for pymemcache socket keepalive and retrying client.
+
+        .. seealso::
+
+            :paramref:`.PyMemcacheBackend.socket_keepalive`
+
+            :paramref:`.PyMemcacheBackend.enable_retry_client`
 
 .. changelog::
     :version: 1.1.3
