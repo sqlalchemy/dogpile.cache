@@ -171,6 +171,20 @@ class BMemcachedSerializerTest(
 class PyMemcacheTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.pymemcache"
 
+    def test_pymemcache_enable_retry_client_not_set(self):
+        with mock.patch("warnings.warn") as warn_mock:
+            _ = make_region().configure(
+                "dogpile.cache.pymemcache",
+                arguments={"url": "foo", "retry_attempts": 2},
+            )
+            eq_(
+                warn_mock.mock_calls[0],
+                mock.call(
+                    "enable_retry_client is not set; retry options "
+                    "will be ignored"
+                ),
+            )
+
 
 class PyMemcacheDistributedWithTimeoutTest(
     _DistributedMemcachedWithTimeoutTest
@@ -339,20 +353,6 @@ class MemcachedArgstest(TestCase):
         )
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"min_compress_len": 20}])
-
-    def test_pymemcache_enable_retry_client_not_set(self):
-        with mock.patch("warnings.warn") as warn_mock:
-            _ = make_region().configure(
-                "dogpile.cache.pymemcache",
-                arguments={"url": "foo", "retry_attempts": 2},
-            )
-            eq_(
-                warn_mock.mock_calls[0],
-                mock.call(
-                    "enable_retry_client is not set; retry options "
-                    "will be ignored"
-                ),
-            )
 
 
 class LocalThreadTest(TestCase):
