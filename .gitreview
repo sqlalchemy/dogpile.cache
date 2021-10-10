@@ -1,5 +1,5 @@
 [gerrit]
 host=gerrit.sqlalchemy.org
 project=sqlalchemy/dogpile.cache
-defaultbranch=master
+defaultbranch=main
 port=29418
