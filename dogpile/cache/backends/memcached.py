@@ -513,13 +513,14 @@ class PyMemcacheBackend(GenericMemcachedBackend):
 
      .. versionadded:: 1.1.4
 
-    :param retry_attempts: how many times to attempt an action before
-     failing. Must be 1 or above. Defaults to None.
+    :param retry_attempts: how many times to attempt an action with
+    pymemcache's retrying wrapper before failing. Must be 1 or above.
+    Defaults to None.
 
      .. versionadded:: 1.1.4
 
     :param retry_delay: optional int|float, how many seconds to sleep between
-     each attempt. Defaults to None.
+     each attempt. Used by the retry wrapper. Defaults to None.
 
      .. versionadded:: 1.1.4
 
@@ -537,6 +538,22 @@ class PyMemcacheBackend(GenericMemcachedBackend):
 
      .. versionadded:: 1.1.4
 
+    :param hashclient_retry_attempts: Amount of times a client should be tried
+    before it is marked dead and removed from the pool in the HashClient's
+    internal mechanisms.
+
+     .. versionadded:: 1.1.5
+
+    :param hashclient_retry_timeout: Time in seconds that should pass between
+    retry attempts in the HashClient's internal mechanisms.
+
+     .. versionadded:: 1.1.5
+
+    :param dead_timeout: Time in seconds before attempting to add a node
+    back in the pool in the HashClient's internal mechanisms.
+
+     .. versionadded:: 1.1.5
+
     """  # noqa E501
 
     def __init__(self, arguments):
@@ -551,6 +568,13 @@ class PyMemcacheBackend(GenericMemcachedBackend):
         self.retry_delay = arguments.get("retry_delay", None)
         self.retry_for = arguments.get("retry_for", None)
         self.do_not_retry_for = arguments.get("do_not_retry_for", None)
+        self.hashclient_retry_attempts = arguments.get(
+            "hashclient_retry_attempts", 2
+        )
+        self.hashclient_retry_timeout = arguments.get(
+            "hashclient_retry_timeout", 1
+        )
+        self.dead_timeout = arguments.get("hashclient_dead_timeout", 60)
         if (
             self.retry_delay is not None
             or self.retry_attempts is not None
@@ -571,6 +595,9 @@ class PyMemcacheBackend(GenericMemcachedBackend):
             "serde": self.serde,
             "default_noreply": self.default_noreply,
             "tls_context": self.tls_context,
+            "retry_attempts": self.hashclient_retry_attempts,
+            "retry_timeout": self.hashclient_retry_timeout,
+            "dead_timeout": self.dead_timeout,
         }
         if self.socket_keepalive is not None:
             _kwargs.update({"socket_keepalive": self.socket_keepalive})
