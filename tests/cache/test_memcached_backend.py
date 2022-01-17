@@ -8,11 +8,12 @@ import weakref
 
 import pytest
 
-from dogpile.cache import make_region
 from dogpile.cache.backends.memcached import GenericMemcachedBackend
 from dogpile.cache.backends.memcached import MemcachedBackend
 from dogpile.cache.backends.memcached import PylibmcBackend
+from dogpile.cache.backends.memcached import PyMemcacheBackend
 from . import eq_
+from . import is_
 from ._fixtures import _GenericBackendTest
 from ._fixtures import _GenericMutexTest
 from ._fixtures import _GenericSerializerTest
@@ -171,20 +172,6 @@ class BMemcachedSerializerTest(
 class PyMemcacheTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.pymemcache"
 
-    def test_pymemcache_enable_retry_client_not_set(self):
-        with mock.patch("warnings.warn") as warn_mock:
-            _ = make_region().configure(
-                "dogpile.cache.pymemcache",
-                arguments={"url": "foo", "retry_attempts": 2},
-            )
-            eq_(
-                warn_mock.mock_calls[0],
-                mock.call(
-                    "enable_retry_client is not set; retry options "
-                    "will be ignored"
-                ),
-            )
-
 
 class PyMemcacheDistributedWithTimeoutTest(
     _DistributedMemcachedWithTimeoutTest
@@ -227,6 +214,136 @@ class PyMemcacheRetryTest(_NonDistributedMemcachedTest):
     }
 
 
+class PyMemcacheArgsTest(TestCase):
+    # TODO: convert dogpile to be able to use pytest.fixtures (remove
+    # unittest.TestCase dependency) and use that to set up the mock module
+    # instead of an explicit method call
+    def _mock_pymemcache_fixture(self):
+        self.hash_client = mock.Mock()
+        self.retrying_client = mock.Mock()
+        self.pickle_serde = mock.Mock()
+        pymemcache_module = mock.Mock(
+            serde=mock.Mock(pickle_serde=self.pickle_serde),
+            client=mock.Mock(
+                hash=mock.Mock(HashClient=self.hash_client),
+                retrying=mock.Mock(RetryingClient=self.retrying_client),
+            ),
+        )
+        return mock.patch(
+            "dogpile.cache.backends.memcached.pymemcache", pymemcache_module
+        )
+
+    def test_pymemcache_hashclient_retry_attempts(self):
+        config_args = {
+            "url": "127.0.0.1:11211",
+            "hashclient_retry_attempts": 4,
+        }
+
+        with self._mock_pymemcache_fixture():
+            backend = MockPyMemcacheBackend(config_args)
+            is_(backend._create_client(), self.hash_client())
+            eq_(
+                self.hash_client.mock_calls[0],
+                mock.call(
+                    ["127.0.0.1:11211"],
+                    serde=self.pickle_serde,
+                    default_noreply=False,
+                    tls_context=None,
+                    retry_attempts=4,
+                    retry_timeout=1,
+                    dead_timeout=60,
+                ),
+            )
+            eq_(self.retrying_client.mock_calls, [])
+
+    def test_pymemcache_hashclient_retry_timeout(self):
+        config_args = {"url": "127.0.0.1:11211", "hashclient_retry_timeout": 4}
+        with self._mock_pymemcache_fixture():
+            backend = MockPyMemcacheBackend(config_args)
+            is_(backend._create_client(), self.hash_client())
+            eq_(
+                self.hash_client.mock_calls[0],
+                mock.call(
+                    ["127.0.0.1:11211"],
+                    serde=self.pickle_serde,
+                    default_noreply=False,
+                    tls_context=None,
+                    retry_attempts=2,
+                    retry_timeout=4,
+                    dead_timeout=60,
+                ),
+            )
+            eq_(self.retrying_client.mock_calls, [])
+
+    def test_pymemcache_hashclient_retry_timeout_w_enable_retry(self):
+        config_args = {
+            "url": "127.0.0.1:11211",
+            "hashclient_retry_timeout": 4,
+            "enable_retry_client": True,
+            "retry_attempts": 3,
+        }
+        with self._mock_pymemcache_fixture():
+            backend = MockPyMemcacheBackend(config_args)
+            is_(backend._create_client(), self.retrying_client())
+            eq_(
+                self.hash_client.mock_calls[0],
+                mock.call(
+                    ["127.0.0.1:11211"],
+                    serde=self.pickle_serde,
+                    default_noreply=False,
+                    tls_context=None,
+                    retry_attempts=2,
+                    retry_timeout=4,
+                    dead_timeout=60,
+                ),
+            )
+            eq_(
+                self.retrying_client.mock_calls[0],
+                mock.call(
+                    self.hash_client(),
+                    attempts=3,
+                    retry_delay=None,
+                    retry_for=None,
+                    do_not_retry_for=None,
+                ),
+            )
+
+    def test_pymemcache_dead_timeout(self):
+        config_args = {"url": "127.0.0.1:11211", "hashclient_dead_timeout": 4}
+        with self._mock_pymemcache_fixture():
+            backend = MockPyMemcacheBackend(config_args)
+            backend._create_client()
+            eq_(
+                self.hash_client.mock_calls,
+                [
+                    mock.call(
+                        ["127.0.0.1:11211"],
+                        serde=self.pickle_serde,
+                        default_noreply=False,
+                        tls_context=None,
+                        retry_attempts=2,
+                        retry_timeout=1,
+                        dead_timeout=4,
+                    )
+                ],
+            )
+            eq_(self.retrying_client.mock_calls, [])
+
+    def test_pymemcache_enable_retry_client_not_set(self):
+        config_args = {"url": "127.0.0.1:11211", "retry_attempts": 2}
+
+        with self._mock_pymemcache_fixture():
+            with mock.patch("warnings.warn") as warn_mock:
+                MockPyMemcacheBackend(config_args)
+                eq_(
+                    warn_mock.mock_calls[0],
+                    mock.call(
+                        "enable_retry_client is not set; retry options "
+                        "will be ignored"
+                    ),
+                )
+
+
 class MemcachedTest(_NonDistributedMemcachedTest):
     backend = "dogpile.cache.memcached"
 
@@ -251,6 +368,11 @@ class MockGenericMemcachedBackend(GenericMemcachedBackend):
 
     def _create_client(self):
         return MockClient(self.url)
+
+
+class MockPyMemcacheBackend(PyMemcacheBackend):
+    def _imports(self):
+        pass
 
 
 class MockMemcacheBackend(MemcachedBackend):
