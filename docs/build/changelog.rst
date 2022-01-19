@@ -3,6 +3,10 @@ Changelog
 =========
 
 .. changelog::
+    :version: 1.1.6
+    :include_notes_from: unreleased
+
+.. changelog::
     :version: 1.1.5
     :released: Wed Jan 19 2022
 
