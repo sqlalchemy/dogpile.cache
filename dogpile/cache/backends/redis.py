@@ -100,10 +100,10 @@ class RedisBackend(BytesBackend):
         self.db = arguments.pop("db", 0)
         self.distributed_lock = arguments.get("distributed_lock", False)
         self.socket_timeout = arguments.pop("socket_timeout", None)
-
         self.lock_timeout = arguments.get("lock_timeout", None)
         self.lock_sleep = arguments.get("lock_sleep", 0.1)
         self.thread_local_lock = arguments.get("thread_local_lock", True)
+        self.ssl = arguments.pop("ssl", False)
 
         if self.distributed_lock and self.thread_local_lock:
             warnings.warn(
@@ -133,6 +133,9 @@ class RedisBackend(BytesBackend):
             args = {}
             if self.socket_timeout:
                 args["socket_timeout"] = self.socket_timeout
+
+            if self.ssl:
+                args["ssl"] = self.ssl
 
             if self.url is not None:
                 args.update(url=self.url)
