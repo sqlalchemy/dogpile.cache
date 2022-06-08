@@ -150,11 +150,13 @@ class RedisBackend(BytesBackend):
 
     def get_mutex(self, key):
         if self.distributed_lock:
-            return self.writer_client.lock(
-                "_lock{0}".format(key),
-                timeout=self.lock_timeout,
-                sleep=self.lock_sleep,
-                thread_local=self.thread_local_lock,
+            return _RedisLockWrapper(
+                self.writer_client.lock(
+                    "_lock{0}".format(key),
+                    timeout=self.lock_timeout,
+                    sleep=self.lock_sleep,
+                    thread_local=self.thread_local_lock,
+                )
             )
         else:
             return None
@@ -191,6 +193,22 @@ class RedisBackend(BytesBackend):
 
     def delete_multi(self, keys):
         self.writer_client.delete(*keys)
+
+
+class _RedisLockWrapper:
+    __slots__ = ("mutex", "__weakref__")
+
+    def __init__(self, mutex: typing.Any):
+        self.mutex = mutex
+
+    def acquire(self, wait: bool = True) -> typing.Any:
+        return self.mutex.acquire(blocking=wait)
+
+    def release(self) -> typing.Any:
+        return self.mutex.release()
+
+    def locked(self) -> bool:
+        return self.mutex.locked()  # type: ignore
 
 
 class RedisSentinelBackend(RedisBackend):

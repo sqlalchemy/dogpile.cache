@@ -58,7 +58,7 @@ class MemcachedLock(object):
             elif not wait:
                 return False
             else:
-                sleep_time = (((i + 1) * random.random()) + 2 ** i) / 2.5
+                sleep_time = (((i + 1) * random.random()) + 2**i) / 2.5
                 time.sleep(sleep_time)
             if i < 15:
                 i += 1
