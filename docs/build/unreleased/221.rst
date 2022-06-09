@@ -1,0 +1,8 @@
+.. change::
+    :tags: usecase, redis
+    :tickets: 221
+
+    Added :paramref:`.RedisBackend.connection_kwargs` parameter, which is a
+    dictionary of additional keyword arguments that will be passed directly to
+    ``StrictRedis()`` or ``StrictRedis.from_url()``, in the same way that this
+    parameter works with the :class:`.RedisSentinelBackend` already.

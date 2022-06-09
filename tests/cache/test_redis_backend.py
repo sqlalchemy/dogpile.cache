@@ -195,3 +195,23 @@ class RedisConnectionTest(TestCase):
     def test_connect_with_url(self, MockStrictRedis):
         arguments = {"url": "redis://redis:password@127.0.0.1:6379/0"}
         self._test_helper(MockStrictRedis.from_url, arguments)
+
+    def test_extra_arbitrary_args(self, MockStrictRedis):
+        arguments = {
+            "url": "redis://redis:password@127.0.0.1:6379/0",
+            "connection_kwargs": {
+                "ssl": True,
+                "encoding": "utf-8",
+                "new_redis_arg": 50,
+            },
+        }
+        self._test_helper(
+            MockStrictRedis.from_url,
+            {
+                "url": "redis://redis:password@127.0.0.1:6379/0",
+                "ssl": True,
+                "encoding": "utf-8",
+                "new_redis_arg": 50,
+            },
+            arguments,
+        )
