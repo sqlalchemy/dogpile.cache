@@ -4,7 +4,23 @@ Changelog
 
 .. changelog::
     :version: 1.1.6
-    :include_notes_from: unreleased
+    :released: Fri Jun 10 2022
+
+    .. change::
+        :tags: bug, redis
+        :tickets: 220
+
+        Fixed regression caused by backwards-incompatible API changes in Redis that
+        caused the "distributed lock" feature to not function.
+
+    .. change::
+        :tags: usecase, redis
+        :tickets: 221
+
+        Added :paramref:`.RedisBackend.connection_kwargs` parameter, which is a
+        dictionary of additional keyword arguments that will be passed directly to
+        ``StrictRedis()`` or ``StrictRedis.from_url()``, in the same way that this
+        parameter works with the :class:`.RedisSentinelBackend` already.
 
 .. changelog::
     :version: 1.1.5

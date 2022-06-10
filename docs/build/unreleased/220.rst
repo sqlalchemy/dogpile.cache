@@ -1,6 +1,0 @@
-.. change::
-    :tags: bug, redis
-    :tickets: 220
-
-    Fixed regression caused by backwards-incompatible API changes in Redis that
-    caused the "distributed lock" feature to not function.
