@@ -221,6 +221,15 @@ class MemcacheArgs(GenericMemcachedBackend):
     """Mixin which provides support for the 'time' argument to set(),
     'min_compress_len' to other methods.
 
+    :param dead_retry: Number of seconds memcached server is considered dead
+       before it is tried again..
+
+     .. versionadded:: 1.1.7
+
+    :param socket_timeout: Timeout in seconds for every call to a server.
+
+     .. versionadded:: 1.1.7
+
     """
 
     def __init__(self, arguments):
@@ -233,6 +242,10 @@ class MemcacheArgs(GenericMemcachedBackend):
             self.set_arguments["min_compress_len"] = arguments[
                 "min_compress_len"
             ]
+        if "dead_retry" in arguments:
+            self.set_arguments["dead_retry"] = arguments["dead_retry"]
+        if "socket_timeout" in arguments:
+            self.set_arguments["socket_timeout"] = arguments["socket_timeout"]
         super(MemcacheArgs, self).__init__(arguments)
 
 

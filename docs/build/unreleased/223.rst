@@ -1,0 +1,8 @@
+.. change::
+       :tags: usecase, memcached
+       :tickets: 223
+
+       Added :paramref:`.MemcacheArgs.dead_retry` and
+       :paramref:`.MemcacheArgs.socket_timeout` to the dictionary of
+       additional keyword arguments that will be passed
+       directly to ``GenericMemcachedBackend()``.
