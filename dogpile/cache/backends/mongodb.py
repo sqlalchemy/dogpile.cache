@@ -150,7 +150,7 @@ class MongoBackend(CacheBackend):
             args["connectTimeoutMS"] = self.socket_timeout
         self.client_id = bson.ObjectId()
         collection = pymongo.MongoClient(**args)[self.database][self.collection]
-        collection.create_index([("created_at", 1)], expireAfterSeconds=3600 * 48)
+        collection.create_index([("created_at", 1)], expireAfterSeconds=3600 * 24 * 31)
         return collection
 
     def get_mutex(self, key):
