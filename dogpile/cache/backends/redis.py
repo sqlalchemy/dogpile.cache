@@ -49,7 +49,15 @@ class RedisBackend(BytesBackend):
     :param url: string. If provided, will override separate host/port/db
      params.  The format is that accepted by ``StrictRedis.from_url()``.
 
+    :param reader_url: string. If provided, will override separate host/port/db
+     params for specifically the reader client.  The format is that accepted by
+     ``StrictRedis.from_url()``.
+
     :param host: string, default is ``localhost``.
+
+    :param reader_host: string, default is ``None``. If provided, will be used
+     as host for the reader_client. Recommended for a dedicated reader/replica
+     node when using cluster with multiple nodes.
 
     :param password: string, default is no password.
 
@@ -102,7 +110,9 @@ class RedisBackend(BytesBackend):
         arguments = arguments.copy()
         self._imports()
         self.url = arguments.pop("url", None)
+        self.reader_url = arguments.pop("reader_url", None)
         self.host = arguments.pop("host", "localhost")
+        self.reader_host = arguments.pop('reader_host', None)
         self.password = arguments.pop("password", None)
         self.port = arguments.pop("port", 6379)
         self.db = arguments.pop("db", 0)
@@ -146,7 +156,8 @@ class RedisBackend(BytesBackend):
             if self.url is not None:
                 args.update(url=self.url)
                 self.writer_client = redis.StrictRedis.from_url(**args)
-                self.reader_client = self.writer_client
+                args.update(url=self.reader_url or self.url)
+                self.reader_client = redis.StrictRedis.from_url(**args)
             else:
                 args.update(
                     host=self.host,
@@ -155,7 +166,8 @@ class RedisBackend(BytesBackend):
                     db=self.db,
                 )
                 self.writer_client = redis.StrictRedis(**args)
-                self.reader_client = self.writer_client
+                args.update(host=self.reader_host or self.host)
+                self.reader_client = redis.StrictRedis(**args)
 
     def get_mutex(self, key):
         if self.distributed_lock:
