@@ -4,7 +4,16 @@ Changelog
 
 .. changelog::
     :version: 1.1.7
-    :include_notes_from: unreleased
+    :released: Tue Jul 5 2022
+
+    .. change::
+           :tags: usecase, memcached
+           :tickets: 223
+
+           Added :paramref:`.MemcacheArgs.dead_retry` and
+           :paramref:`.MemcacheArgs.socket_timeout` to the dictionary of
+           additional keyword arguments that will be passed
+           directly to ``GenericMemcachedBackend()``.
 
 .. changelog::
     :version: 1.1.6
