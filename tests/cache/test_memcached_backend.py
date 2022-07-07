@@ -380,7 +380,11 @@ class MockMemcacheBackend(MemcachedBackend):
         pass
 
     def _create_client(self):
-        return MockClient(self.url)
+        return MockClient(
+            self.url,
+            dead_retry=self.dead_retry,
+            socket_timeout=self.socket_timeout,
+        )
 
 
 class MockPylibmcBackend(PylibmcBackend):
@@ -420,6 +424,24 @@ class MockClient(object):
 
     def delete(self, key):
         self._cache.pop(key, None)
+
+
+class MemcachedBackendTest(TestCase):
+    def test_memcached_dead_retry(self):
+        config_args = {
+            "url": "127.0.0.1:11211",
+            "dead_retry": 4,
+        }
+        backend = MockMemcacheBackend(arguments=config_args)
+        eq_(backend._create_client().kw["dead_retry"], 4)
+
+    def test_memcached_socket_timeout(self):
+        config_args = {
+            "url": "127.0.0.1:11211",
+            "socket_timeout": 6,
+        }
+        backend = MockMemcacheBackend(arguments=config_args)
+        eq_(backend._create_client().kw["socket_timeout"], 6)
 
 
 class PylibmcArgsTest(TestCase):
@@ -475,26 +497,6 @@ class MemcachedArgstest(TestCase):
         )
         backend.set("foo", "bar")
         eq_(backend._clients.memcached.canary, [{"min_compress_len": 20}])
-
-    def test_set_dead_retry(self):
-        config_args = {
-            "url": "127.0.0.1:11211",
-            "dead_retry": 4,
-        }
-
-        backend = MockMemcacheBackend(arguments=config_args)
-        backend.set("foo", "bar")
-        eq_(backend._clients.memcached.canary, [{"dead_retry": 4}])
-
-    def test_set_socket_timeout(self):
-        config_args = {
-            "url": "127.0.0.1:11211",
-            "socket_timeout": 4,
-        }
-
-        backend = MockMemcacheBackend(arguments=config_args)
-        backend.set("foo", "bar")
-        eq_(backend._clients.memcached.canary, [{"socket_timeout": 4}])
 
 
 class LocalThreadTest(TestCase):
