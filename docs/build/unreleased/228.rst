@@ -1,6 +1,6 @@
 .. change::
     :tags: bug, memcached
-    :tickets: 224
+    :tickets: 223, 228
 
     Moved the :paramref:`.MemcacheArgs.dead_retry` argument and the
     :paramref:`.MemcacheArgs.socket_timeout` argument which were
