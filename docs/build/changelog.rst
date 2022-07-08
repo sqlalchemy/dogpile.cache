@@ -4,7 +4,19 @@ Changelog
 
 .. changelog::
     :version: 1.1.8
-    :include_notes_from: unreleased
+    :released: Fri Jul 8 2022
+
+    .. change::
+        :tags: bug, memcached
+        :tickets: 223, 228
+
+        Moved the :paramref:`.MemcacheArgs.dead_retry` argument and the
+        :paramref:`.MemcacheArgs.socket_timeout` argument which were
+        erroneously added to the "set_parameters",
+        where they have no effect, to be part of the Memcached connection
+        arguments :paramref:`.MemcachedBackend.dead_retry`,
+        :paramref:`.MemcachedBackend.socket_timeout`.
+
 
 .. changelog::
     :version: 1.1.7
