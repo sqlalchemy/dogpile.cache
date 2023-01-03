@@ -65,7 +65,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "dogpile.cache"
-copyright = "2011-2022 Mike Bayer"
+copyright = "2011-2023 Mike Bayer"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
