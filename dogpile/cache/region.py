@@ -390,7 +390,7 @@ class CacheRegion:
         function_multi_key_generator: FunctionMultiKeyGenerator = function_multi_key_generator,  # noqa E501
         key_mangler: Optional[Callable[[KeyType], KeyType]] = None,
         serializer: Optional[Callable[[ValuePayload], bytes]] = None,
-        deserializer: Optional[Callable[[bytes], ValuePayload]] = None,
+        deserializer: Optional[Callable[[bytes], Union[ValuePayload, NoValue]]] = None,
         async_creation_runner: Optional[AsyncCreator] = None,
     ):
         """Construct a new :class:`.CacheRegion`."""
@@ -1220,6 +1220,8 @@ class CacheRegion:
         bytes_metadata, _, bytes_payload = byte_value.partition(b"|")
         metadata = json.loads(bytes_metadata)
         payload = self.deserializer(bytes_payload)
+        if payload is NO_VALUE:
+            return NO_VALUE
         return CachedValue(payload, metadata)
 
     def _serialize_cached_value_elements(
