@@ -6,6 +6,16 @@ Changelog
     :version: 1.1.9
     :include_notes_from: unreleased
 
+    .. change::
+        :tags: feature, region
+        :tickets: 233
+
+        Added the :class:`.api.CantDeserializeException` exception class
+        which the :paramref:`.CacheRegion.deserializer` can raise, indicating
+        deserialization failed and that caching should proceed to re-generate
+        a value.
+
+
 .. changelog::
     :version: 1.1.8
     :released: Fri Jul 8 2022
