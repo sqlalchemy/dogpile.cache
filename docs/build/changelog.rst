@@ -4,7 +4,19 @@ Changelog
 
 .. changelog::
     :version: 1.2.0
-    :include_notes_from: unreleased
+    :released: Wed Apr 26 2023
+
+    .. change::
+        :tags: feature, region
+        :tickets: 236
+
+        Added new construct :class:`.api.CantDeserializeException` which can be
+        raised by user-defined deserializer functions which would be passed to
+        :paramref:`.CacheRegion.deserializer`, to indicate a cache value that can't
+        be deserialized and therefore should be regenerated. This can allow an
+        application that's been updated to gracefully re-cache old items that were
+        persisted from a previous version of the application. Pull request courtesy
+        Simon Hewitt.
 
 .. changelog::
     :version: 1.1.8
