@@ -4,7 +4,14 @@ Changelog
 
 .. changelog::
     :version: 1.2.1
-    :include_notes_from: unreleased
+    :released: Sat May 20 2023
+
+    .. change::
+        :tags: bug, typing
+        :tickets: 238
+
+        Added py.typed file to root so that typing tools such as Mypy recognize
+        dogpile as typed. Pull request courtesy Daverball.
 
 .. changelog::
     :version: 1.2.0
