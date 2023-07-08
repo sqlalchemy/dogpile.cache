@@ -7,6 +7,7 @@ from functools import wraps
 import json
 import logging
 from numbers import Number
+import sys
 import threading
 import time
 from typing import Any
@@ -18,6 +19,10 @@ from typing import Sequence
 from typing import Tuple
 from typing import Type
 from typing import Union
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from decorator import decorate
 
@@ -426,7 +431,7 @@ class CacheRegion:
         wrap: Sequence[Union[ProxyBackend, Type[ProxyBackend]]] = (),
         replace_existing_backend: bool = False,
         region_invalidator: Optional[RegionInvalidationStrategy] = None,
-    ) -> "CacheRegion":
+    ) -> Self:
         """Configure a :class:`.CacheRegion`.
 
         The :class:`.CacheRegion` itself

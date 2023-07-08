@@ -1,5 +1,6 @@
 import abc
 import pickle
+import sys
 from typing import Any
 from typing import Callable
 from typing import cast
@@ -8,6 +9,10 @@ from typing import NamedTuple
 from typing import Optional
 from typing import Sequence
 from typing import Union
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class NoValue:
@@ -18,7 +23,7 @@ class NoValue:
     """
 
     @property
-    def payload(self):
+    def payload(self) -> Self:
         return self
 
     def __repr__(self):
@@ -190,7 +195,7 @@ class CacheBackend:
         raise NotImplementedError()
 
     @classmethod
-    def from_config_dict(cls, config_dict, prefix):
+    def from_config_dict(cls, config_dict: Mapping[str, Any], prefix: str) -> Self:
         prefix_len = len(prefix)
         return cls(
             dict(

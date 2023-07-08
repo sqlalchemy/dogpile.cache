@@ -9,10 +9,14 @@ base backend.
 .. versionadded:: 0.5.0  Added support for the :class:`.ProxyBackend` class.
 
 """
-
+import sys
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from .api import BackendFormatted
 from .api import BackendSetType
@@ -67,7 +71,7 @@ class ProxyBackend(CacheBackend):
     def __init__(self, *arg, **kw):
         pass
 
-    def wrap(self, backend: CacheBackend) -> "ProxyBackend":
+    def wrap(self, backend: CacheBackend) -> Self:
         """Take a backend as an argument and setup the self.proxied property.
         Return an object that be used as a backend by a :class:`.CacheRegion`
         object.
