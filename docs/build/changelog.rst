@@ -4,7 +4,15 @@ Changelog
 
 .. changelog::
     :version: 1.2.2
-    :include_notes_from: unreleased
+    :released: Sat Jul 8 2023
+
+    .. change::
+        :tags: bug, typing
+        :tickets: 240
+
+        Made use of pep-673 ``Self`` type for method chained methods such as
+        :meth:`.CacheRegion.configure` and :meth:`.ProxyBackend.wrap`. Pull request
+        courtesy Viicos.
 
 .. changelog::
     :version: 1.2.1
