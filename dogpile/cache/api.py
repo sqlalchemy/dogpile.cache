@@ -192,7 +192,9 @@ class CacheBackend:
         raise NotImplementedError()
 
     @classmethod
-    def from_config_dict(cls, config_dict: Mapping[str, Any], prefix: str) -> Self:
+    def from_config_dict(
+        cls, config_dict: Mapping[str, Any], prefix: str
+    ) -> Self:
         prefix_len = len(prefix)
         return cls(
             dict(
