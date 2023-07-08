@@ -1,6 +1,5 @@
 import abc
 import pickle
-import sys
 from typing import Any
 from typing import Callable
 from typing import cast
@@ -9,10 +8,8 @@ from typing import NamedTuple
 from typing import Optional
 from typing import Sequence
 from typing import Union
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
+
+from ..util.typing import Self
 
 
 class NoValue:

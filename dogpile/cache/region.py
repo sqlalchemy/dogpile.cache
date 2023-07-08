@@ -7,7 +7,6 @@ from functools import wraps
 import json
 import logging
 from numbers import Number
-import sys
 import threading
 import time
 from typing import Any
@@ -19,10 +18,6 @@ from typing import Sequence
 from typing import Tuple
 from typing import Type
 from typing import Union
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
 
 from decorator import decorate
 
@@ -51,6 +46,7 @@ from ..util import coerce_string_conf
 from ..util import memoized_property
 from ..util import NameRegistry
 from ..util import PluginLoader
+from ..util.typing import Self
 
 value_version = 2
 """An integer placed in the :class:`.CachedValue`

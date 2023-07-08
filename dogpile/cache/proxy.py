@@ -9,14 +9,9 @@ base backend.
 .. versionadded:: 0.5.0  Added support for the :class:`.ProxyBackend` class.
 
 """
-import sys
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
 
 from .api import BackendFormatted
 from .api import BackendSetType
@@ -24,6 +19,7 @@ from .api import CacheBackend
 from .api import CacheMutex
 from .api import KeyType
 from .api import SerializedReturnType
+from ..util.typing import Self
 
 
 class ProxyBackend(CacheBackend):
