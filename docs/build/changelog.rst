@@ -3,6 +3,10 @@ Changelog
 =========
 
 .. changelog::
+    :version: 1.2.3
+    :include_notes_from: unreleased
+
+.. changelog::
     :version: 1.2.2
     :released: Sat Jul 8 2023
 
