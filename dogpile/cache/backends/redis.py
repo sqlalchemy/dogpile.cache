@@ -6,8 +6,6 @@ Provides backends for talking to `Redis <http://redis.io>`_.
 
 """
 
-from __future__ import absolute_import
-
 import typing
 import warnings
 
