@@ -44,8 +44,9 @@ class RedisBackend(BytesBackend):
 
     Arguments accepted in the arguments dictionary:
 
-    :param url: string. If provided, will override separate host/port/db
-     params.  The format is that accepted by ``StrictRedis.from_url()``.
+    :param url: string. If provided, will override separate
+     host/password/port/db params.  The format is that accepted by
+     ``StrictRedis.from_url()``.
 
     :param host: string, default is ``localhost``.
 
