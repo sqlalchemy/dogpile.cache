@@ -1,5 +1,7 @@
 import abc
+from dataclasses import dataclass
 import pickle
+import time
 from typing import Any
 from typing import Callable
 from typing import cast
@@ -548,3 +550,22 @@ class BytesBackend(DefaultSerialization, CacheBackend):
 
         """
         raise NotImplementedError()
+
+
+@dataclass(frozen=True)
+class ValueMetadata:
+    """Holds a value from the cache and associated metadata.
+
+    At the current time, the only metadata is `cached_time` which gives the
+    time at which the value was inserted in the cache (according to
+    `time.time()` on the machine which inserted the value).
+    """
+
+    value: ValuePayload
+    cached_time: float
+
+    @property
+    def age(self) -> float:
+        """Returns the elapsed time in seconds as a `float` since the insertion
+        of the value in the cache."""
+        return time.time() - self.cached_time

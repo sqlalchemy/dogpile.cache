@@ -1,0 +1,17 @@
+.. change::
+    :tags: feature, region
+    :tickets: 247
+
+    Added new method :meth:`.CacheRegion.get_value_metadata` which can be used to get
+    a value from the cache associated with its metadata in the form of an instance of
+    :class:`ValueMetadata`.
+
+    At the current time, the only metadata is `cached_time` which gives the time at
+    which the value was inserted in the cache (according to `time.time()` on the
+    machine which inserted the value).
+
+    A property :meth:`.ValueMetadata.age` is available on :class:`ValueMetadata`
+    returning the elapsed time in seconds as a `float` since the insertion of the
+    value in the cache.
+    This can be useful in the context of a web server where clients may expect an
+    `Age` header, see `RFC 9111 <https://www.rfc-editor.org/rfc/rfc9111#field.age>`_.

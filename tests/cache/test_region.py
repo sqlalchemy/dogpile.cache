@@ -534,6 +534,40 @@ class RegionTest(TestCase):
         eq_(NO_VALUE, reg.get("key2"))
         eq_(values["key3"], reg.get("key3"))
 
+    def test_get_value_metadata(self):
+        reg = self._region()
+        with mock.patch("time.time", return_value=100):
+            reg.set("some key", "some value")
+        with mock.patch("time.time", return_value=105):
+            value_metadata = reg.get_value_metadata("some key")
+            eq_(value_metadata.value, "some value")
+            eq_(value_metadata.cached_time, 100)
+            eq_(value_metadata.age, 5)
+
+    def test_get_value_metadata_no_value(self):
+        reg = self._region()
+        is_(reg.get_value_metadata("some key"), None)
+
+    def test_get_value_metadata_expired(self):
+        reg = self._region()
+        with mock.patch("time.time", return_value=100):
+            reg.set("some key", "some value")
+        with mock.patch("time.time", return_value=105):
+            value_metadata = reg.get_value_metadata("some key", 4)
+            is_(value_metadata, None)
+
+    def test_get_value_metadata_expiration_ignored(self):
+        reg = self._region()
+        with mock.patch("time.time", return_value=100):
+            reg.set("some key", "some value")
+        with mock.patch("time.time", return_value=105):
+            value_metadata = reg.get_value_metadata(
+                "some key", expiration_time=4, ignore_expiration=True
+            )
+            eq_(value_metadata.value, "some value")
+            eq_(value_metadata.cached_time, 100)
+            eq_(value_metadata.age, 5)
+
 
 class ProxyRegionTest(RegionTest):
 

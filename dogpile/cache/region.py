@@ -31,6 +31,7 @@ from .api import MetaDataType
 from .api import NO_VALUE
 from .api import SerializedReturnType
 from .api import Serializer
+from .api import ValueMetadata
 from .api import ValuePayload
 from .backends import _backend_loader
 from .backends import register_backend  # noqa
@@ -698,7 +699,12 @@ class CacheRegion:
         """
         return "backend" in self.__dict__
 
-    def get(self, key, expiration_time=None, ignore_expiration=False):
+    def get(
+        self,
+        key: KeyType,
+        expiration_time: Optional[float] = None,
+        ignore_expiration: bool = False,
+    ) -> CacheReturnType:
         """Return a value from the cache, based on the given key.
 
         If the value is not present, the method returns the token
@@ -769,15 +775,46 @@ class CacheRegion:
 
 
         """
+        value = self._get_cache_value(key, expiration_time, ignore_expiration)
+        return value.payload
 
+    def get_value_metadata(
+        self,
+        key: KeyType,
+        expiration_time: Optional[float] = None,
+        ignore_expiration: bool = False,
+    ) -> Optional[ValueMetadata]:
+        """Return a value and its metadata from the cache, based on the given
+        key and expiration parameters (see :meth:`.CacheRegion.get` for more
+        details on expiration parameters behavior).
+
+        If no value are available, `None` is returned. Otherwise, a
+        :class:`ValueMetadata` is returned.
+
+        .. versionadded:: 1.3.0  Added :meth:`.CacheRegion.get_value_metadata`
+        """
+        cache_value = self._get_cache_value(
+            key, expiration_time, ignore_expiration
+        )
+        if cache_value is NO_VALUE:
+            return None
+        return ValueMetadata(
+            cache_value.payload, cast(CachedValue, cache_value).metadata["ct"]
+        )
+
+    def _get_cache_value(
+        self,
+        key: KeyType,
+        expiration_time: Optional[float] = None,
+        ignore_expiration: bool = False,
+    ) -> CacheReturnType:
         if self.key_mangler:
             key = self.key_mangler(key)
         value = self._get_from_backend(key)
         value = self._unexpired_value_fn(expiration_time, ignore_expiration)(
             value
         )
-
-        return value.payload
+        return value
 
     def _unexpired_value_fn(self, expiration_time, ignore_expiration):
         if ignore_expiration:
