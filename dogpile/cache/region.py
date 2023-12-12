@@ -17,6 +17,7 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import Type
+from typing import TYPE_CHECKING
 from typing import Union
 
 from decorator import decorate
@@ -700,7 +701,12 @@ class CacheRegion:
         """
         return "backend" in self.__dict__
 
-    def get(self, key, expiration_time=None, ignore_expiration=False):
+    def get(
+        self,
+        key: KeyType,
+        expiration_time: Optional[float] = None,
+        ignore_expiration: bool = False,
+    ) -> CacheReturnType:
         """Return a value from the cache, based on the given key.
 
         If the value is not present, the method returns the token
@@ -771,15 +777,49 @@ class CacheRegion:
 
 
         """
+        value = self._get_cache_value(key, expiration_time, ignore_expiration)
+        return value.payload
 
+    def get_value_metadata(
+        self,
+        key: KeyType,
+        expiration_time: Optional[float] = None,
+        ignore_expiration: bool = False,
+    ) -> Optional[CachedValue]:
+        """Return the :class:`.CachedValue` object directly from the cache.
+
+        This is the enclosing datastructure that includes the value as well as
+        the metadata, including the timestamp when the value was cached.
+        Convenience accessors on :class:`.CachedValue` also provide for common
+        data such as :attr:`.CachedValue.cached_time` and
+        :attr:`.CachedValue.age`.
+
+
+        .. versionadded:: 1.3. Added :meth:`.CacheRegion.get_value_metadata`
+        """
+        cache_value = self._get_cache_value(
+            key, expiration_time, ignore_expiration
+        )
+        if cache_value is NO_VALUE:
+            return None
+        else:
+            if TYPE_CHECKING:
+                assert isinstance(cache_value, CachedValue)
+            return cache_value
+
+    def _get_cache_value(
+        self,
+        key: KeyType,
+        expiration_time: Optional[float] = None,
+        ignore_expiration: bool = False,
+    ) -> CacheReturnType:
         if self.key_mangler:
             key = self.key_mangler(key)
         value = self._get_from_backend(key)
         value = self._unexpired_value_fn(expiration_time, ignore_expiration)(
             value
         )
-
-        return value.payload
+        return value
 
     def _unexpired_value_fn(self, expiration_time, ignore_expiration):
         if ignore_expiration:
