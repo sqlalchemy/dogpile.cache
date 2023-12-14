@@ -1,3 +1,75 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dogpile.cache"
+description = "A caching front-end based on the Dogpile lock."
+readme = "README.rst"
+keywords = ["caching"]
+authors = [{name = "Mike Bayer", email = "mike_mp@zzzcomputing.com"}]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "decorator>=4.0.0",
+    "stevedore>=3.0.0",
+    "typing_extensions>=4.0.1;python_version<'3.11'",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/sqlalchemy/dogpile.cache"
+Documentation = "https://dogpilecache.sqlalchemy.org"
+"Issue Tracker" = "https://github.com/sqlalchemy/dogpile.cache/"
+
+[project.optional-dependencies]
+pifpaf = [
+    "pifpaf>=2.5.0",
+    "setuptools;python_version>='3.12'",
+]
+
+[project.entry-points."mako.cache"]
+"dogpile.cache" = "dogpile.cache.plugins.mako_cache:MakoPlugin"
+
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+package-dir = {"" = "."}
+license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+exclude = [
+    "tests",
+    "tests.*",
+]
+namespaces = false
+
+[tool.setuptools.exclude-package-data]
+dogpile = ["tests*"]
+
+[tool.setuptools.package-data]
+dogpile = ["py.typed"]
+
+[tool.setuptools.dynamic]
+version = {attr = "dogpile.__version__"}
+
 [tool.black]
 line-length = 79
-target-version = ['py36']
+target-version = ['py38']
+
+
+[tool.pytest.ini_options]
+addopts = "--tb native -v -r fxX  -p no:logging -p no:warnings -m 'not time_intensive'"
+python_files = "tests/*test_*.py"
+filterwarnings = [
+    "error"
+]
+

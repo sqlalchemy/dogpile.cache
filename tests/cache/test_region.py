@@ -941,7 +941,6 @@ class LoggingTest(TestCase):
         )
 
     def test_repr_obj_truncated(self):
-
         eq_(
             repr(util.repr_obj(["some_big_long_name" for i in range(200)])),
             "['some_big_long_name', 'some_big_long_name', "
@@ -964,7 +963,6 @@ class LoggingTest(TestCase):
         )
 
     def test_log_is_value_version_miss(self):
-
         reg = self._region()
         inv = mock.Mock(is_hard_invalidated=lambda val: True)
         with mock.patch(
@@ -989,7 +987,6 @@ class LoggingTest(TestCase):
         )
 
     def test_log_is_hard_invalidated(self):
-
         reg = self._region()
         inv = mock.Mock(is_hard_invalidated=lambda val: True)
         with mock.patch(

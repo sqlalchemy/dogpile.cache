@@ -6,11 +6,11 @@ class MakoTest(TestCase):
     """Test entry point for Mako"""
 
     def test_entry_point(self):
-        import pkg_resources
+        from importlib import metadata as importlib_metadata
 
-        # if the entrypoint isn't there, just pass, as the tests can be run
-        # without any setuptools install
-        for impl in pkg_resources.iter_entry_points(
-            "mako.cache", "dogpile.cache"
-        ):
-            impl.load()
+        ep = importlib_metadata.entry_points()
+        mako_cache = ep.select(group="mako.cache")
+        if mako_cache:
+            for impl in mako_cache:
+                if impl.name == "dogpile.cache":
+                    impl.load()

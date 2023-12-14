@@ -36,7 +36,6 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
     def _multi_fixture(
         self, namespace=None, expiration_time=None, key_generator=None
     ):
-
         reg = self._region(config_args={"expiration_time": 0.25})
 
         counter = itertools.count(1)
@@ -444,7 +443,6 @@ class KeyGenerationTest(TestCase):
         )
 
     def test_sha1_key_mangler(self):
-
         decorate, canary = self._keygen_decorator()
 
         @decorate

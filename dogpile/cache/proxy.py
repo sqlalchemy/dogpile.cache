@@ -9,6 +9,9 @@ base backend.
 .. versionadded:: 0.5.0  Added support for the :class:`.ProxyBackend` class.
 
 """
+
+from __future__ import annotations
+
 from typing import Mapping
 from typing import Optional
 from typing import Sequence

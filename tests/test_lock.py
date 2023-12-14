@@ -317,7 +317,6 @@ class RaceConditionTests(TestCase):
             return current_time
 
         with mock.patch("dogpile.lock.time.time", time_mock):
-
             with Lock(
                 mutex, creator, value_and_created_fn, expiration_time
             ) as entered_value:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import datetime
 from functools import partial
@@ -897,7 +899,6 @@ class CacheRegion:
         should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
         creator_args: Optional[Tuple[Any, Mapping[str, Any]]] = None,
     ) -> ValuePayload:
-
         """Return a cached value based on the given key.
 
         If the value does not exist or is considered to be expired
@@ -1035,7 +1036,6 @@ class CacheRegion:
 
             def async_creator(mutex):
                 if creator_args:
-
                     ca = creator_args
 
                     @wraps(creator)
