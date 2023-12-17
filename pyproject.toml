@@ -69,6 +69,8 @@ target-version = ['py38']
 [tool.pytest.ini_options]
 addopts = "--tb native -v -r fxX  -p no:logging -p no:warnings -m 'not time_intensive'"
 python_files = "tests/*test_*.py"
+python_classes = "*Test"
+
 filterwarnings = [
     "error"
 ]

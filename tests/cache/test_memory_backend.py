@@ -1,14 +1,16 @@
-from ._fixtures import _GenericBackendTest
-from ._fixtures import _GenericSerializerTest
+from dogpile.testing.fixtures import _GenericBackendTestSuite
+from dogpile.testing.fixtures import _GenericSerializerTestSuite
 
 
-class MemoryBackendTest(_GenericBackendTest):
+class MemoryBackendTest(_GenericBackendTestSuite):
     backend = "dogpile.cache.memory"
 
 
-class MemoryBackendSerializerTest(_GenericSerializerTest, MemoryBackendTest):
+class MemoryBackendSerializerTest(
+    _GenericSerializerTestSuite, MemoryBackendTest
+):
     pass
 
 
-class MemoryPickleBackendTest(_GenericBackendTest):
+class MemoryPickleBackendTest(_GenericBackendTestSuite):
     backend = "dogpile.cache.memory_pickle"

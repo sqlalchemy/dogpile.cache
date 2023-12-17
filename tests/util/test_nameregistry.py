@@ -2,14 +2,13 @@ import logging
 import random
 import threading
 import time
-from unittest import TestCase
 
 from dogpile.util import NameRegistry
 
 log = logging.getLogger(__name__)
 
 
-class NameRegistryTest(TestCase):
+class NameRegistryTest:
     def test_name_registry(self):
         success = [True]
         num_operations = [0]

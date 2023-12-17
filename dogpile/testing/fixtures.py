@@ -1,3 +1,5 @@
+# mypy: ignore-errors
+
 import collections
 import itertools
 import json
@@ -5,7 +7,6 @@ import random
 from threading import Lock
 from threading import Thread
 import time
-from unittest import TestCase
 import uuid
 
 import pytest
@@ -17,15 +18,15 @@ from dogpile.cache.api import CacheMutex
 from dogpile.cache.api import CantDeserializeException
 from dogpile.cache.api import NO_VALUE
 from dogpile.cache.region import _backend_loader
-from . import assert_raises_message
-from . import eq_
+from .assertions import assert_raises_message
+from .assertions import eq_
 
 
 def gen_some_key():
     return f"some_key_{random.randint(1, 100000)}"
 
 
-class _GenericBackendFixture(object):
+class _GenericBackendFixture:
     @classmethod
     def setup_class(cls):
         backend_cls = _backend_loader.load(cls.backend)
@@ -36,7 +37,7 @@ class _GenericBackendFixture(object):
             pytest.skip("Backend %s not installed" % cls.backend)
         cls._check_backend_available(backend)
 
-    def tearDown(self):
+    def teardown_method(self, method):
         some_key = gen_some_key()
         if self._region_inst:
             for key in self._keys:
@@ -96,7 +97,7 @@ class _GenericBackendFixture(object):
         return self._backend_inst
 
 
-class _GenericBackendTest(_GenericBackendFixture, TestCase):
+class _GenericBackendTestSuite(_GenericBackendFixture):
     def test_backend_get_nothing(self):
         backend = self._backend()
         some_key = gen_some_key()
@@ -402,7 +403,7 @@ def raise_cant_deserialize_exception(v):
     raise CantDeserializeException()
 
 
-class _GenericSerializerTest(TestCase):
+class _GenericSerializerTestSuite:
     # Inheriting from this class will make test cases
     # use these serialization arguments
     region_args = {
@@ -452,7 +453,7 @@ class _GenericSerializerTest(TestCase):
     # TODO: test set_multi, get_multi
 
 
-class _GenericMutexTest(_GenericBackendFixture, TestCase):
+class _GenericMutexTestSuite(_GenericBackendFixture):
     def test_mutex(self):
         backend = self._backend()
         mutex = backend.get_mutex("foo")

@@ -1,10 +1,9 @@
 import threading
-import unittest
 
 import dogpile
 
 
-class TestAsyncRunner(unittest.TestCase):
+class AsyncRunnerTest:
     def test_async_release(self):
         self.called = False
 

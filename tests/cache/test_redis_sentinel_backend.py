@@ -2,13 +2,12 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from threading import Event
 import time
-from unittest import TestCase
 
-from . import eq_
-from ._fixtures import _GenericBackendFixture
-from ._fixtures import _GenericBackendTest
-from ._fixtures import _GenericMutexTest
-from ._fixtures import _GenericSerializerTest
+from dogpile.testing import eq_
+from dogpile.testing.fixtures import _GenericBackendFixture
+from dogpile.testing.fixtures import _GenericBackendTestSuite
+from dogpile.testing.fixtures import _GenericMutexTestSuite
+from dogpile.testing.fixtures import _GenericSerializerTestSuite
 from .test_redis_backend import _TestRedisConn as _TestRedisSentinelConn
 
 REDIS_HOST = "127.0.0.1"
@@ -16,7 +15,7 @@ REDIS_PORT = int(os.getenv("DOGPILE_REDIS_SENTINEL_PORT", "26379"))
 expect_redis_running = os.getenv("DOGPILE_REDIS_SENTINEL_PORT") is not None
 
 
-class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTest):
+class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTestSuite):
     backend = "dogpile.cache.redis_sentinel"
     config_args = {
         "arguments": {
@@ -28,12 +27,12 @@ class RedisSentinelTest(_TestRedisSentinelConn, _GenericBackendTest):
     }
 
 
-class RedisSerializerTest(_GenericSerializerTest, RedisSentinelTest):
+class RedisSerializerTest(_GenericSerializerTestSuite, RedisSentinelTest):
     pass
 
 
 class RedisSentinelDistributedMutexTest(
-    _TestRedisSentinelConn, _GenericMutexTest
+    _TestRedisSentinelConn, _GenericMutexTestSuite
 ):
     backend = "dogpile.cache.redis_sentinel"
     config_args = {
@@ -47,7 +46,7 @@ class RedisSentinelDistributedMutexTest(
 
 
 class RedisSentinelAsyncCreationTest(
-    _TestRedisSentinelConn, _GenericBackendFixture, TestCase
+    _TestRedisSentinelConn, _GenericBackendFixture
 ):
     backend = "dogpile.cache.redis_sentinel"
     config_args = {

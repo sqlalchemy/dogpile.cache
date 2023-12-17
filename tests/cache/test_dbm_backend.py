@@ -3,11 +3,11 @@ import sys
 
 from dogpile.cache.backends.file import AbstractFileLock
 from dogpile.cache.proxy import ProxyBackend
+from dogpile.testing import assert_raises_message
+from dogpile.testing.fixtures import _GenericBackendTestSuite
+from dogpile.testing.fixtures import _GenericMutexTestSuite
+from dogpile.testing.fixtures import _GenericSerializerTestSuite
 from dogpile.util.readwrite_lock import ReadWriteMutex
-from . import assert_raises_message
-from ._fixtures import _GenericBackendTest
-from ._fixtures import _GenericMutexTest
-from ._fixtures import _GenericSerializerTest
 
 try:
     import fcntl  # noqa
@@ -40,13 +40,13 @@ test_fname = "test_%s.db" % sys.hexversion
 
 if has_fcntl:
 
-    class DBMBackendTest(_GenericBackendTest):
+    class DBMBackendTest(_GenericBackendTestSuite):
         backend = "dogpile.cache.dbm"
 
         config_args = {"arguments": {"filename": test_fname}}
 
 
-class DBMBackendConditionTest(_GenericBackendTest):
+class DBMBackendConditionTest(_GenericBackendTestSuite):
     backend = "dogpile.cache.dbm"
 
     config_args = {
@@ -54,7 +54,7 @@ class DBMBackendConditionTest(_GenericBackendTest):
     }
 
 
-class DBMBackendProxyTest(_GenericBackendTest):
+class DBMBackendProxyTest(_GenericBackendTestSuite):
     backend = "dogpile.cache.dbm"
 
     config_args = {
@@ -64,12 +64,12 @@ class DBMBackendProxyTest(_GenericBackendTest):
 
 
 class DBMBackendSerializerTest(
-    _GenericSerializerTest, DBMBackendConditionTest
+    _GenericSerializerTestSuite, DBMBackendConditionTest
 ):
     pass
 
 
-class DBMBackendNoLockTest(_GenericBackendTest):
+class DBMBackendNoLockTest(_GenericBackendTestSuite):
     backend = "dogpile.cache.dbm"
 
     config_args = {
@@ -81,7 +81,7 @@ class DBMBackendNoLockTest(_GenericBackendTest):
     }
 
 
-class _DBMMutexTest(_GenericMutexTest):
+class _DBMMutexTestSuite(_GenericMutexTestSuite):
     backend = "dogpile.cache.dbm"
 
     def test_release_assertion_thread(self):
@@ -107,11 +107,11 @@ class _DBMMutexTest(_GenericMutexTest):
 
 if has_fcntl:
 
-    class DBMMutexFileTest(_DBMMutexTest):
+    class DBMMutexFileTest(_DBMMutexTestSuite):
         config_args = {"arguments": {"filename": test_fname}}
 
 
-class DBMMutexConditionTest(_DBMMutexTest):
+class DBMMutexConditionTest(_DBMMutexTestSuite):
     config_args = {
         "arguments": {"filename": test_fname, "lock_factory": MutexLock}
     }

@@ -4,18 +4,18 @@ import math
 import threading
 import time
 from unittest import mock
-from unittest import TestCase
 
 import pytest
 
 from dogpile import Lock
 from dogpile import NeedRegenerationException
+from dogpile.testing import eq_
 from dogpile.util import ReadWriteMutex
 
 log = logging.getLogger(__name__)
 
 
-class ConcurrencyTest(TestCase):
+class ConcurrencyTest:
     # expiretime, time to create, num usages, time spend using, delay btw usage
 
     _assertion_lock = threading.Lock()
@@ -296,7 +296,7 @@ class ConcurrencyTest(TestCase):
         )
 
 
-class RaceConditionTests(TestCase):
+class RaceConditionTest:
     def test_no_double_get_on_expired(self):
         mutex = threading.Lock()
 
@@ -320,6 +320,6 @@ class RaceConditionTests(TestCase):
             with Lock(
                 mutex, creator, value_and_created_fn, expiration_time
             ) as entered_value:
-                self.assertEqual("the value", entered_value)
+                eq_(entered_value, "the value")
 
-        self.assertEqual(value_and_created_fn.call_count, 1)
+        eq_(value_and_created_fn.call_count, 1)

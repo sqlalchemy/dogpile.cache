@@ -1,11 +1,10 @@
 from unittest import mock
-from unittest import TestCase
 
 from mako.cache import register_plugin
 from mako.template import Template
 import pytest
 
-from .. import eq_
+from dogpile.testing import eq_
 
 
 try:
@@ -18,7 +17,7 @@ register_plugin(
 )
 
 
-class TestMakoPlugin(TestCase):
+class MakoPluginTest:
     def _mock_fixture(self):
         reg = mock.MagicMock()
         reg.get_or_create.return_value = "hello world"

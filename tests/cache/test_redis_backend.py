@@ -2,25 +2,24 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from threading import Event
 import time
-from unittest import TestCase
 from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
 
 from dogpile.cache.region import _backend_loader
-from . import eq_
-from ._fixtures import _GenericBackendFixture
-from ._fixtures import _GenericBackendTest
-from ._fixtures import _GenericMutexTest
-from ._fixtures import _GenericSerializerTest
+from dogpile.testing import eq_
+from dogpile.testing.fixtures import _GenericBackendFixture
+from dogpile.testing.fixtures import _GenericBackendTestSuite
+from dogpile.testing.fixtures import _GenericMutexTestSuite
+from dogpile.testing.fixtures import _GenericSerializerTestSuite
 
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = int(os.getenv("DOGPILE_REDIS_PORT", "6379"))
 expect_redis_running = os.getenv("DOGPILE_REDIS_PORT") is not None
 
 
-class _TestRedisConn(object):
+class _TestRedisConn:
     @classmethod
     def _check_backend_available(cls, backend):
         try:
@@ -37,7 +36,7 @@ class _TestRedisConn(object):
                 raise
 
 
-class RedisTest(_TestRedisConn, _GenericBackendTest):
+class RedisTest(_TestRedisConn, _GenericBackendTestSuite):
     backend = "dogpile.cache.redis"
     config_args = {
         "arguments": {
@@ -49,11 +48,11 @@ class RedisTest(_TestRedisConn, _GenericBackendTest):
     }
 
 
-class RedisSerializerTest(_GenericSerializerTest, RedisTest):
+class RedisSerializerTest(_GenericSerializerTestSuite, RedisTest):
     pass
 
 
-class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTest):
+class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTestSuite):
     backend = "dogpile.cache.redis"
     config_args = {
         "arguments": {
@@ -65,7 +64,7 @@ class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTest):
     }
 
 
-class RedisAsyncCreationTest(_TestRedisConn, _GenericBackendFixture, TestCase):
+class RedisAsyncCreationTest(_TestRedisConn, _GenericBackendFixture):
     backend = "dogpile.cache.redis"
     config_args = {
         "arguments": {
@@ -128,7 +127,7 @@ class RedisAsyncCreationTest(_TestRedisConn, _GenericBackendFixture, TestCase):
 
 
 @patch("redis.StrictRedis", autospec=True)
-class RedisConnectionTest(TestCase):
+class RedisConnectionTest:
     backend = "dogpile.cache.redis"
 
     @classmethod

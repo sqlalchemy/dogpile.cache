@@ -3,7 +3,6 @@ import ssl
 from threading import Thread
 import time
 from unittest import mock
-from unittest import TestCase
 import weakref
 
 import pytest
@@ -12,11 +11,11 @@ from dogpile.cache.backends.memcached import GenericMemcachedBackend
 from dogpile.cache.backends.memcached import MemcachedBackend
 from dogpile.cache.backends.memcached import PylibmcBackend
 from dogpile.cache.backends.memcached import PyMemcacheBackend
-from . import eq_
-from . import is_
-from ._fixtures import _GenericBackendTest
-from ._fixtures import _GenericMutexTest
-from ._fixtures import _GenericSerializerTest
+from dogpile.testing import eq_
+from dogpile.testing import is_
+from dogpile.testing.fixtures import _GenericBackendTestSuite
+from dogpile.testing.fixtures import _GenericMutexTestSuite
+from dogpile.testing.fixtures import _GenericSerializerTestSuite
 
 
 MEMCACHED_PORT = os.getenv("DOGPILE_MEMCACHED_PORT", "11211")
@@ -65,13 +64,15 @@ class _TestTLSMemcachedConn(object):
                 raise
 
 
-class _NonDistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
+class _NonDistributedMemcachedTestSuite(
+    _TestMemcachedConn, _GenericBackendTestSuite
+):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
     config_args = {"arguments": {"url": MEMCACHED_URL}}
 
 
-class _NonDistributedTLSMemcachedTest(
-    _TestTLSMemcachedConn, _GenericBackendTest
+class _NonDistributedTLSMemcachedTestSuite(
+    _TestTLSMemcachedConn, _GenericBackendTestSuite
 ):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
     config_args = {
@@ -79,8 +80,8 @@ class _NonDistributedTLSMemcachedTest(
     }
 
 
-class _DistributedMemcachedWithTimeoutTest(
-    _TestMemcachedConn, _GenericBackendTest
+class _DistributedMemcachedWithTimeoutTestSuite(
+    _TestMemcachedConn, _GenericBackendTestSuite
 ):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
     config_args = {
@@ -92,21 +93,25 @@ class _DistributedMemcachedWithTimeoutTest(
     }
 
 
-class _DistributedMemcachedTest(_TestMemcachedConn, _GenericBackendTest):
+class _DistributedMemcachedTestSuite(
+    _TestMemcachedConn, _GenericBackendTestSuite
+):
     region_args = {"key_mangler": lambda x: x.replace(" ", "_")}
     config_args = {
         "arguments": {"url": MEMCACHED_URL, "distributed_lock": True}
     }
 
 
-class _DistributedMemcachedMutexTest(_TestMemcachedConn, _GenericMutexTest):
+class _DistributedMemcachedMutexTestSuite(
+    _TestMemcachedConn, _GenericMutexTestSuite
+):
     config_args = {
         "arguments": {"url": MEMCACHED_URL, "distributed_lock": True}
     }
 
 
-class _DistributedMemcachedMutexWithTimeoutTest(
-    _TestMemcachedConn, _GenericMutexTest
+class _DistributedMemcachedMutexWithTimeoutTestSuite(
+    _TestMemcachedConn, _GenericMutexTestSuite
 ):
     config_args = {
         "arguments": {
@@ -117,93 +122,93 @@ class _DistributedMemcachedMutexWithTimeoutTest(
     }
 
 
-class PylibmcTest(_NonDistributedMemcachedTest):
+class PylibmcTest(_NonDistributedMemcachedTestSuite):
     backend = "dogpile.cache.pylibmc"
 
 
-class PylibmcDistributedTest(_DistributedMemcachedTest):
+class PylibmcDistributedTest(_DistributedMemcachedTestSuite):
     backend = "dogpile.cache.pylibmc"
 
 
-class PylibmcDistributedMutexTest(_DistributedMemcachedMutexTest):
+class PylibmcDistributedMutexTest(_DistributedMemcachedMutexTestSuite):
     backend = "dogpile.cache.pylibmc"
 
 
 class PylibmcSerializerTest(
-    _GenericSerializerTest, _NonDistributedMemcachedTest
+    _GenericSerializerTestSuite, _NonDistributedMemcachedTestSuite
 ):
     backend = "dogpile.cache.pylibmc"
 
 
-class BMemcachedTest(_NonDistributedMemcachedTest):
+class BMemcachedTest(_NonDistributedMemcachedTestSuite):
     backend = "dogpile.cache.bmemcached"
 
 
 class BMemcachedDistributedWithTimeoutTest(
-    _DistributedMemcachedWithTimeoutTest
+    _DistributedMemcachedWithTimeoutTestSuite
 ):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedTLSTest(_NonDistributedTLSMemcachedTest):
+class BMemcachedTLSTest(_NonDistributedTLSMemcachedTestSuite):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedTest(_DistributedMemcachedTest):
+class BMemcachedDistributedTest(_DistributedMemcachedTestSuite):
     backend = "dogpile.cache.bmemcached"
 
 
-class BMemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
+class BMemcachedDistributedMutexTest(_DistributedMemcachedMutexTestSuite):
     backend = "dogpile.cache.bmemcached"
 
 
 class BMemcachedDistributedMutexWithTimeoutTest(
-    _DistributedMemcachedMutexWithTimeoutTest
+    _DistributedMemcachedMutexWithTimeoutTestSuite
 ):
     backend = "dogpile.cache.bmemcached"
 
 
 class BMemcachedSerializerTest(
-    _GenericSerializerTest, _NonDistributedMemcachedTest
+    _GenericSerializerTestSuite, _NonDistributedMemcachedTestSuite
 ):
     backend = "dogpile.cache.bmemcached"
 
 
-class PyMemcacheTest(_NonDistributedMemcachedTest):
+class PyMemcacheTest(_NonDistributedMemcachedTestSuite):
     backend = "dogpile.cache.pymemcache"
 
 
 class PyMemcacheDistributedWithTimeoutTest(
-    _DistributedMemcachedWithTimeoutTest
+    _DistributedMemcachedWithTimeoutTestSuite
 ):
     backend = "dogpile.cache.pymemcache"
 
 
-class PyMemcacheTLSTest(_NonDistributedTLSMemcachedTest):
+class PyMemcacheTLSTest(_NonDistributedTLSMemcachedTestSuite):
     backend = "dogpile.cache.pymemcache"
 
 
-class PyMemcacheDistributedTest(_DistributedMemcachedTest):
+class PyMemcacheDistributedTest(_DistributedMemcachedTestSuite):
     backend = "dogpile.cache.pymemcache"
 
 
-class PyMemcacheDistributedMutexTest(_DistributedMemcachedMutexTest):
+class PyMemcacheDistributedMutexTest(_DistributedMemcachedMutexTestSuite):
     backend = "dogpile.cache.pymemcache"
 
 
 class PyMemcacheDistributedMutexWithTimeoutTest(
-    _DistributedMemcachedMutexWithTimeoutTest
+    _DistributedMemcachedMutexWithTimeoutTestSuite
 ):
     backend = "dogpile.cache.pymemcache"
 
 
 class PyMemcacheSerializerTest(
-    _GenericSerializerTest, _NonDistributedMemcachedTest
+    _GenericSerializerTestSuite, _NonDistributedMemcachedTestSuite
 ):
     backend = "dogpile.cache.pymemcache"
 
 
-class PyMemcacheRetryTest(_NonDistributedMemcachedTest):
+class PyMemcacheRetryTest(_NonDistributedMemcachedTestSuite):
     backend = "dogpile.cache.pymemcache"
     config_args = {
         "arguments": {
@@ -214,10 +219,7 @@ class PyMemcacheRetryTest(_NonDistributedMemcachedTest):
     }
 
 
-class PyMemcacheArgsTest(TestCase):
-    # TODO: convert dogpile to be able to use pytest.fixtures (remove
-    # unittest.TestCase dependency) and use that to set up the mock module
-    # instead of an explicit method call
+class PyMemcacheArgsTest:
     def _mock_pymemcache_fixture(self):
         self.hash_client = mock.Mock()
         self.retrying_client = mock.Mock()
@@ -344,20 +346,20 @@ class PyMemcacheArgsTest(TestCase):
                 )
 
 
-class MemcachedTest(_NonDistributedMemcachedTest):
+class MemcachedTest(_NonDistributedMemcachedTestSuite):
     backend = "dogpile.cache.memcached"
 
 
-class MemcachedDistributedTest(_DistributedMemcachedTest):
+class MemcachedDistributedTest(_DistributedMemcachedTestSuite):
     backend = "dogpile.cache.memcached"
 
 
-class MemcachedDistributedMutexTest(_DistributedMemcachedMutexTest):
+class MemcachedDistributedMutexTest(_DistributedMemcachedMutexTestSuite):
     backend = "dogpile.cache.memcached"
 
 
 class MemcachedSerializerTest(
-    _GenericSerializerTest, _NonDistributedMemcachedTest
+    _GenericSerializerTestSuite, _NonDistributedMemcachedTestSuite
 ):
     backend = "dogpile.cache.pylibmc"
 
@@ -426,7 +428,7 @@ class MockClient(object):
         self._cache.pop(key, None)
 
 
-class MemcachedBackendTest(TestCase):
+class MemcachedBackendTest:
     def test_memcached_dead_retry(self):
         config_args = {
             "url": "127.0.0.1:11211",
@@ -444,7 +446,7 @@ class MemcachedBackendTest(TestCase):
         eq_(backend._create_client().kw["socket_timeout"], 6)
 
 
-class PylibmcArgsTest(TestCase):
+class PylibmcArgsTest:
     def test_binary_flag(self):
         backend = MockPylibmcBackend(arguments={"url": "foo", "binary": True})
         eq_(backend._create_client().kw["binary"], True)
@@ -483,7 +485,7 @@ class PylibmcArgsTest(TestCase):
         eq_(backend._clients.memcached.canary, [{}])
 
 
-class MemcachedArgstest(TestCase):
+class MemcachedArgstest:
     def test_set_time(self):
         backend = MockMemcacheBackend(
             arguments={"url": "foo", "memcached_expire_time": 20}
@@ -499,8 +501,9 @@ class MemcachedArgstest(TestCase):
         eq_(backend._clients.memcached.canary, [{"min_compress_len": 20}])
 
 
-class LocalThreadTest(TestCase):
-    def setUp(self):
+class LocalThreadTest:
+    @pytest.fixture(autouse=True)
+    def _collect_gc(self):
         import gc
 
         gc.collect()

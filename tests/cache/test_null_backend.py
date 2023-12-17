@@ -1,12 +1,11 @@
 import itertools
-from unittest import TestCase
 
 from dogpile.cache.api import NO_VALUE
-from . import eq_
-from ._fixtures import _GenericBackendFixture
+from dogpile.testing import eq_
+from dogpile.testing.fixtures import _GenericBackendFixture
 
 
-class NullBackendTest(_GenericBackendFixture, TestCase):
+class NullBackendTest(_GenericBackendFixture):
     backend = "dogpile.cache.null"
 
     def test_get(self):

@@ -1,7 +1,4 @@
-from unittest import TestCase
-
-
-class MakoTest(TestCase):
+class MakoTest:
 
     """Test entry point for Mako"""
 

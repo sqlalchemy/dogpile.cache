@@ -2,17 +2,17 @@
 
 import itertools
 import time
-from unittest import TestCase
 
 from dogpile.cache import util
 from dogpile.cache.api import NO_VALUE
+from dogpile.testing import assert_raises_message
+from dogpile.testing import eq_
+from dogpile.testing import winsleep
+from dogpile.testing.fixtures import _GenericBackendFixture
 from dogpile.util import compat
-from . import eq_
-from . import winsleep
-from ._fixtures import _GenericBackendFixture
 
 
-class DecoratorTest(_GenericBackendFixture, TestCase):
+class DecoratorTest(_GenericBackendFixture):
     backend = "dogpile.cache.memory"
 
     def _fixture(
@@ -189,7 +189,7 @@ class DecoratorTest(_GenericBackendFixture, TestCase):
         eq_(go.get(3, 1), ["1 2", "2 1"])
 
 
-class KeyGenerationTest(TestCase):
+class KeyGenerationTest:
     def _keygen_decorator(self, namespace=None, **kw):
         canary = []
 
@@ -229,7 +229,14 @@ class KeyGenerationTest(TestCase):
             pass
 
         gen = canary[0]
-        self.assertRaises(ValueError, gen, 1, b=2)
+        assert_raises_message(
+            ValueError,
+            "dogpile.cache's default key creation function "
+            "does not accept keyword arguments",
+            gen,
+            1,
+            b=2,
+        )
 
     def test_kwarg_kegen_keygen_fn(self):
         decorate, canary = self._kwarg_keygen_decorator()
@@ -471,7 +478,7 @@ class KeyGenerationTest(TestCase):
         )
 
 
-class CacheDecoratorTest(_GenericBackendFixture, TestCase):
+class CacheDecoratorTest(_GenericBackendFixture):
     backend = "mock"
 
     def test_cache_arg(self):
@@ -656,7 +663,7 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         cached_func = reg.cache_on_arguments()(func)
         cached_signature = compat.inspect_getargspec(cached_func)
 
-        self.assertEqual(signature, cached_signature)
+        eq_(signature, cached_signature)
 
     def test_cache_multi_preserve_sig(self):
         reg = self._region()
@@ -668,4 +675,4 @@ class CacheDecoratorTest(_GenericBackendFixture, TestCase):
         cached_func = reg.cache_multi_on_arguments()(func)
         cached_signature = compat.inspect_getargspec(cached_func)
 
-        self.assertEqual(signature, cached_signature)
+        eq_(signature, cached_signature)

@@ -5,7 +5,6 @@ import io
 import itertools
 import time
 from unittest import mock
-from unittest import TestCase
 
 from dogpile.cache import CacheRegion
 from dogpile.cache import exception
@@ -19,22 +18,22 @@ from dogpile.cache.proxy import ProxyBackend
 from dogpile.cache.region import _backend_loader
 from dogpile.cache.region import RegionInvalidationStrategy
 from dogpile.cache.region import value_version
-from . import assert_raises_message
-from . import eq_
-from . import is_
-from ._fixtures import MockBackend
+from dogpile.testing import assert_raises_message
+from dogpile.testing import eq_
+from dogpile.testing import is_
+from dogpile.testing.fixtures import MockBackend
 
 
 def key_mangler(key):
     return "HI!" + key
 
 
-class APITest(TestCase):
+class APITest:
     def test_no_value_str(self):
         eq_(str(NO_VALUE), "<dogpile.cache.api.NoValue object>")
 
 
-class RegionTest(TestCase):
+class RegionTest:
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)
         reg.configure(backend, **config_args)
@@ -606,12 +605,12 @@ class CustomInvalidationStrategyTest(RegionTest):
         return reg
 
 
-class TestProxyValue(object):
+class SomeProxyValue:
     def __init__(self, value):
         self.value = value
 
 
-class MutexAPITest(TestCase):
+class MutexAPITest:
     def test_mutex_non_match(self):
         assert not isinstance(5, CacheMutex)
         assert not isinstance("some string", CacheMutex)
@@ -642,7 +641,7 @@ class MutexAPITest(TestCase):
         assert isinstance(Foo(), CacheMutex)
 
 
-class AsyncCreatorTest(TestCase):
+class AsyncCreatorTest:
     def _fixture(self):
         def async_creation_runner(cache, somekey, creator, mutex):
             try:
@@ -728,8 +727,15 @@ class AsyncCreatorTest(TestCase):
         def go(x, **kw):
             return x
 
-        test_value = TestProxyValue("Decorator Test")
-        self.assertRaises(ValueError, go, x=1, foo=test_value)
+        test_value = SomeProxyValue("Decorator Test")
+        assert_raises_message(
+            ValueError,
+            "dogpile.cache's default key creation function does not "
+            "accept keyword arguments.",
+            go,
+            x=1,
+            foo=test_value,
+        )
 
         @reg.cache_on_arguments()
         def go2(x):
@@ -737,10 +743,10 @@ class AsyncCreatorTest(TestCase):
 
         # keywords that match positional names can be passed
         result = go2(x=test_value)
-        self.assertTrue(isinstance(result, TestProxyValue))
+        is_(isinstance(result, SomeProxyValue), True)
 
 
-class ProxyBackendTest(TestCase):
+class ProxyBackendTest:
     class GetCounterProxy(ProxyBackend):
         counter = 0
 
@@ -906,7 +912,7 @@ class ProxyBackendTest(TestCase):
         assert isinstance(reg.actual_backend, CacheBackend)
 
 
-class LoggingTest(TestCase):
+class LoggingTest:
     def _region(self, init_args={}, config_args={}, backend="mock"):
         reg = CacheRegion(**init_args)
         reg.configure(backend, **config_args)
