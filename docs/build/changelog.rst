@@ -4,7 +4,31 @@ Changelog
 
 .. changelog::
     :version: 1.3.0
-    :include_notes_from: unreleased
+    :released: Wed Dec 20 2023
+
+    .. change::
+        :tags: feature, region
+        :tickets: 37
+
+        Added new method :meth:`.CacheRegion.get_value_metadata` which can be used
+        to get a value from the cache along with its metadata, including timestamp
+        of when the value was cached.  The :class:`.CachedValue` object is returned
+        which features new accessors to retrieve cached time and current age. Pull
+        request courtesy Grégoire Deveaux.
+
+
+
+    .. change::
+        :tags: change, setup
+
+        Minimum Python version is now Python 3.8; prior versions Python 3.7 and 3.6
+        are EOL.
+
+
+    .. change::
+        :tags: change, setup
+
+        Project setup is now based on pep-621 ``pyproject.toml`` configuration.
 
 .. changelog::
     :version: 1.2.2
