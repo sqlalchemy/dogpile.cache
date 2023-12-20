@@ -336,3 +336,32 @@ class RedisSentinelBackend(RedisBackend):
         )
         self.writer_client = sentinel.master_for(self.service_name)
         self.reader_client = sentinel.slave_for(self.service_name)
+
+
+class RedisClusterBackend(RedisBackend):
+    def __init__(self, arguments):
+        arguments = arguments.copy()
+        super().__init__(arguments)
+
+        # Doc: https://redis.readthedocs.io/en/stable/clustering.html
+        self.startup_nodes = arguments.pop("startup_nodes", None)
+
+        # TODO Understand why in the sentinel they force distributed lock at true.
+        # https://github.com/leandromoreira/redlock-rb/issues/63
+
+    def _imports(self):
+        global redis
+        import redis.cluster
+
+    def _create_client(self):
+        redis_cluster = redis.cluster.RedisCluster(
+            host=self.host,
+            port=self.port,
+            startup_nodes=self.startup_nodes,
+            url=self.url,
+            **self.connection_kwargs,
+        )
+        if self.db != 0:
+            redis_cluster.select(self.db)
+        self.writer_client = redis_cluster
+        self.reader_client = self.writer_client
