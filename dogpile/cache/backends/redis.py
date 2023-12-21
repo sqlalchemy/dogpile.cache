@@ -375,21 +375,18 @@ class RedisClusterBackend(RedisBackend):
         region = make_region().configure(
             'dogpile.cache.redis_cluster',
             arguments = {
-                "url": "redis://myuser:mypassword@localhost:6379/0"
+                "url": "localhost:6379/0"
             }
         )
 
     Arguments accepted in the arguments dictionary:
 
+    :param startup_nodes: List of ClusterNode. The list of nodes in
+    the cluster that the client will try to connect to.
+
     :param url: string. If provided, will override separate
      host/password/port/db params.  The format is that accepted by
      ``RedisCluster.from_url()``.
-
-    :param host: string, default is ``localhost``.
-
-    :param password: string, default is no password.
-
-    :param port: integer, default is ``6379``.
 
     :param db: integer, default is ``0``.
 
@@ -447,14 +444,10 @@ class RedisClusterBackend(RedisBackend):
                 self.url, **self.connection_kwargs
             )
         else:
+            print(f"DEBUG CO KWARG: {self.connection_kwargs}")
             redis_cluster = redis.cluster.RedisCluster(
-                host=self.host,
-                port=self.port,
                 startup_nodes=self.startup_nodes,
-                url=self.url,
                 **self.connection_kwargs,
             )
-            if self.db != 0:
-                redis_cluster.select(self.db)
         self.writer_client = redis_cluster
         self.reader_client = self.writer_client
