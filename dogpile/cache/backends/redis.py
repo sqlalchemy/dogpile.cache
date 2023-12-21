@@ -18,7 +18,7 @@ else:
     # delayed import
     redis = None  # noqa F811
 
-__all__ = ("RedisBackend", "RedisSentinelBackend")
+__all__ = ("RedisBackend", "RedisSentinelBackend", "RedisClusterBackend")
 
 
 class RedisBackend(BytesBackend):
@@ -345,9 +345,6 @@ class RedisClusterBackend(RedisBackend):
 
         # Doc: https://redis.readthedocs.io/en/stable/clustering.html
         self.startup_nodes = arguments.pop("startup_nodes", None)
-
-        # TODO Understand why in the sentinel they force distributed lock at true.
-        # https://github.com/leandromoreira/redlock-rb/issues/63
 
     def _imports(self):
         global redis
