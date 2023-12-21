@@ -396,7 +396,8 @@ class RedisClusterBackend(RedisBackend):
         )
 
 
-    Example configuration, using url and a single node::
+    You can also pass an url to one node, and it will discover the whole cluster
+    automatically::
 
         from dogpile.cache import make_region
 
@@ -406,6 +407,9 @@ class RedisClusterBackend(RedisBackend):
                 "url": "localhost:6379/0"
             }
         )
+
+    This is not recommanded as, if the single node is down, you won't be able to connect
+    to the cluster.
 
     Arguments accepted in the arguments dictionary:
 
@@ -437,12 +441,6 @@ class RedisClusterBackend(RedisBackend):
     :param lock_sleep: integer, number of seconds to sleep when failed to
      acquire a lock.  This argument is only valid when
      ``distributed_lock`` is ``True``.
-
-    :param connection_pool: ``redis.ConnectionPool`` object.  If provided,
-     this object supersedes other connection arguments passed to the
-     ``redis.StrictRedis`` instance, including url and/or host as well as
-     socket_timeout, and will be passed to ``redis.StrictRedis`` as the
-     source of connectivity.
 
     :param thread_local_lock: bool, whether a thread-local Redis lock object
      should be used. This is the default, but is not compatible with
