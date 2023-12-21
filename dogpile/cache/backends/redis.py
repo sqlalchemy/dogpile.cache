@@ -368,6 +368,34 @@ class RedisClusterBackend(RedisBackend):
             }
         )
 
+    It is recommanded to use startup nodes, since it won't fail to connect as long as one of the node is available.
+    If you need to pass connection argument, like password, username or CA certificate, you can do it with connection_kwargs::
+
+        from dogpile.cache import make_region
+        from redis.cluster import ClusterNode
+
+        connection_kwargs = {
+            "username": "admin",
+            "password": "averystrongpassword",
+            "ssl": True,
+            "ssl_ca_certs": "redis.pem",
+        }
+
+        nodes = [
+            ClusterNode("localhost", 6379),
+            ClusterNode("localhost", 6380),
+            ClusterNode("localhost", 6381),
+        ]
+
+        region = make_region().configure(
+            "dogpile.cache.redis_cluster",
+            arguments={
+                "startup_nodes": nodes,
+                "connection_kwargs": connection_kwargs,
+            },
+        )
+
+
     Example configuration, using url and a single node::
 
         from dogpile.cache import make_region
@@ -444,7 +472,6 @@ class RedisClusterBackend(RedisBackend):
                 self.url, **self.connection_kwargs
             )
         else:
-            print(f"DEBUG CO KWARG: {self.connection_kwargs}")
             redis_cluster = redis.cluster.RedisCluster(
                 startup_nodes=self.startup_nodes,
                 **self.connection_kwargs,
