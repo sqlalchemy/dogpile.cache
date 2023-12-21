@@ -443,7 +443,9 @@ class RedisClusterBackend(RedisBackend):
 
     def _create_client(self):
         if self.url is not None:
-            redis_cluster = redis.cluster.RedisCluster.from_url(self.url)
+            redis_cluster = redis.cluster.RedisCluster.from_url(
+                self.url, **self.connection_kwargs
+            )
         else:
             redis_cluster = redis.cluster.RedisCluster(
                 host=self.host,
