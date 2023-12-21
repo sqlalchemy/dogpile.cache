@@ -434,8 +434,8 @@ class RedisClusterBackend(RedisBackend):
 
     def __init__(self, arguments):
         arguments = arguments.copy()
-        super().__init__(arguments)
         self.startup_nodes = arguments.pop("startup_nodes", None)
+        super().__init__(arguments)
 
     def _imports(self):
         global redis
