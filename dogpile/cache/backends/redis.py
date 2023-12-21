@@ -222,7 +222,8 @@ class _RedisLockWrapper:
 class RedisSentinelBackend(RedisBackend):
     """A `Redis <http://redis.io/>`_ backend, using the
     `redis-py <http://pypi.python.org/pypi/redis/>`_ backend.
-    It will use the Sentinel of a Redis cluster.
+    This backend is to be used when using
+    `Redis Sentinel <https://redis.io/docs/management/sentinel/>`_.
 
     .. versionadded:: 1.0.0
 
@@ -339,11 +340,101 @@ class RedisSentinelBackend(RedisBackend):
 
 
 class RedisClusterBackend(RedisBackend):
+    r"""A `Redis <http://redis.io/>`_ backend, using the
+    `redis-py <http://pypi.python.org/pypi/redis/>`_ backend.
+    This backend is to be used when connecting to a
+    `Redis Cluster <https://redis.io/docs/management/scaling/>`_.
+    It use the `RedisCluster Client <https://redis.readthedocs.io/en/stable/connections.html#cluster-client>`_.
+    For more information, see the `Clustering <https://redis.readthedocs.io/en/stable/clustering.html>`_
+    page on redis-py documentation.
+    Require redis-py version >=4.1.0.
+
+    .. versionadded:: 1.3.1
+
+    To connect to your cluster you can either::
+        - Pass a list of startup nodes
+        - Pass only one node of the cluster, Redis will use automatic discovery
+        to find the other nodes.
+
+    Example configuration, using startup nodes::
+
+        from dogpile.cache import make_region
+        from redis.cluster import ClusterNode
+
+        region = make_region().configure(
+            'dogpile.cache.redis_cluster',
+            arguments = {
+                startup_nodes = [ClusterNode('localhost', 6379), ClusterNode('localhost', 6378)]
+            }
+        )
+
+    Example configuration, using url and a single node::
+
+        from dogpile.cache import make_region
+
+        region = make_region().configure(
+            'dogpile.cache.redis_cluster',
+            arguments = {
+                url = "redis://myuser:mypassword@localhost:6379/0"
+            }
+        )
+
+    Arguments accepted in the arguments dictionary:
+
+    :param url: string. If provided, will override separate
+     host/password/port/db params.  The format is that accepted by
+     ``RedisCluster.from_url()``.
+
+    :param host: string, default is ``localhost``.
+
+    :param password: string, default is no password.
+
+    :param port: integer, default is ``6379``.
+
+    :param db: integer, default is ``0``.
+
+    :param redis_expiration_time: integer, number of seconds after setting
+     a value that Redis should expire it.  This should be larger than dogpile's
+     cache expiration.  By default no expiration is set.
+
+    :param distributed_lock: boolean, when True, will use a
+     redis-lock as the dogpile lock. Use this when multiple processes will be
+     talking to the same redis instance. When left at False, dogpile will
+     coordinate on a regular threading mutex.
+
+    :param lock_timeout: integer, number of seconds after acquiring a lock that
+     Redis should expire it.  This argument is only valid when
+     ``distributed_lock`` is ``True``.
+
+    :param socket_timeout: float, seconds for socket timeout.
+     Default is None (no timeout).
+
+    :param lock_sleep: integer, number of seconds to sleep when failed to
+     acquire a lock.  This argument is only valid when
+     ``distributed_lock`` is ``True``.
+
+    :param connection_pool: ``redis.ConnectionPool`` object.  If provided,
+     this object supersedes other connection arguments passed to the
+     ``redis.StrictRedis`` instance, including url and/or host as well as
+     socket_timeout, and will be passed to ``redis.StrictRedis`` as the
+     source of connectivity.
+
+    :param thread_local_lock: bool, whether a thread-local Redis lock object
+     should be used. This is the default, but is not compatible with
+     asynchronous runners, as they run in a different thread than the one
+     used to create the lock.
+
+    :param connection_kwargs: dict, additional keyword arguments are passed
+     along to the
+     ``RedisCluster.from_url()`` method or ``RedisCluster()`` constructor
+     directly, including parameters like ``ssl``, ``ssl_certfile``,
+     ``charset``, etc.
+
+    """
+
     def __init__(self, arguments):
         arguments = arguments.copy()
         super().__init__(arguments)
-
-        # Doc: https://redis.readthedocs.io/en/stable/clustering.html
         self.startup_nodes = arguments.pop("startup_nodes", None)
 
     def _imports(self):
@@ -351,14 +442,17 @@ class RedisClusterBackend(RedisBackend):
         import redis.cluster
 
     def _create_client(self):
-        redis_cluster = redis.cluster.RedisCluster(
-            host=self.host,
-            port=self.port,
-            startup_nodes=self.startup_nodes,
-            url=self.url,
-            **self.connection_kwargs,
-        )
-        if self.db != 0:
-            redis_cluster.select(self.db)
+        if self.url is not None:
+            redis_cluster = redis.cluster.RedisCluster.from_url(self.url)
+        else:
+            redis_cluster = redis.cluster.RedisCluster(
+                host=self.host,
+                port=self.port,
+                startup_nodes=self.startup_nodes,
+                url=self.url,
+                **self.connection_kwargs,
+            )
+            if self.db != 0:
+                redis_cluster.select(self.db)
         self.writer_client = redis_cluster
         self.reader_client = self.writer_client
