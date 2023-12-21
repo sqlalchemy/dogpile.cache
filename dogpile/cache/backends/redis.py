@@ -364,7 +364,7 @@ class RedisClusterBackend(RedisBackend):
         region = make_region().configure(
             'dogpile.cache.redis_cluster',
             arguments = {
-                startup_nodes = [ClusterNode('localhost', 6379), ClusterNode('localhost', 6378)]
+                "startup_nodes": [ClusterNode('localhost', 6379), ClusterNode('localhost', 6378)]
             }
         )
 
@@ -375,7 +375,7 @@ class RedisClusterBackend(RedisBackend):
         region = make_region().configure(
             'dogpile.cache.redis_cluster',
             arguments = {
-                url = "redis://myuser:mypassword@localhost:6379/0"
+                "url": "redis://myuser:mypassword@localhost:6379/0"
             }
         )
 
