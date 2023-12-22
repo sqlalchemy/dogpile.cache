@@ -473,6 +473,7 @@ class RedisClusterBackend(RedisBackend):
         import redis.cluster
 
     def _create_client(self):
+        redis_cluster: redis.cluster.RedisCluster[typing.Any]
         if self.url is not None:
             redis_cluster = redis.cluster.RedisCluster.from_url(
                 self.url, **self.connection_kwargs
@@ -482,5 +483,5 @@ class RedisClusterBackend(RedisBackend):
                 startup_nodes=self.startup_nodes,
                 **self.connection_kwargs,
             )
-        self.writer_client = redis_cluster
+        self.writer_client = typing.cast(redis.Redis[bytes], redis_cluster)
         self.reader_client = self.writer_client
