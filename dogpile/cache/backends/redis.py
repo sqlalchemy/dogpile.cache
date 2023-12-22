@@ -344,8 +344,11 @@ class RedisClusterBackend(RedisBackend):
     `redis-py <http://pypi.python.org/pypi/redis/>`_ backend.
     This backend is to be used when connecting to a
     `Redis Cluster <https://redis.io/docs/management/scaling/>`_.
-    It use the `RedisCluster Client <https://redis.readthedocs.io/en/stable/connections.html#cluster-client>`_.
-    For more information, see the `Clustering <https://redis.readthedocs.io/en/stable/clustering.html>`_
+    It use the
+    `RedisCluster Client
+    <https://redis.readthedocs.io/en/stable/connections.html#cluster-client>`_.
+    For more information, see the
+    `Clustering <https://redis.readthedocs.io/en/stable/clustering.html>`_
     page on redis-py documentation.
     Require redis-py version >=4.1.0.
 
@@ -364,12 +367,17 @@ class RedisClusterBackend(RedisBackend):
         region = make_region().configure(
             'dogpile.cache.redis_cluster',
             arguments = {
-                "startup_nodes": [ClusterNode('localhost', 6379), ClusterNode('localhost', 6378)]
+                "startup_nodes": [
+                    ClusterNode('localhost', 6379),
+                    ClusterNode('localhost', 6378)
+                ]
             }
         )
 
-    It is recommanded to use startup nodes, since it won't fail to connect as long as one of the node is available.
-    If you need to pass connection argument, like password, username or CA certificate, you can do it with connection_kwargs::
+    It is recommanded to use startup nodes, since it won't fail to connect as
+    long as one of the node is available.
+    If you need to pass connection argument, like password, username or
+    CA certificate, you can do it with connection_kwargs::
 
         from dogpile.cache import make_region
         from redis.cluster import ClusterNode
@@ -396,8 +404,8 @@ class RedisClusterBackend(RedisBackend):
         )
 
 
-    You can also pass an url to one node, and it will discover the whole cluster
-    automatically::
+    You can also pass an url to one node, and it will discover the whole
+    cluster automatically::
 
         from dogpile.cache import make_region
 
@@ -408,8 +416,8 @@ class RedisClusterBackend(RedisBackend):
             }
         )
 
-    This is not recommanded as, if the single node is down, you won't be able to connect
-    to the cluster.
+    This is not recommanded as, if the single node is down, you won't be able
+    to connect to the cluster.
 
     Arguments accepted in the arguments dictionary:
 
