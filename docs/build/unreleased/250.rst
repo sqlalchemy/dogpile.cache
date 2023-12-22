@@ -1,0 +1,9 @@
+.. change::
+    :tags: feature, redis
+    :tickets: 250
+
+    Added the backend :class:`.RedisClusterBackend`. This backend
+    allow dogpile to use a Redis Cluster as a backend, which is useful
+    if you need high availability. See the class documentation for how
+    to use it.
+
