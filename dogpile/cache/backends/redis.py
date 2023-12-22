@@ -357,7 +357,7 @@ class RedisClusterBackend(RedisBackend):
     To connect to your cluster you can either::
         - Pass a list of startup nodes
         - Pass only one node of the cluster, Redis will use automatic discovery
-        to find the other nodes.
+          to find the other nodes.
 
     Example configuration, using startup nodes::
 
@@ -422,7 +422,7 @@ class RedisClusterBackend(RedisBackend):
     Arguments accepted in the arguments dictionary:
 
     :param startup_nodes: List of ClusterNode. The list of nodes in
-    the cluster that the client will try to connect to.
+     the cluster that the client will try to connect to.
 
     :param url: string. If provided, will override separate
      host/password/port/db params.  The format is that accepted by
