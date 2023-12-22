@@ -1,0 +1,7 @@
+.. change::
+    :tags: feature, redis
+    :tickets: 250
+
+    Added a new backend :class:`.RedisClusterBackend`, allowing support for
+    Redis Cluster.  Pull request courtesy Maël Naccache Tüfekçi.
+
