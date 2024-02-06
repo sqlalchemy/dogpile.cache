@@ -149,24 +149,42 @@ class RedisConnectionTest:
         # The defaults, used if keys are missing from the arguments dict.
         arguments = {
             "host": "localhost",
-            "password": None,
             "port": 6379,
             "db": 0,
         }
-        self._test_helper(MockStrictRedis, arguments, {})
+        expected = arguments.copy()
+        expected.update({"username": None, "password": None})
+        self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_basics(self, MockStrictRedis):
         arguments = {
             "host": "127.0.0.1",
-            "password": None,
             "port": 6379,
             "db": 0,
         }
-        self._test_helper(MockStrictRedis, arguments)
+        expected = arguments.copy()
+        expected.update({"username": None, "password": None})
+        self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_password(self, MockStrictRedis):
         arguments = {
             "host": "127.0.0.1",
+            "password": "some password",
+            "port": 6379,
+            "db": 0,
+        }
+        expected = arguments.copy()
+        expected.update(
+            {
+                "username": None,
+            }
+        )
+        self._test_helper(MockStrictRedis, expected, arguments)
+
+    def test_connect_with_username_and_password(self, MockStrictRedis):
+        arguments = {
+            "host": "127.0.0.1",
+            "username": "redis",
             "password": "some password",
             "port": 6379,
             "db": 0,
@@ -178,10 +196,11 @@ class RedisConnectionTest:
             "host": "127.0.0.1",
             "port": 6379,
             "socket_timeout": 0.5,
-            "password": None,
             "db": 0,
         }
-        self._test_helper(MockStrictRedis, arguments)
+        expected = arguments.copy()
+        expected.update({"username": None, "password": None})
+        self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_connection_pool(self, MockStrictRedis):
         pool = Mock()
