@@ -2,7 +2,6 @@
     :tags: usecase, redis
 
     Added new parameter :paramref:`.RedisBackend.username` to the Redis
-    backend; this parameter allows username authentication in Redis when RBAC
-    is enabled. Also added new paramref:`.RedisSentinelBackend.username`
-    parameter, which is used for authentication in both Redis and Sentinel when
-    RBAC is enabled.  Pull request courtesy Takashi Kajinami.
+    backend, and :paramref:`.RedisSentinelBackend.username` to the Redis
+    Sentinel backend.  These parameters allow for username authentication in
+    Redis when RBAC is enabled.   Pull request courtesy Takashi Kajinami.
