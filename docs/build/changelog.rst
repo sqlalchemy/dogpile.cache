@@ -4,7 +4,15 @@ Changelog
 
 .. changelog::
     :version: 1.3.1
-    :include_notes_from: unreleased
+    :released: Wed Feb 7 2024
+
+    .. change::
+        :tags: usecase, redis
+
+        Added new parameter :paramref:`.RedisBackend.username` to the Redis
+        backend, and :paramref:`.RedisSentinelBackend.username` to the Redis
+        Sentinel backend.  These parameters allow for username authentication in
+        Redis when RBAC is enabled.   Pull request courtesy Takashi Kajinami.
 
 .. changelog::
     :version: 1.3.0
