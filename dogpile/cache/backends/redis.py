@@ -74,6 +74,16 @@ class RedisBackend(BytesBackend):
     :param socket_timeout: float, seconds for socket timeout.
      Default is None (no timeout).
 
+    :param socket_connect_timeout: float, seconds for socket connection
+     timeout.
+     Default is None (no timeout).
+
+    :param socket_keepalive: boolean, when True, socket keepalive is enabled
+     Default is False.
+
+    :param socket_keepalive_options: dict, socket keepalive options.
+     Default is None (no options).
+
     :param lock_sleep: integer, number of seconds to sleep when failed to
      acquire a lock.  This argument is only valid when
      ``distributed_lock`` is ``True``.
@@ -99,6 +109,9 @@ class RedisBackend(BytesBackend):
 
      .. versionadded:: 1.3.1  Added ``username`` parameter.
 
+     .. versionadded:: 1.3.2  Added ``socket_connect_timeout``,
+        ``socket_keepalive`` and ``socket_keepalive_options`` parameters.
+
     """
 
     def __init__(self, arguments):
@@ -112,6 +125,13 @@ class RedisBackend(BytesBackend):
         self.db = arguments.pop("db", 0)
         self.distributed_lock = arguments.pop("distributed_lock", False)
         self.socket_timeout = arguments.pop("socket_timeout", None)
+        self.socket_connect_timeout = arguments.pop(
+            "socket_connect_timeout", None
+        )
+        self.socket_keepalive = arguments.pop("socket_keepalive", False)
+        self.socket_keepalive_options = arguments.pop(
+            "socket_keepalive_options", None
+        )
         self.lock_timeout = arguments.pop("lock_timeout", None)
         self.lock_sleep = arguments.pop("lock_sleep", 0.1)
         self.thread_local_lock = arguments.pop("thread_local_lock", True)
@@ -144,8 +164,16 @@ class RedisBackend(BytesBackend):
         else:
             args = {}
             args.update(self.connection_kwargs)
-            if self.socket_timeout:
+            if self.socket_timeout is not None:
                 args["socket_timeout"] = self.socket_timeout
+            if self.socket_connect_timeout is not None:
+                args["socket_connect_timeout"] = self.socket_connect_timeout
+            if self.socket_keepalive:
+                args["socket_keepalive"] = True
+                if self.socket_keepalive_options is not None:
+                    args[
+                        "socket_keepalive_options"
+                    ] = self.socket_keepalive_options
 
             if self.url is not None:
                 args.update(url=self.url)
@@ -275,6 +303,16 @@ class RedisSentinelBackend(RedisBackend):
     :param socket_timeout: float, seconds for socket timeout.
      Default is None (no timeout).
 
+    :param socket_connect_timeout: float, seconds for socket connection
+     timeout.
+     Default is None (no timeout).
+
+    :param socket_keepalive: boolean, when True, socket keepalive is enabled
+     Default is False.
+
+    :param socket_keepalive_options: dict, socket keepalive options.
+     Default is {} (no options).
+
     :param sentinels: is a list of sentinel nodes. Each node is represented by
      a pair (hostname, port).
      Default is None (not in sentinel mode).
@@ -303,6 +341,9 @@ class RedisSentinelBackend(RedisBackend):
      used to create the lock.
 
      .. versionadded:: 1.3.1  Added ``username`` parameter.
+
+     .. versionadded:: 1.3.2  Added ``socket_connect_timeout``,
+        ``socket_keepalive`` and ``socket_keepalive_options`` parameters.
 
     """
 
@@ -342,6 +383,16 @@ class RedisSentinelBackend(RedisBackend):
             sentinel_kwargs.setdefault("db", self.db)
         if self.socket_timeout is not None:
             connection_kwargs.setdefault("socket_timeout", self.socket_timeout)
+        if self.socket_connect_timeout is not None:
+            connection_kwargs.setdefault(
+                "socket_connect_timeout", self.socket_connect_timeout
+            )
+        if self.socket_keepalive:
+            connection_kwargs.setdefault("socket_keepalive", True)
+            if self.socket_keepalive_options is not None:
+                connection_kwargs.setdefault(
+                    "socket_keepalive_options", self.socket_keepalive_options
+                )
 
         sentinel = redis.sentinel.Sentinel(
             self.sentinels,
