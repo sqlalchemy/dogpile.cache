@@ -202,6 +202,41 @@ class RedisConnectionTest:
         expected.update({"username": None, "password": None})
         self._test_helper(MockStrictRedis, expected, arguments)
 
+    def test_connect_with_socket_connect_timeout(self, MockStrictRedis):
+        arguments = {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "socket_timeout": 1.0,
+            "db": 0,
+        }
+        expected = arguments.copy()
+        expected.update({"username": None, "password": None})
+        self._test_helper(MockStrictRedis, expected, arguments)
+
+    def test_connect_with_socket_keepalive(self, MockStrictRedis):
+        arguments = {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "socket_keepalive": True,
+            "db": 0,
+        }
+        expected = arguments.copy()
+        expected.update({"username": None, "password": None})
+        self._test_helper(MockStrictRedis, expected, arguments)
+
+    def test_connect_with_socket_keepalive_options(self, MockStrictRedis):
+        arguments = {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "socket_keepalive": True,
+            # 4 = socket.TCP_KEEPIDLE
+            "socket_keepalive_options": {4, 10.0},
+            "db": 0,
+        }
+        expected = arguments.copy()
+        expected.update({"username": None, "password": None})
+        self._test_helper(MockStrictRedis, expected, arguments)
+
     def test_connect_with_connection_pool(self, MockStrictRedis):
         pool = Mock()
         arguments = {"connection_pool": pool, "socket_timeout": 0.5}

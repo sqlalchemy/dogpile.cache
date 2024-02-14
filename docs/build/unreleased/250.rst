@@ -1,5 +1,5 @@
 .. change::
-    :tags: feature, redis
+    :tags: usecase, redis
     :tickets: 250
 
     Added a new backend :class:`.RedisClusterBackend`, allowing support for
