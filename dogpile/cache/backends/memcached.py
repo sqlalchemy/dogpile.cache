@@ -408,25 +408,8 @@ class BMemcachedBackend(GenericMemcachedBackend):
         global bmemcached
         import bmemcached
 
-        class RepairBMemcachedAPI(bmemcached.Client):
-            """Repairs BMemcached's non-standard method
-            signatures, which was fixed in BMemcached
-            ef206ed4473fec3b639e.
-
-            """
-
-            def add(self, key, value, timeout=0):
-                try:
-                    return super(RepairBMemcachedAPI, self).add(
-                        key, value, timeout
-                    )
-                except ValueError:
-                    return False
-
-        self.Client = RepairBMemcachedAPI
-
     def _create_client(self):
-        return self.Client(
+        return bmemcached.Client(
             self.url,
             username=self.username,
             password=self.password,
