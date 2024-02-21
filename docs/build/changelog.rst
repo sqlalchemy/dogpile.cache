@@ -4,7 +4,25 @@ Changelog
 
 .. changelog::
     :version: 1.3.2
-    :include_notes_from: unreleased
+    :released: Wed Feb 21 2024
+
+    .. change::
+        :tags: usecase, redis
+        :tickets: 250
+
+        Added a new backend :class:`.RedisClusterBackend`, allowing support for
+        Redis Cluster.  Pull request courtesy Maël Naccache Tüfekçi.
+
+
+    .. change::
+        :tags: usecase, redis
+        :tickets: 252
+
+        Added support for additional Redis client parameters
+        :paramref:`.RedisBackend.socket_connect_timeout`,
+        :paramref:`.RedisBackend.socket_keepalive` and
+        :paramref:`.RedisBackend.socket_keepalive_options`. Pull request courtesy
+        Takashi Kajinami.
 
 .. changelog::
     :version: 1.3.1
