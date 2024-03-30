@@ -127,7 +127,6 @@ class GenericMemcachedBackend(CacheBackend):
         self.url = util.to_list(arguments["url"])
         self.distributed_lock = arguments.get("distributed_lock", False)
         self.lock_timeout = arguments.get("lock_timeout", 0)
-        self.memcached_expire_time = arguments.get("memcached_expire_time", 0)
 
     def has_lock_timeout(self):
         return self.lock_timeout != 0
