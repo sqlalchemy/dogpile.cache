@@ -95,26 +95,6 @@ class GenericMemcachedBackend(CacheBackend):
 
      .. versionadded:: 0.5.7
 
-    :param memcached_expire_time: integer, when present will
-     be passed as the ``time`` parameter to ``pylibmc.Client.set``.
-     This is used to set the memcached expiry time for a value.
-
-     .. note::
-
-         This parameter is **different** from Dogpile's own
-         ``expiration_time``, which is the number of seconds after
-         which Dogpile will consider the value to be expired.
-         When Dogpile considers a value to be expired,
-         it **continues to use the value** until generation
-         of a new value is complete, when using
-         :meth:`.CacheRegion.get_or_create`.
-         Therefore, if you are setting ``memcached_expire_time``, you'll
-         want to make sure it is greater than ``expiration_time``
-         by at least enough seconds for new values to be generated,
-         else the value won't be available during a regeneration,
-         forcing all threads to wait for a regeneration each time
-         a value expires.
-
     The :class:`.GenericMemachedBackend` uses a ``threading.local()``
     object to store individual client objects per thread,
     as most modern memcached clients do not appear to be inherently
@@ -222,6 +202,29 @@ class GenericMemcachedBackend(CacheBackend):
 class MemcacheArgs(GenericMemcachedBackend):
     """Mixin which provides support for the 'time' argument to set(),
     'min_compress_len' to other methods.
+
+    :param memcached_expire_time: integer, when present will
+     be passed as the ``time`` parameter to the ``set`` method.
+     This is used to set the memcached expiry time for a value.
+
+     .. note::
+
+         This parameter is **different** from Dogpile's own
+         ``expiration_time``, which is the number of seconds after
+         which Dogpile will consider the value to be expired.
+         When Dogpile considers a value to be expired,
+         it **continues to use the value** until generation
+         of a new value is complete, when using
+         :meth:`.CacheRegion.get_or_create`.
+         Therefore, if you are setting ``memcached_expire_time``, you'll
+         want to make sure it is greater than ``expiration_time``
+         by at least enough seconds for new values to be generated,
+         else the value won't be available during a regeneration,
+         forcing all threads to wait for a regeneration each time
+         a value expires.
+
+    :param min_compress_len: Threshold length to kick in auto-compression
+     of the value using the compressor
     """
 
     def __init__(self, arguments):
