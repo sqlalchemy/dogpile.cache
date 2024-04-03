@@ -345,6 +345,16 @@ class PyMemcacheArgsTest:
                     ),
                 )
 
+    def test_pymemcache_memacached_expire_time(self):
+        config_args = {"url": "127.0.0.1:11211", "memcached_expire_time": 20}
+        with self._mock_pymemcache_fixture():
+            backend = MockPyMemcacheBackend(config_args)
+            backend.set("foo", "bar")
+            eq_(
+                self.hash_client().set.mock_calls,
+                [mock.call("foo", "bar", expire=20)],
+            )
+
 
 class MemcachedTest(_NonDistributedMemcachedTestSuite):
     backend = "dogpile.cache.memcached"
