@@ -30,7 +30,7 @@ def key_mangler(key):
 
 class APITest:
     def test_no_value_str(self):
-        eq_(str(NO_VALUE), "<dogpile.cache.api.NoValue object>")
+        eq_(str(NO_VALUE), "NoValue.NO_VALUE")
 
 
 class RegionTest:
