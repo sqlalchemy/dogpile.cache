@@ -4,7 +4,24 @@ Changelog
 
 .. changelog::
     :version: 1.3.3
-    :include_notes_from: unreleased
+    :released: Sun May 5 2024
+
+    .. change::
+        :tags: bug, typing
+
+        Fixed the return type for :meth:`.CacheRegion.get`, which was inadvertently
+        hardcoded to use ``CacheReturnType`` that only resolved to ``CachedValue``
+        or ``NoValue``.   Fixed to return ``ValuePayload`` which resolves to
+        ``Any``, as well as a new literal indicating an enum constant for
+        :data:`.api.NO_VALUE`.  The :data:`.api.NO_VALUE` constant remains
+        available as the single element of this enum.
+
+    .. change::
+        :tags: usecase, memcached
+
+        Added support for an additional pymemcached client parameter
+        :paramref:`.PyMemcacheBackend.memcached_expire_time`.  Pull request
+        courtesy Takashi Kajinami.
 
 .. changelog::
     :version: 1.3.2
