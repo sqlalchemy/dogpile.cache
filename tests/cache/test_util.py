@@ -14,15 +14,37 @@ class A:
         pass
 
 
-def test_function_key_generator():
-    key_generator = util.function_key_generator(None, A.class_method)
+def test_function_key_generator_qualname():
+    key_generator = util.function_key_generator(
+        None, A.class_method, use_qual_name=True
+    )
     assert key_generator() == "tests.cache.test_util:A.class_method|"
 
-    key_generator = util.function_key_generator(None, A.static_method)
+    key_generator = util.function_key_generator(
+        None, A.static_method, use_qual_name=True
+    )
     assert key_generator() == "tests.cache.test_util:A.static_method|"
 
-    key_generator = util.function_key_generator(None, A.instance_method)
+    key_generator = util.function_key_generator(
+        None, A.instance_method, use_qual_name=True
+    )
     assert key_generator() == "tests.cache.test_util:A.instance_method|"
 
-    key_generator = util.function_key_generator("namespace", A.class_method)
+    key_generator = util.function_key_generator(
+        "namespace", A.class_method, use_qual_name=True
+    )
     assert key_generator() == "tests.cache.test_util:A.class_method|namespace|"
+
+
+def test_function_key_generator():
+    key_generator = util.function_key_generator(None, A.class_method)
+    assert key_generator() == "tests.cache.test_util:class_method|"
+
+    key_generator = util.function_key_generator(None, A.static_method)
+    assert key_generator() == "tests.cache.test_util:static_method|"
+
+    key_generator = util.function_key_generator(None, A.instance_method)
+    assert key_generator() == "tests.cache.test_util:instance_method|"
+
+    key_generator = util.function_key_generator("namespace", A.class_method)
+    assert key_generator() == "tests.cache.test_util:class_method|namespace|"
