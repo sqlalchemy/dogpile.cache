@@ -13,6 +13,12 @@ class A:
     def instance_method(self):
         pass
 
+    def nested_method(self):
+        def nested():
+            pass
+
+        return nested
+
 
 def test_function_key_generator_qualname():
     key_generator = util.function_key_generator(
@@ -35,6 +41,15 @@ def test_function_key_generator_qualname():
     )
     assert key_generator() == "tests.cache.test_util:A.class_method|namespace|"
 
+    nested = A().nested_method()
+    key_generator = util.function_key_generator(
+        None, nested, use_qual_name=True
+    )
+    assert (
+        key_generator()
+        == "tests.cache.test_util:A.nested_method.<locals>.nested|"
+    )
+
 
 def test_function_key_generator():
     key_generator = util.function_key_generator(None, A.class_method)
@@ -48,3 +63,7 @@ def test_function_key_generator():
 
     key_generator = util.function_key_generator("namespace", A.class_method)
     assert key_generator() == "tests.cache.test_util:class_method|namespace|"
+
+    nested = A().nested_method()
+    key_generator = util.function_key_generator(None, nested)
+    assert key_generator() == "tests.cache.test_util:nested|"

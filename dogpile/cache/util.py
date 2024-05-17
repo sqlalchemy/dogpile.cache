@@ -1,6 +1,7 @@
 from hashlib import sha1
 
-from ..util import compat, langhelpers
+from ..util import compat
+from ..util import langhelpers
 
 
 def function_key_generator(namespace, fn, to_str=str, use_qual_name=False):
