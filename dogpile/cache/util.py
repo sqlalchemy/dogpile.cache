@@ -1,7 +1,6 @@
 from hashlib import sha1
 
-from ..util import compat
-from ..util import langhelpers
+from ..util import compat, langhelpers
 
 
 def function_key_generator(namespace, fn, to_str=str):
@@ -24,9 +23,9 @@ def function_key_generator(namespace, fn, to_str=str):
     """
 
     if namespace is None:
-        namespace = "%s:%s" % (fn.__module__, fn.__name__)
+        namespace = "%s:%s" % (fn.__module__, fn.__qualname__)
     else:
-        namespace = "%s:%s|%s" % (fn.__module__, fn.__name__, namespace)
+        namespace = "%s:%s|%s" % (fn.__module__, fn.__qualname__, namespace)
 
     args = compat.inspect_getargspec(fn)
     has_self = args[0] and args[0][0] in ("self", "cls")
