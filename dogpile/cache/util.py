@@ -23,15 +23,18 @@ def function_key_generator(namespace, fn, to_str=str, use_qual_name=False):
      instead of just the name.  This is useful to avoid collision in modules
      that defines more than one class containing methods with the same name.
 
+     .. versionadded:: 1.3.4
+
     .. seealso::
 
         :func:`.kwarg_function_key_generator` - similar function that also
         takes keyword arguments into account
 
     """
-    fn_name = fn.__name__
     if use_qual_name:
         fn_name = fn.__qualname__
+    else:
+        fn_name = fn.__name__
 
     if namespace is None:
         namespace = "%s:%s" % (fn.__module__, fn_name)
