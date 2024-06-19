@@ -1,6 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.2"]
 build-backend = "setuptools.build_meta"
+requires = [
+    # avoid moving to https://github.com/pypa/setuptools/issues/3593
+    # until we're ready
+    "setuptools>=61.2,<69.3",
+]
 
 [project]
 name = "dogpile.cache"
