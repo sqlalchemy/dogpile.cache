@@ -4,3 +4,4 @@ sphinx
 mako
 decorator
 stevedore
+sphinx-book-theme
