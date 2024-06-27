@@ -38,10 +38,24 @@ pifpaf = [
     "pifpaf>=2.5.0",
     "setuptools;python_version>='3.12'",
 ]
+pymemcache = [
+    "pymemcache",
+]
+memcached = [
+    "python-memcached",
+]
+bmemcached = [
+    "python-binary-memcached",
+]
+pylibmc = [
+    "pylibmc",
+]
+redis = [
+    "redis",
+]
 
 [project.entry-points."mako.cache"]
 "dogpile.cache" = "dogpile.cache.plugins.mako_cache:MakoPlugin"
-
 
 [tool.setuptools]
 zip-safe = false
