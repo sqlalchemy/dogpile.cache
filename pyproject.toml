@@ -35,8 +35,7 @@ Documentation = "https://dogpilecache.sqlalchemy.org"
 
 [project.optional-dependencies]
 pifpaf = [
-    "pifpaf>=2.5.0",
-    "setuptools;python_version>='3.12'",
+    "pifpaf>=3.2.0",
 ]
 pymemcache = [
     "pymemcache",

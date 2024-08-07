@@ -37,6 +37,10 @@ Backends
     :members:
     :show-inheritance:
 
+.. automodule:: dogpile.cache.backends.valkey
+    :members:
+    :show-inheritance:
+
 .. automodule:: dogpile.cache.backends.file
     :members:
     :show-inheritance:
