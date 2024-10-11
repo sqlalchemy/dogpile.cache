@@ -39,6 +39,8 @@ extensions = [
     "sphinx_paramlinks",
 ]
 
+autodoc_inherit_docstrings = False
+
 changelog_sections = ["feature", "usecase", "bug"]
 
 changelog_render_ticket = (
