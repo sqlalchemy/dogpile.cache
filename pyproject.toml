@@ -50,6 +50,9 @@ pylibmc = [
 redis = [
     "redis",
 ]
+valkey = [
+    "valkey",
+]
 
 [project.entry-points."mako.cache"]
 "dogpile.cache" = "dogpile.cache.plugins.mako_cache:MakoPlugin"
