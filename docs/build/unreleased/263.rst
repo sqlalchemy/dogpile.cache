@@ -1,0 +1,6 @@
+.. change::
+    :tags: bug, redis
+    :tickets: 263
+
+    Fixes to the recently added ``RedisClusterBackend`` fixing a runtime typing
+    error that prevented it from running.

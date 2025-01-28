@@ -565,5 +565,5 @@ class RedisClusterBackend(RedisBackend):
                 startup_nodes=self.startup_nodes,
                 **self.connection_kwargs,
             )
-        self.writer_client = typing.cast(redis.Redis[bytes], redis_cluster)
+        self.writer_client = typing.cast("redis.Redis[bytes]", redis_cluster)
         self.reader_client = self.writer_client
