@@ -4,7 +4,7 @@ from ..util import compat
 from ..util import langhelpers
 
 
-def function_key_generator(namespace, fn, to_str=str):
+def function_key_generator(namespace, fn, to_str=str, use_qual_name=False):
     """Return a function that generates a string
     key, based on a given function as well as
     arguments to the returned function itself.
@@ -16,17 +16,30 @@ def function_key_generator(namespace, fn, to_str=str):
     the :paramref:`.CacheRegion.function_key_generator` argument
     for :class:`.CacheRegion`.
 
+    :param namespace: A string namespace to be used in the key.
+    :param fn: The function which will be called.
+    :param to_str: A function that will convert arguments to strings.
+    :param use_qual_name: If True, use the qualified name of the function
+     instead of just the name.  This is useful to avoid collision in modules
+     that defines more than one class containing methods with the same name.
+
+     .. versionadded:: 1.3.4
+
     .. seealso::
 
         :func:`.kwarg_function_key_generator` - similar function that also
         takes keyword arguments into account
 
     """
+    if use_qual_name:
+        fn_name = fn.__qualname__
+    else:
+        fn_name = fn.__name__
 
     if namespace is None:
-        namespace = "%s:%s" % (fn.__module__, fn.__name__)
+        namespace = "%s:%s" % (fn.__module__, fn_name)
     else:
-        namespace = "%s:%s|%s" % (fn.__module__, fn.__name__, namespace)
+        namespace = "%s:%s|%s" % (fn.__module__, fn_name, namespace)
 
     args = compat.inspect_getargspec(fn)
     has_self = args[0] and args[0][0] in ("self", "cls")
