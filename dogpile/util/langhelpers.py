@@ -115,9 +115,9 @@ class KeyReentrantMutex:
         # this collection holds zero or one
         # thread idents as the key; a set of
         # keynames held as the value.
-        keystore: MutableMapping[
-            int, MutableSet[str]
-        ] = collections.defaultdict(set)
+        keystore: MutableMapping[int, MutableSet[str]] = (
+            collections.defaultdict(set)
+        )
 
         def fac(key):
             return KeyReentrantMutex(key, mutex, keystore)

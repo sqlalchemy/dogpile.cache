@@ -3,7 +3,6 @@ from dogpile.testing import eq_
 
 
 class UtilsTest:
-
     """Test the relevant utils functionality."""
 
     def test_coerce_string_conf(self):

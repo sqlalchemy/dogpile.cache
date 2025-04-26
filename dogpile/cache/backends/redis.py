@@ -176,9 +176,9 @@ class RedisBackend(BytesBackend):
             if self.socket_keepalive:
                 args["socket_keepalive"] = True
                 if self.socket_keepalive_options is not None:
-                    args[
-                        "socket_keepalive_options"
-                    ] = self.socket_keepalive_options
+                    args["socket_keepalive_options"] = (
+                        self.socket_keepalive_options
+                    )
 
             if self.url is not None:
                 args.update(url=self.url)

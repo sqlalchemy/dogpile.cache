@@ -1,4 +1,4 @@
-__version__ = "1.3.5"
+__version__ = "1.4.0"
 
 from .lock import Lock  # noqa
 from .lock import NeedRegenerationException  # noqa

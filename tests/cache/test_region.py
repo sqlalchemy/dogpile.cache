@@ -569,7 +569,6 @@ class RegionTest:
 
 
 class ProxyRegionTest(RegionTest):
-
     """This is exactly the same as the region test above, but it goes through
     a dummy proxy.  The purpose of this is to make sure the tests  still run
     successfully even when there is a proxy"""
@@ -587,7 +586,6 @@ class ProxyRegionTest(RegionTest):
 
 
 class CustomInvalidationStrategyTest(RegionTest):
-
     """Try region tests with custom invalidation strategy.
 
     This is exactly the same as the region test above, but it uses custom
@@ -796,7 +794,6 @@ class ProxyBackendTest:
             return self.proxied.set(key, value)
 
     class UsedKeysProxy(ProxyBackend):
-
         """Keep a counter of hose often we set a particular key"""
 
         def __init__(self, *args, **kwargs):
@@ -813,7 +810,6 @@ class ProxyBackendTest:
             self.proxied.set(key, value)
 
     class NeverSetProxy(ProxyBackend):
-
         """A totally contrived example of a Proxy that we pass arguments to.
         Never set a key that matches never_set"""
 
@@ -960,8 +956,9 @@ class LoggingTest:
         def mock_time():
             return times.pop(0)
 
-        with mock.patch("dogpile.cache.region.log") as mock_log, mock.patch(
-            "dogpile.cache.region.time", mock.Mock(time=mock_time)
+        with (
+            mock.patch("dogpile.cache.region.log") as mock_log,
+            mock.patch("dogpile.cache.region.time", mock.Mock(time=mock_time)),
         ):
             with reg._log_time(["foo", "bar", "bat"]):
                 pass
@@ -1005,9 +1002,10 @@ class LoggingTest:
     def test_log_is_value_version_miss(self):
         reg = self._region()
         inv = mock.Mock(is_hard_invalidated=lambda val: True)
-        with mock.patch(
-            "dogpile.cache.region.log"
-        ) as mock_log, mock.patch.object(reg, "region_invalidator", inv):
+        with (
+            mock.patch("dogpile.cache.region.log") as mock_log,
+            mock.patch.object(reg, "region_invalidator", inv),
+        ):
             is_(
                 reg._is_cache_miss(
                     CachedValue(
@@ -1029,9 +1027,10 @@ class LoggingTest:
     def test_log_is_hard_invalidated(self):
         reg = self._region()
         inv = mock.Mock(is_hard_invalidated=lambda val: True)
-        with mock.patch(
-            "dogpile.cache.region.log"
-        ) as mock_log, mock.patch.object(reg, "region_invalidator", inv):
+        with (
+            mock.patch("dogpile.cache.region.log") as mock_log,
+            mock.patch.object(reg, "region_invalidator", inv),
+        ):
             is_(
                 reg._is_cache_miss(
                     CachedValue("some value", {"v": value_version, "ct": 500}),

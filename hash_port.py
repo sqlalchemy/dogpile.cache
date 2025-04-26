@@ -18,6 +18,7 @@ for the script in /var/lib/jenkins-workspace/py34-memcached.
 tox calls the pifpaf tool to run redis/ memcached local to that
 build and has it listen on this port.
 """
+
 import os
 import sys
 

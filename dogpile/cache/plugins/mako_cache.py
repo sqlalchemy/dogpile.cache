@@ -42,6 +42,7 @@ name of the desired region as the ``cache_region`` argument::
 
 
 """
+
 from mako.cache import CacheImpl
 
 

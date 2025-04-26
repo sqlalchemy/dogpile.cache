@@ -1,5 +1,6 @@
 import os
 import ssl
+import sys
 from threading import Thread
 import time
 from unittest import mock
@@ -50,6 +51,11 @@ class _TestMemcachedConn(object):
 class _TestTLSMemcachedConn(object):
     @classmethod
     def _check_backend_available(cls, backend):
+        if sys.version_info.minor > 12:
+            pytest.skip(
+                "Can't get TLS memcached clients to work with "
+                "py13 or greater, skipping"
+            )
         try:
             client = backend._create_client()
             client.set("x", "y")
