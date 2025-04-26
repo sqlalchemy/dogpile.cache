@@ -4,7 +4,26 @@ Changelog
 
 .. changelog::
     :version: 1.4.0
-    :include_notes_from: unreleased
+    :released: Sat Apr 26 2025
+
+    .. change::
+        :tags: change, general
+
+        Support for Python 3.8 has been dropped, the minimum version is now Python
+        3.9, as 3.8 is EOL.   This change is necessitated by the need to require
+        setuptools 77.0.3 in order to satisfy :pep:`639`.
+
+
+
+    .. change::
+        :tags: bug, general
+
+        The pyproject.toml configuration has been amended to use
+        the updated :pep:`639` configuration for license, which eliminates
+        loud deprecation warnings when building the package.   Note this
+        necessarily bumps setuptools build requirement to 77.0.3 which
+        forces Python 3.8 support to be dropped.
+
 
 .. changelog::
     :version: 1.3.4
