@@ -1,10 +1,12 @@
 from hashlib import sha1
+from typing import Callable
 
+from .api import KeyType
 from ..util import compat
 from ..util import langhelpers
 
 
-def function_key_generator(namespace, fn, to_str=str):
+def function_key_generator(namespace: str, fn, to_str=str) -> Callable:
     """Return a function that generates a string
     key, based on a given function as well as
     arguments to the returned function itself.
@@ -45,7 +47,7 @@ def function_key_generator(namespace, fn, to_str=str):
     return generate_key
 
 
-def function_multi_key_generator(namespace, fn, to_str=str):
+def function_multi_key_generator(namespace: str, fn, to_str=str) -> Callable:
     if namespace is None:
         namespace = "%s:%s" % (fn.__module__, fn.__name__)
     else:
@@ -67,7 +69,7 @@ def function_multi_key_generator(namespace, fn, to_str=str):
     return generate_keys
 
 
-def kwarg_function_key_generator(namespace, fn, to_str=str):
+def kwarg_function_key_generator(namespace: str, fn, to_str=str) -> Callable:
     """Return a function that generates a string
     key, based on a given function as well as
     arguments to the returned function itself.
@@ -127,16 +129,17 @@ def kwarg_function_key_generator(namespace, fn, to_str=str):
     return generate_key
 
 
-def sha1_mangle_key(key):
+def sha1_mangle_key(key: KeyType) -> str:
     """a SHA1 key mangler."""
 
-    if isinstance(key, str):
-        key = key.encode("utf-8")
+    bkey = key.encode("utf-8") if isinstance(key, str) else key
 
-    return sha1(key).hexdigest()
+    return sha1(bkey).hexdigest()
 
 
-def length_conditional_mangler(length, mangler):
+def length_conditional_mangler(
+    length: int, mangler: Callable[[KeyType], str]
+) -> Callable[[KeyType], str]:
     """a key mangler that mangles if the length of the key is
     past a certain threshold.
 

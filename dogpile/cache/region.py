@@ -12,6 +12,8 @@ import time
 from typing import Any
 from typing import Callable
 from typing import cast
+from typing import Dict
+from typing import List
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
@@ -25,6 +27,7 @@ from decorator import decorate
 from . import exception
 from .api import BackendArguments
 from .api import BackendFormatted
+from .api import CacheBackend
 from .api import CachedValue
 from .api import CacheMutex
 from .api import CacheReturnType
@@ -553,7 +556,7 @@ class CacheRegion:
 
         self.backend = proxy_instance.wrap(self.backend)
 
-    def _mutex(self, key):
+    def _mutex(self, key: KeyType) -> Any:
         return self._lock_registry.get(key)
 
     class _LockWrapper(CacheMutex):
@@ -571,7 +574,7 @@ class CacheRegion:
         def locked(self):
             return self.lock.locked()
 
-    def _create_mutex(self, key):
+    def _create_mutex(self, key: KeyType) -> Optional[Any]:
         mutex = self.backend.get_mutex(key)
         if mutex is not None:
             return mutex
@@ -579,10 +582,10 @@ class CacheRegion:
             return self._LockWrapper()
 
     # cached value
-    _actual_backend = None
+    _actual_backend: Optional[CacheBackend] = None
 
     @property
-    def actual_backend(self):
+    def actual_backend(self) -> CacheBackend:
         """Return the ultimate backend underneath any proxies.
 
         The backend might be the result of one or more ``proxy.wrap``
@@ -596,9 +599,11 @@ class CacheRegion:
             while hasattr(_backend, "proxied"):
                 _backend = _backend.proxied
             self._actual_backend = _backend
+        if TYPE_CHECKING:
+            assert self._actual_backend
         return self._actual_backend
 
-    def invalidate(self, hard=True):
+    def invalidate(self, hard: bool = True) -> None:
         """Invalidate this :class:`.CacheRegion`.
 
         The default invalidation system works by setting
@@ -648,7 +653,11 @@ class CacheRegion:
         """
         self.region_invalidator.invalidate(hard)
 
-    def configure_from_config(self, config_dict, prefix):
+    def configure_from_config(
+        self,
+        config_dict: Dict[str, Any],
+        prefix: str,
+    ) -> Self:
         """Configure from a configuration dictionary
         and a prefix.
 
@@ -680,20 +689,20 @@ class CacheRegion:
             ),
             _config_argument_dict=config_dict,
             _config_prefix="%sarguments." % prefix,
-            wrap=config_dict.get("%swrap" % prefix, None),
+            wrap=config_dict.get("%swrap" % prefix, ()),
             replace_existing_backend=config_dict.get(
                 "%sreplace_existing_backend" % prefix, False
             ),
         )
 
     @memoized_property
-    def backend(self):
+    def backend(self) -> CacheBackend:
         raise exception.RegionNotConfigured(
             "No backend is configured on this region."
         )
 
     @property
-    def is_configured(self):
+    def is_configured(self) -> bool:
         """Return True if the backend has been configured via the
         :meth:`.CacheRegion.configure` method already.
 
@@ -823,7 +832,11 @@ class CacheRegion:
         )
         return value
 
-    def _unexpired_value_fn(self, expiration_time, ignore_expiration):
+    def _unexpired_value_fn(
+        self,
+        expiration_time: Optional[float],
+        ignore_expiration: bool = False,
+    ) -> Callable[[CacheReturnType], CacheReturnType]:
         if ignore_expiration:
             return lambda value: value
         else:
@@ -849,7 +862,12 @@ class CacheRegion:
 
             return value_fn
 
-    def get_multi(self, keys, expiration_time=None, ignore_expiration=False):
+    def get_multi(
+        self,
+        keys: Sequence[KeyType],
+        expiration_time: Optional[float] = None,
+        ignore_expiration: bool = False,
+    ) -> List[Union[ValuePayload, NoValueType]]:
         """Return multiple values from the cache, based on the given keys.
 
         Returns values as a list matching the keys given.
@@ -900,7 +918,7 @@ class CacheRegion:
         ]
 
     @contextlib.contextmanager
-    def _log_time(self, keys):
+    def _log_time(self, keys: Sequence[KeyType]):
         start_time = time.time()
         yield
         seconds = time.time() - start_time
@@ -910,7 +928,11 @@ class CacheRegion:
             {"seconds": seconds, "keys": repr_obj(keys)},
         )
 
-    def _is_cache_miss(self, value, orig_key):
+    def _is_cache_miss(
+        self,
+        value: CacheReturnType,
+        orig_key: KeyType,
+    ) -> bool:
         if value is NO_VALUE:
             log.debug("No value present for key: %r", orig_key)
         elif value.metadata["v"] != value_version:
@@ -1152,7 +1174,7 @@ class CacheRegion:
 
         """
 
-        def get_value(key):
+        def get_value(key: KeyType) -> Tuple[Any, Union[float, int]]:
             value = values.get(key, NO_VALUE)
 
             if self._is_cache_miss(value, orig_key):
