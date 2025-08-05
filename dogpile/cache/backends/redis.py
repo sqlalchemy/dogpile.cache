@@ -23,7 +23,6 @@ import warnings
 from typing_extensions import NotRequired
 
 from ..api import BytesBackend
-from ..api import CacheMutex
 from ..api import KeyType
 from ..api import NO_VALUE
 from ..api import SerializedReturnType
@@ -292,7 +291,7 @@ class RedisBackend(BytesBackend):
         self.writer_client.delete(*keys)
 
 
-class _RedisLockWrapper(CacheMutex):
+class _RedisLockWrapper:
     __slots__ = ("mutex", "__weakref__")
 
     def __init__(self, mutex: Any):
