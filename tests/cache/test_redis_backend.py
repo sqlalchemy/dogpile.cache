@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
+from dogpile.cache.backends.redis import RedisKwargs
 from dogpile.cache.region import _backend_loader
 from dogpile.testing import eq_
 from dogpile.testing.fixtures import _GenericBackendFixture
@@ -147,7 +148,7 @@ class RedisConnectionTest:
 
     def test_connect_with_defaults(self, MockStrictRedis):
         # The defaults, used if keys are missing from the arguments dict.
-        arguments = {
+        arguments: RedisKwargs = {
             "host": "localhost",
             "port": 6379,
             "db": 0,
@@ -157,7 +158,7 @@ class RedisConnectionTest:
         self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_basics(self, MockStrictRedis):
-        arguments = {
+        arguments: RedisKwargs = {
             "host": "127.0.0.1",
             "port": 6379,
             "db": 0,
@@ -167,7 +168,7 @@ class RedisConnectionTest:
         self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_password(self, MockStrictRedis):
-        arguments = {
+        arguments: RedisKwargs = {
             "host": "127.0.0.1",
             "password": "some password",
             "port": 6379,
@@ -182,7 +183,7 @@ class RedisConnectionTest:
         self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_username_and_password(self, MockStrictRedis):
-        arguments = {
+        arguments: RedisKwargs = {
             "host": "127.0.0.1",
             "username": "redis",
             "password": "some password",
@@ -192,7 +193,7 @@ class RedisConnectionTest:
         self._test_helper(MockStrictRedis, arguments)
 
     def test_connect_with_socket_timeout(self, MockStrictRedis):
-        arguments = {
+        arguments: RedisKwargs = {
             "host": "127.0.0.1",
             "port": 6379,
             "socket_timeout": 0.5,
@@ -203,7 +204,7 @@ class RedisConnectionTest:
         self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_socket_connect_timeout(self, MockStrictRedis):
-        arguments = {
+        arguments: RedisKwargs = {
             "host": "127.0.0.1",
             "port": 6379,
             "socket_timeout": 1.0,
@@ -214,7 +215,7 @@ class RedisConnectionTest:
         self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_socket_keepalive(self, MockStrictRedis):
-        arguments = {
+        arguments: RedisKwargs = {
             "host": "127.0.0.1",
             "port": 6379,
             "socket_keepalive": True,
@@ -225,7 +226,7 @@ class RedisConnectionTest:
         self._test_helper(MockStrictRedis, expected, arguments)
 
     def test_connect_with_socket_keepalive_options(self, MockStrictRedis):
-        arguments = {
+        arguments: RedisKwargs = {
             "host": "127.0.0.1",
             "port": 6379,
             "socket_keepalive": True,
@@ -239,18 +240,23 @@ class RedisConnectionTest:
 
     def test_connect_with_connection_pool(self, MockStrictRedis):
         pool = Mock()
-        arguments = {"connection_pool": pool, "socket_timeout": 0.5}
+        arguments: RedisKwargs = {
+            "connection_pool": pool,
+            "socket_timeout": 0.5,
+        }
         expected_args = {"connection_pool": pool}
         self._test_helper(
             MockStrictRedis, expected_args, connection_args=arguments
         )
 
     def test_connect_with_url(self, MockStrictRedis):
-        arguments = {"url": "redis://redis:password@127.0.0.1:6379/0"}
+        arguments: RedisKwargs = {
+            "url": "redis://redis:password@127.0.0.1:6379/0"
+        }
         self._test_helper(MockStrictRedis.from_url, arguments)
 
     def test_extra_arbitrary_args(self, MockStrictRedis):
-        arguments = {
+        arguments: RedisKwargs = {
             "url": "redis://redis:password@127.0.0.1:6379/0",
             "connection_kwargs": {
                 "ssl": True,

@@ -6,19 +6,70 @@ Provides backends for talking to `Redis <http://redis.io>`_.
 
 """
 
-import typing
+from __future__ import annotations
+
+from typing import Any
+from typing import cast
+from typing import Dict
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
+from typing import TypedDict
 import warnings
 
-from ..api import BytesBackend
-from ..api import NO_VALUE
+from typing_extensions import NotRequired
 
-if typing.TYPE_CHECKING:
+from ..api import BytesBackend
+from ..api import CacheMutex
+from ..api import KeyType
+from ..api import NO_VALUE
+from ..api import SerializedReturnType
+
+if TYPE_CHECKING:
     import redis
 else:
     # delayed import
     redis = None  # noqa F811
 
 __all__ = ("RedisBackend", "RedisSentinelBackend", "RedisClusterBackend")
+
+
+class RedisKwargs(TypedDict):
+    """
+    TypedDict of kwargs for `RedisBackend` and derived classes
+    .. versionadded:: 1.4.1
+    """
+
+    url: NotRequired[str]
+    host: NotRequired[str]
+    username: NotRequired[Optional[str]]
+    password: NotRequired[Optional[str]]
+    port: NotRequired[int]
+    db: NotRequired[int]
+    redis_expiration_time: NotRequired[int]
+    distributed_lock: NotRequired[bool]
+    lock_timeout: NotRequired[int]
+    socket_timeout: NotRequired[float]
+    socket_connect_timeout: NotRequired[float]
+    socket_keepalive: NotRequired[bool]
+    socket_keepalive_options: NotRequired[Dict]
+    lock_sleep: NotRequired[int]
+    connection_pool: NotRequired["redis.ConnectionPool"]
+    thread_local_lock: NotRequired[bool]
+    connection_kwargs: NotRequired[Dict[str, Any]]
+
+
+class RedisKwargs_Sentinel(RedisKwargs):
+    sentinels: List[Tuple[str, str]]
+    service_name: NotRequired[str]
+    sentinel_kwargs: NotRequired[Dict[str, Any]]
+
+
+class RedisKwargs_Cluster(RedisKwargs):
+    startup_nodes: List["redis.cluster.ClusterNode"]
 
 
 class RedisBackend(BytesBackend):
@@ -114,12 +165,9 @@ class RedisBackend(BytesBackend):
 
      .. versionadded:: 1.1.6
 
-
-
-
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments: RedisKwargs):
         arguments = arguments.copy()
         self._imports()
         self.url = arguments.pop("url", None)
@@ -152,12 +200,12 @@ class RedisBackend(BytesBackend):
         self.connection_pool = arguments.pop("connection_pool", None)
         self._create_client()
 
-    def _imports(self):
+    def _imports(self) -> None:
         # defer imports until backend is used
         global redis
         import redis  # noqa
 
-    def _create_client(self):
+    def _create_client(self) -> None:
         if self.connection_pool is not None:
             # the connection pool already has all other connection
             # options present within, so here we disregard socket_timeout
@@ -195,7 +243,7 @@ class RedisBackend(BytesBackend):
                 self.writer_client = redis.StrictRedis(**args)
                 self.reader_client = self.writer_client
 
-    def get_mutex(self, key):
+    def get_mutex(self, key: KeyType) -> Optional[_RedisLockWrapper]:
         if self.distributed_lock:
             return _RedisLockWrapper(
                 self.writer_client.lock(
@@ -208,25 +256,27 @@ class RedisBackend(BytesBackend):
         else:
             return None
 
-    def get_serialized(self, key):
+    def get_serialized(self, key: KeyType) -> SerializedReturnType:
         value = self.reader_client.get(key)
         if value is None:
             return NO_VALUE
-        return value
+        return cast(SerializedReturnType, value)
 
-    def get_serialized_multi(self, keys):
+    def get_serialized_multi(
+        self, keys: Sequence[KeyType]
+    ) -> Sequence[SerializedReturnType]:
         if not keys:
             return []
         values = self.reader_client.mget(keys)
         return [v if v is not None else NO_VALUE for v in values]
 
-    def set_serialized(self, key, value):
+    def set_serialized(self, key: KeyType, value: bytes) -> None:
         if self.redis_expiration_time:
             self.writer_client.setex(key, self.redis_expiration_time, value)
         else:
             self.writer_client.set(key, value)
 
-    def set_serialized_multi(self, mapping):
+    def set_serialized_multi(self, mapping: Mapping[KeyType, bytes]) -> None:
         if not self.redis_expiration_time:
             self.writer_client.mset(mapping)
         else:
@@ -235,23 +285,23 @@ class RedisBackend(BytesBackend):
                 pipe.setex(key, self.redis_expiration_time, value)
             pipe.execute()
 
-    def delete(self, key):
+    def delete(self, key: KeyType) -> None:
         self.writer_client.delete(key)
 
-    def delete_multi(self, keys):
+    def delete_multi(self, keys: Sequence[KeyType]) -> None:
         self.writer_client.delete(*keys)
 
 
-class _RedisLockWrapper:
+class _RedisLockWrapper(CacheMutex):
     __slots__ = ("mutex", "__weakref__")
 
-    def __init__(self, mutex: typing.Any):
+    def __init__(self, mutex: Any):
         self.mutex = mutex
 
-    def acquire(self, wait: bool = True) -> typing.Any:
+    def acquire(self, wait: bool = True) -> Any:
         return self.mutex.acquire(blocking=wait)
 
-    def release(self) -> typing.Any:
+    def release(self) -> Any:
         return self.mutex.release()
 
     def locked(self) -> bool:
@@ -356,7 +406,7 @@ class RedisSentinelBackend(RedisBackend):
 
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments: RedisKwargs_Sentinel):
         arguments = arguments.copy()
 
         self.sentinels = arguments.pop("sentinels", None)
@@ -371,7 +421,7 @@ class RedisSentinelBackend(RedisBackend):
             }
         )
 
-    def _imports(self):
+    def _imports(self) -> None:
         # defer imports until backend is used
         global redis
         import redis.sentinel  # noqa
@@ -545,17 +595,17 @@ class RedisClusterBackend(RedisBackend):
 
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments: RedisKwargs_Cluster):
         arguments = arguments.copy()
         self.startup_nodes = arguments.pop("startup_nodes", None)
         super().__init__(arguments)
 
-    def _imports(self):
+    def _imports(self) -> None:
         global redis
         import redis.cluster
 
-    def _create_client(self):
-        redis_cluster: redis.cluster.RedisCluster[typing.Any]
+    def _create_client(self) -> None:
+        redis_cluster: redis.cluster.RedisCluster[Any]
         if self.url is not None:
             redis_cluster = redis.cluster.RedisCluster.from_url(
                 self.url, **self.connection_kwargs
@@ -565,5 +615,5 @@ class RedisClusterBackend(RedisBackend):
                 startup_nodes=self.startup_nodes,
                 **self.connection_kwargs,
             )
-        self.writer_client = typing.cast("redis.Redis[bytes]", redis_cluster)
+        self.writer_client = cast("redis.Redis[bytes]", redis_cluster)
         self.reader_client = self.writer_client

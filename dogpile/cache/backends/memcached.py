@@ -18,7 +18,6 @@ from ..api import CacheBackend
 from ..api import NO_VALUE
 from ... import util
 
-
 if typing.TYPE_CHECKING:
     import bmemcached
     import memcache
