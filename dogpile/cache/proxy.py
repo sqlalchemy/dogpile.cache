@@ -34,24 +34,24 @@ class ProxyBackend(CacheBackend):
         from dogpile.cache.proxy import ProxyBackend
 
         class MyFirstProxy(ProxyBackend):
-            def get_serialized(self, key):
+           def get_serialized(self, key: KeyType) -> SerializedReturnType:
                 # ... custom code goes here ...
                 return self.proxied.get_serialized(key)
 
-            def get(self, key):
+            def get(self, key: KeyType) -> BackendFormatted:
                 # ... custom code goes here ...
                 return self.proxied.get(key)
 
-            def set(self, key, value):
+            def set(self, key: KeyType, value: BackendSetType) -> None:
                 # ... custom code goes here ...
                 self.proxied.set(key)
 
         class MySecondProxy(ProxyBackend):
-            def get_serialized(self, key):
+            def get_serialized(self, key: KeyType) -> SerializedReturnType:
                 # ... custom code goes here ...
                 return self.proxied.get_serialized(key)
 
-            def get(self, key):
+            def get(self, key: KeyType) -> BackendFormatted:
                 # ... custom code goes here ...
                 return self.proxied.get(key)
 
