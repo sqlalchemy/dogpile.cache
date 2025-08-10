@@ -6,16 +6,28 @@ Provides backends that deal with local filesystem access.
 
 """
 
+from __future__ import annotations
+
 from contextlib import contextmanager
 import dbm
 import os
 import threading
+from typing import Literal
+from typing import TypedDict
+from typing import Union
 
 from ..api import BytesBackend
 from ..api import NO_VALUE
 from ... import util
 
 __all__ = ["DBMBackend", "FileLock", "AbstractFileLock"]
+
+
+class DBMBackendArguments(TypedDict, total=False):
+    filename: str
+    lock_factory: "AbstractFileLock"
+    rw_lockfile: Union[str, Literal[False], None]
+    dogpile_lockfile: Union[str, Literal[False], None]
 
 
 class DBMBackend(BytesBackend):
@@ -137,18 +149,19 @@ class DBMBackend(BytesBackend):
 
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments: DBMBackendArguments):
+        _arguments = arguments.copy()
         self.filename = os.path.abspath(
-            os.path.normpath(arguments["filename"])
+            os.path.normpath(_arguments["filename"])
         )
         dir_, filename = os.path.split(self.filename)
 
-        self.lock_factory = arguments.get("lock_factory", FileLock)
+        self.lock_factory = _arguments.get("lock_factory", FileLock)
         self._rw_lock = self._init_lock(
-            arguments.get("rw_lockfile"), ".rw.lock", dir_, filename
+            _arguments.get("rw_lockfile"), ".rw.lock", dir_, filename
         )
         self._dogpile_lock = self._init_lock(
-            arguments.get("dogpile_lockfile"),
+            _arguments.get("dogpile_lockfile"),
             ".dogpile.lock",
             dir_,
             filename,

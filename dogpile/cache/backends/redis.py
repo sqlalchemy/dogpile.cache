@@ -20,8 +20,6 @@ from typing import TYPE_CHECKING
 from typing import TypedDict
 import warnings
 
-from typing_extensions import NotRequired
-
 from ..api import BytesBackend
 from ..api import KeyType
 from ..api import NO_VALUE
@@ -36,38 +34,38 @@ else:
 __all__ = ("RedisBackend", "RedisSentinelBackend", "RedisClusterBackend")
 
 
-class RedisKwargs(TypedDict):
+class RedisBackendKwargs(TypedDict, total=False):
     """
     TypedDict of kwargs for `RedisBackend` and derived classes
     .. versionadded:: 1.4.1
     """
 
-    url: NotRequired[str]
-    host: NotRequired[str]
-    username: NotRequired[Optional[str]]
-    password: NotRequired[Optional[str]]
-    port: NotRequired[int]
-    db: NotRequired[int]
-    redis_expiration_time: NotRequired[int]
-    distributed_lock: NotRequired[bool]
-    lock_timeout: NotRequired[int]
-    socket_timeout: NotRequired[float]
-    socket_connect_timeout: NotRequired[float]
-    socket_keepalive: NotRequired[bool]
-    socket_keepalive_options: NotRequired[Dict]
-    lock_sleep: NotRequired[int]
-    connection_pool: NotRequired["redis.ConnectionPool"]
-    thread_local_lock: NotRequired[bool]
-    connection_kwargs: NotRequired[Dict[str, Any]]
+    url: Optional[str]
+    host: str
+    username: Optional[str]
+    password: Optional[str]
+    port: int
+    db: int
+    redis_expiration_time: int
+    distributed_lock: bool
+    lock_timeout: int
+    socket_timeout: Optional[float]
+    socket_connect_timeout: Optional[float]
+    socket_keepalive: bool
+    socket_keepalive_options: Optional[Dict[str, Any]]
+    lock_sleep: float
+    connection_pool: Optional["redis.ConnectionPool"]
+    thread_local_lock: bool
+    connection_kwargs: Dict[str, Any]
 
 
-class RedisKwargs_Sentinel(RedisKwargs):
+class RedisSentinelBackendKwargs(RedisBackendKwargs):
     sentinels: List[Tuple[str, str]]
-    service_name: NotRequired[str]
-    sentinel_kwargs: NotRequired[Dict[str, Any]]
+    service_name: str
+    sentinel_kwargs: Dict[str, Any]
 
 
-class RedisKwargs_Cluster(RedisKwargs):
+class RedisClusterBackendKwargs(RedisBackendKwargs):
     startup_nodes: List["redis.cluster.ClusterNode"]
 
 
@@ -166,28 +164,28 @@ class RedisBackend(BytesBackend):
 
     """
 
-    def __init__(self, arguments: RedisKwargs):
-        arguments = arguments.copy()
+    def __init__(self, arguments: RedisBackendKwargs):
+        _arguments = arguments.copy()
         self._imports()
-        self.url = arguments.pop("url", None)
-        self.host = arguments.pop("host", "localhost")
-        self.username = arguments.pop("username", None)
-        self.password = arguments.pop("password", None)
-        self.port = arguments.pop("port", 6379)
-        self.db = arguments.pop("db", 0)
-        self.distributed_lock = arguments.pop("distributed_lock", False)
-        self.socket_timeout = arguments.pop("socket_timeout", None)
-        self.socket_connect_timeout = arguments.pop(
+        self.url = _arguments.pop("url", None)
+        self.host = _arguments.pop("host", "localhost")
+        self.username = _arguments.pop("username", None)
+        self.password = _arguments.pop("password", None)
+        self.port = _arguments.pop("port", 6379)
+        self.db = _arguments.pop("db", 0)
+        self.distributed_lock = _arguments.pop("distributed_lock", False)
+        self.socket_timeout = _arguments.pop("socket_timeout", None)
+        self.socket_connect_timeout = _arguments.pop(
             "socket_connect_timeout", None
         )
-        self.socket_keepalive = arguments.pop("socket_keepalive", False)
-        self.socket_keepalive_options = arguments.pop(
+        self.socket_keepalive = _arguments.pop("socket_keepalive", False)
+        self.socket_keepalive_options = _arguments.pop(
             "socket_keepalive_options", None
         )
-        self.lock_timeout = arguments.pop("lock_timeout", None)
-        self.lock_sleep = arguments.pop("lock_sleep", 0.1)
-        self.thread_local_lock = arguments.pop("thread_local_lock", True)
-        self.connection_kwargs = arguments.pop("connection_kwargs", {})
+        self.lock_timeout = _arguments.pop("lock_timeout", None)
+        self.lock_sleep = _arguments.pop("lock_sleep", 0.1)
+        self.thread_local_lock = _arguments.pop("thread_local_lock", True)
+        self.connection_kwargs = _arguments.pop("connection_kwargs", {})
 
         if self.distributed_lock and self.thread_local_lock:
             warnings.warn(
@@ -195,8 +193,8 @@ class RedisBackend(BytesBackend):
                 "set to False when distributed_lock is True"
             )
 
-        self.redis_expiration_time = arguments.pop("redis_expiration_time", 0)
-        self.connection_pool = arguments.pop("connection_pool", None)
+        self.redis_expiration_time = _arguments.pop("redis_expiration_time", 0)
+        self.connection_pool = _arguments.pop("connection_pool", None)
         self._create_client()
 
     def _imports(self) -> None:
@@ -405,18 +403,18 @@ class RedisSentinelBackend(RedisBackend):
 
     """
 
-    def __init__(self, arguments: RedisKwargs_Sentinel):
-        arguments = arguments.copy()
+    def __init__(self, arguments: RedisSentinelBackendKwargs):
+        _arguments = arguments.copy()
 
-        self.sentinels = arguments.pop("sentinels", None)
-        self.service_name = arguments.pop("service_name", "mymaster")
-        self.sentinel_kwargs = arguments.pop("sentinel_kwargs", {})
+        self.sentinels = _arguments.pop("sentinels", None)
+        self.service_name = _arguments.pop("service_name", "mymaster")
+        self.sentinel_kwargs = _arguments.pop("sentinel_kwargs", {})
 
         super().__init__(
             arguments={
                 "distributed_lock": True,
                 "thread_local_lock": False,
-                **arguments,
+                **_arguments,
             }
         )
 
@@ -594,10 +592,10 @@ class RedisClusterBackend(RedisBackend):
 
     """
 
-    def __init__(self, arguments: RedisKwargs_Cluster):
-        arguments = arguments.copy()
-        self.startup_nodes = arguments.pop("startup_nodes", None)
-        super().__init__(arguments)
+    def __init__(self, arguments: RedisClusterBackendKwargs):
+        _arguments = arguments.copy()
+        self.startup_nodes = _arguments.pop("startup_nodes", None)
+        super().__init__(_arguments)
 
     def _imports(self) -> None:
         global redis

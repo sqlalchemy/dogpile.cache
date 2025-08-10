@@ -6,19 +6,58 @@ Provides backends for talking to `Valkey <http://valkey.io>`_.
 
 """
 
-import typing
+from __future__ import annotations
+
+from typing import Any
+from typing import cast
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
+from typing import TypedDict
 import warnings
 
 from ..api import BytesBackend
 from ..api import NO_VALUE
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     import valkey
 else:
     # delayed import
     valkey = None  # noqa F811
 
 __all__ = ("ValkeyBackend", "ValkeySentinelBackend", "ValkeyClusterBackend")
+
+
+class ValkeyBackendArguments(TypedDict, total=False):
+    url: Optional[str]
+    host: str
+    username: Optional[str]
+    password: Optional[str]
+    port: int
+    db: int
+    valkey_expiration_time: int
+    distributed_lock: bool
+    lock_timeout: Optional[int]
+    socket_timeout: Optional[float]
+    socket_connect_timeout: Optional[float]
+    socket_keepalive: bool
+    socket_keepalive_options: Optional[Dict[str, Any]]
+    lock_sleep: Optional[int]
+    thread_local_lock: bool
+    connection_kwargs: Dict[str, Any]
+    connection_pool: Optional["valkey.ConnectionPool"]
+
+
+class ValkeySentinelBackendArguments(ValkeyBackendArguments):
+    sentinels: Optional[List[Tuple[str, int]]]
+    service_name: str
+    sentinel_kwargs: Dict[str, Any]
+
+
+class ValkeyClusterBackendBackendArguments(ValkeyBackendArguments):
+    startup_nodes: List["valkey.cluster.ClusterNode"]
 
 
 class ValkeyBackend(BytesBackend):
@@ -110,27 +149,27 @@ class ValkeyBackend(BytesBackend):
     """
 
     def __init__(self, arguments):
-        arguments = arguments.copy()
+        _arguments = arguments.copy()
         self._imports()
-        self.url = arguments.pop("url", None)
-        self.host = arguments.pop("host", "localhost")
-        self.username = arguments.pop("username", None)
-        self.password = arguments.pop("password", None)
-        self.port = arguments.pop("port", 6379)
-        self.db = arguments.pop("db", 0)
-        self.distributed_lock = arguments.pop("distributed_lock", False)
-        self.socket_timeout = arguments.pop("socket_timeout", None)
-        self.socket_connect_timeout = arguments.pop(
+        self.url = _arguments.pop("url", None)
+        self.host = _arguments.pop("host", "localhost")
+        self.username = _arguments.pop("username", None)
+        self.password = _arguments.pop("password", None)
+        self.port = _arguments.pop("port", 6379)
+        self.db = _arguments.pop("db", 0)
+        self.distributed_lock = _arguments.pop("distributed_lock", False)
+        self.socket_timeout = _arguments.pop("socket_timeout", None)
+        self.socket_connect_timeout = _arguments.pop(
             "socket_connect_timeout", None
         )
-        self.socket_keepalive = arguments.pop("socket_keepalive", False)
-        self.socket_keepalive_options = arguments.pop(
+        self.socket_keepalive = _arguments.pop("socket_keepalive", False)
+        self.socket_keepalive_options = _arguments.pop(
             "socket_keepalive_options", None
         )
-        self.lock_timeout = arguments.pop("lock_timeout", None)
-        self.lock_sleep = arguments.pop("lock_sleep", 0.1)
-        self.thread_local_lock = arguments.pop("thread_local_lock", True)
-        self.connection_kwargs = arguments.pop("connection_kwargs", {})
+        self.lock_timeout = _arguments.pop("lock_timeout", None)
+        self.lock_sleep = _arguments.pop("lock_sleep", 0.1)
+        self.thread_local_lock = _arguments.pop("thread_local_lock", True)
+        self.connection_kwargs = _arguments.pop("connection_kwargs", {})
 
         if self.distributed_lock and self.thread_local_lock:
             warnings.warn(
@@ -138,10 +177,10 @@ class ValkeyBackend(BytesBackend):
                 "set to False when distributed_lock is True"
             )
 
-        self.valkey_expiration_time = arguments.pop(
+        self.valkey_expiration_time = _arguments.pop(
             "valkey_expiration_time", 0
         )
-        self.connection_pool = arguments.pop("connection_pool", None)
+        self.connection_pool = _arguments.pop("connection_pool", None)
         self._create_client()
 
     def _imports(self):
@@ -237,13 +276,13 @@ class ValkeyBackend(BytesBackend):
 class _ValkeyLockWrapper:
     __slots__ = ("mutex", "__weakref__")
 
-    def __init__(self, mutex: typing.Any):
+    def __init__(self, mutex: Any):
         self.mutex = mutex
 
-    def acquire(self, wait: bool = True) -> typing.Any:
+    def acquire(self, wait: bool = True) -> Any:
         return self.mutex.acquire(blocking=wait)
 
-    def release(self) -> typing.Any:
+    def release(self) -> Any:
         return self.mutex.release()
 
     def locked(self) -> bool:
@@ -348,18 +387,18 @@ class ValkeySentinelBackend(ValkeyBackend):
 
     """
 
-    def __init__(self, arguments):
-        arguments = arguments.copy()
+    def __init__(self, arguments: ValkeySentinelBackendArguments):
+        _arguments = arguments.copy()
 
-        self.sentinels = arguments.pop("sentinels", None)
-        self.service_name = arguments.pop("service_name", "mymaster")
-        self.sentinel_kwargs = arguments.pop("sentinel_kwargs", {})
+        self.sentinels = _arguments.pop("sentinels", None)
+        self.service_name = _arguments.pop("service_name", "mymaster")
+        self.sentinel_kwargs = _arguments.pop("sentinel_kwargs", {})
 
         super().__init__(
             arguments={
                 "distributed_lock": True,
                 "thread_local_lock": False,
-                **arguments,
+                **_arguments,
             }
         )
 
@@ -537,17 +576,17 @@ class ValkeyClusterBackend(ValkeyBackend):
 
     """  # noqa: E501
 
-    def __init__(self, arguments):
-        arguments = arguments.copy()
-        self.startup_nodes = arguments.pop("startup_nodes", None)
-        super().__init__(arguments)
+    def __init__(self, arguments: ValkeyClusterBackendBackendArguments):
+        _arguments = arguments.copy()
+        self.startup_nodes = _arguments.pop("startup_nodes", None)
+        super().__init__(_arguments)
 
     def _imports(self):
         global valkey
         import valkey.cluster
 
     def _create_client(self):
-        valkey_cluster: valkey.cluster.ValkeyCluster[typing.Any]  # type: ignore   # noqa: E501
+        valkey_cluster: valkey.cluster.ValkeyCluster[Any]  # type: ignore   # noqa: E501
         if self.url is not None:
             valkey_cluster = valkey.cluster.ValkeyCluster.from_url(
                 self.url, **self.connection_kwargs
@@ -557,5 +596,5 @@ class ValkeyClusterBackend(ValkeyBackend):
                 startup_nodes=self.startup_nodes,
                 **self.connection_kwargs,
             )
-        self.writer_client = typing.cast(valkey.Valkey[bytes], valkey_cluster)  # type: ignore   # noqa: E501
+        self.writer_client = cast(valkey.Valkey[bytes], valkey_cluster)  # type: ignore   # noqa: E501
         self.reader_client = self.writer_client
