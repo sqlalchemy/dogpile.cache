@@ -73,6 +73,21 @@ class ValkeyBackend(BytesBackend):
      Valkey should expire it.  This argument is only valid when
      ``distributed_lock`` is ``True``.
 
+    :param lock_sleep: integer, number of seconds to sleep when failed to
+     acquire a lock.  This argument is only valid when
+     ``distributed_lock`` is ``True``.
+
+    :param lock_blocking: bool, default ``True``. Passed to the Valkey client's
+     lock constructor when ``distributed_lock`` is ``True``.
+
+     .. versionadded:: 1.4.1
+
+    :param lock_blocking_timeout: int or float, default ``None``.  Passed to
+     the Valkey client's lock constructor, when ``distributed_lock`` is
+     ``True``.
+
+     .. versionadded:: 1.4.1
+
     :param socket_timeout: float, seconds for socket timeout.
      Default is None (no timeout).
 
@@ -84,10 +99,6 @@ class ValkeyBackend(BytesBackend):
 
     :param socket_keepalive_options: dict, socket keepalive options.
      Default is None (no options).
-
-    :param lock_sleep: integer, number of seconds to sleep when failed to
-     acquire a lock.  This argument is only valid when
-     ``distributed_lock`` is ``True``.
 
     :param connection_pool: ``valkey.ConnectionPool`` object.  If provided,
      this object supersedes other connection arguments passed to the
@@ -118,7 +129,6 @@ class ValkeyBackend(BytesBackend):
         self.password = arguments.pop("password", None)
         self.port = arguments.pop("port", 6379)
         self.db = arguments.pop("db", 0)
-        self.distributed_lock = arguments.pop("distributed_lock", False)
         self.socket_timeout = arguments.pop("socket_timeout", None)
         self.socket_connect_timeout = arguments.pop(
             "socket_connect_timeout", None
@@ -127,8 +137,16 @@ class ValkeyBackend(BytesBackend):
         self.socket_keepalive_options = arguments.pop(
             "socket_keepalive_options", None
         )
+
+        # used by `get_mutex`
+        self.distributed_lock = arguments.pop("distributed_lock", False)
         self.lock_timeout = arguments.pop("lock_timeout", None)
         self.lock_sleep = arguments.pop("lock_sleep", 0.1)
+        self.lock_blocking = arguments.pop("lock_blocking", True)
+        self.lock_blocking_timeout = arguments.pop(
+            "lock_blocking_timeout", None
+        )
+
         self.thread_local_lock = arguments.pop("thread_local_lock", True)
         self.connection_kwargs = arguments.pop("connection_kwargs", {})
 
@@ -195,6 +213,8 @@ class ValkeyBackend(BytesBackend):
                     timeout=self.lock_timeout,
                     sleep=self.lock_sleep,
                     thread_local=self.thread_local_lock,
+                    blocking=self.lock_blocking,
+                    blocking_timeout=self.lock_blocking_timeout,
                 )
             )
         else:
