@@ -2,6 +2,8 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from threading import Event
 import time
+from typing import Type
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 from unittest.mock import patch
 
@@ -13,6 +15,9 @@ from dogpile.testing.fixtures import _GenericBackendFixture
 from dogpile.testing.fixtures import _GenericBackendTestSuite
 from dogpile.testing.fixtures import _GenericMutexTestSuite
 from dogpile.testing.fixtures import _GenericSerializerTestSuite
+
+if TYPE_CHECKING:
+    import valkey
 
 VALKEY_HOST = "127.0.0.1"
 VALKEY_PORT = int(os.getenv("DOGPILE_VALKEY_PORT", "6379"))
@@ -129,6 +134,7 @@ class ValkeyAsyncCreationTest(_TestValkeyConn, _GenericBackendFixture):
 @patch("valkey.StrictValkey", autospec=True)
 class ValkeyConnectionTest:
     backend = "dogpile.cache.valkey"
+    backend_cls = Type["valkey.StrictValkey"]
 
     @classmethod
     def setup_class(cls):

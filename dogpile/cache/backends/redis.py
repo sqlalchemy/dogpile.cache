@@ -18,6 +18,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import TypedDict
+from typing import Union
 import warnings
 
 from ..api import BytesBackend
@@ -52,7 +53,7 @@ class RedisBackendKwargs(TypedDict, total=False):
     socket_timeout: Optional[float]
     socket_connect_timeout: Optional[float]
     socket_keepalive: bool
-    socket_keepalive_options: Optional[Dict[str, Any]]
+    socket_keepalive_options: Optional[Mapping[int, Union[int, bytes]]]
     lock_sleep: float
     connection_pool: Optional["redis.ConnectionPool"]
     thread_local_lock: bool
@@ -165,7 +166,7 @@ class RedisBackend(BytesBackend):
     """
 
     def __init__(self, arguments: RedisBackendKwargs):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self._imports()
         self.url = _arguments.pop("url", None)
         self.host = _arguments.pop("host", "localhost")
@@ -404,12 +405,10 @@ class RedisSentinelBackend(RedisBackend):
     """
 
     def __init__(self, arguments: RedisSentinelBackendKwargs):
-        _arguments = arguments.copy()
-
+        _arguments = cast(Dict, arguments.copy())
         self.sentinels = _arguments.pop("sentinels", None)
         self.service_name = _arguments.pop("service_name", "mymaster")
         self.sentinel_kwargs = _arguments.pop("sentinel_kwargs", {})
-
         super().__init__(
             arguments={
                 "distributed_lock": True,
@@ -593,9 +592,10 @@ class RedisClusterBackend(RedisBackend):
     """
 
     def __init__(self, arguments: RedisClusterBackendKwargs):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self.startup_nodes = _arguments.pop("startup_nodes", None)
-        super().__init__(_arguments)
+        _arguments_super = cast(RedisBackendKwargs, _arguments)
+        super().__init__(_arguments_super)
 
     def _imports(self) -> None:
         global redis

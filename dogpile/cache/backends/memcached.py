@@ -13,6 +13,8 @@ import threading
 import time
 import typing
 from typing import Any
+from typing import cast
+from typing import Dict
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
@@ -88,7 +90,7 @@ class PyMemcacheBackendArguments(
     do_not_retry_for: Optional[Sequence[Exception]]
     hashclient_retry_attempts: int
     hashclient_retry_timeout: int
-    dead_timeout: int
+    hashclient_dead_timeout: int
     memcached_expire_time: int
 
 
@@ -169,7 +171,7 @@ class GenericMemcachedBackend(CacheBackend):
     deserializer = None
 
     def __init__(self, arguments: GenericMemcachedBackendArguments):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self._imports()
         # using a plain threading.local here.   threading.local
         # automatically deletes the __dict__ when a thread ends,
@@ -279,7 +281,7 @@ class MemcacheArgs(GenericMemcachedBackend):
     """
 
     def __init__(self, arguments: MemcachedArgsArguments):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self.min_compress_len = _arguments.get("min_compress_len", 0)
 
         self.set_arguments = {}
@@ -289,7 +291,8 @@ class MemcacheArgs(GenericMemcachedBackend):
             self.set_arguments["min_compress_len"] = _arguments[
                 "min_compress_len"
             ]
-        super(MemcacheArgs, self).__init__(_arguments)
+        _arguments_super = cast(GenericMemcachedBackendArguments, _arguments)
+        super(MemcacheArgs, self).__init__(_arguments_super)
 
 
 class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
@@ -327,10 +330,11 @@ class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
     """
 
     def __init__(self, arguments):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self.binary = _arguments.get("binary", False)
         self.behaviors = _arguments.get("behaviors", {})
-        super(PylibmcBackend, self).__init__(_arguments)
+        _arguments_super = cast(MemcachedArgsArguments, _arguments)
+        super(PylibmcBackend, self).__init__(_arguments_super)
 
     def _imports(self):
         global pylibmc
@@ -379,10 +383,11 @@ class MemcachedBackend(MemcacheArgs, GenericMemcachedBackend):
     """
 
     def __init__(self, arguments: MemcachedBackendArguments):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self.dead_retry = _arguments.get("dead_retry", 30)
         self.socket_timeout = _arguments.get("socket_timeout", 3)
-        super(MemcachedBackend, self).__init__(_arguments)
+        _arguments_super = cast(MemcachedArgsArguments, _arguments)
+        super(MemcachedBackend, self).__init__(_arguments_super)
 
     def _imports(self):
         global memcache
@@ -456,11 +461,12 @@ class BMemcachedBackend(GenericMemcachedBackend):
     """
 
     def __init__(self, arguments: BMemcachedBackendArguments):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self.username = _arguments.get("username", None)
         self.password = _arguments.get("password", None)
         self.tls_context = _arguments.get("tls_context", None)
-        super(BMemcachedBackend, self).__init__(_arguments)
+        _arguments_super = cast(GenericMemcachedBackendArguments, _arguments)
+        super(BMemcachedBackend, self).__init__(_arguments_super)
 
     def _imports(self):
         global bmemcached
@@ -616,7 +622,7 @@ class PyMemcacheBackend(GenericMemcachedBackend):
 
      .. versionadded:: 1.1.5
 
-    :param dead_timeout: Time in seconds before attempting to add a node
+    :param hashclient_dead_timeout: Time in seconds before attempting to add a node
      back in the pool in the HashClient's internal mechanisms.
 
      .. versionadded:: 1.1.5
@@ -646,8 +652,9 @@ class PyMemcacheBackend(GenericMemcachedBackend):
     """  # noqa E501
 
     def __init__(self, arguments: PyMemcacheBackendArguments):
-        _arguments = arguments.copy()
-        super().__init__(_arguments)
+        _arguments = cast(Dict, arguments.copy())
+        _arguments_super = cast(GenericMemcachedBackendArguments, _arguments)
+        super().__init__(_arguments_super)
 
         self.serde = _arguments.get("serde", pymemcache.serde.pickle_serde)
         self.default_noreply = _arguments.get("default_noreply", False)
@@ -664,7 +671,9 @@ class PyMemcacheBackend(GenericMemcachedBackend):
         self.hashclient_retry_timeout = _arguments.get(
             "hashclient_retry_timeout", 1
         )
-        self.dead_timeout = _arguments.get("hashclient_dead_timeout", 60)
+        self.hashclient_dead_timeout = _arguments.get(
+            "hashclient_dead_timeout", 60
+        )
         if (
             self.retry_delay is not None
             or self.retry_attempts is not None
@@ -690,7 +699,7 @@ class PyMemcacheBackend(GenericMemcachedBackend):
             "tls_context": self.tls_context,
             "retry_attempts": self.hashclient_retry_attempts,
             "retry_timeout": self.hashclient_retry_timeout,
-            "dead_timeout": self.dead_timeout,
+            "dead_timeout": self.hashclient_dead_timeout,
         }
         if self.socket_keepalive is not None:
             _kwargs.update({"socket_keepalive": self.socket_keepalive})

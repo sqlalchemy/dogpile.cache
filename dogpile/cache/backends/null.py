@@ -47,7 +47,7 @@ class NullBackend(CacheBackend):
     """
 
     def __init__(self, arguments: Dict[str, Any]):
-        # _arguments = arguments.copy()
+        # _arguments = typing.cast(typing.Dict, arguments.copy())
         pass
 
     def get_mutex(self, key):

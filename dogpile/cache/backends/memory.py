@@ -13,6 +13,7 @@ places the value as given into the dictionary.
 from __future__ import annotations
 
 from typing import Any
+from typing import cast
 from typing import Dict
 from typing import TypedDict
 
@@ -60,7 +61,7 @@ class MemoryBackend(CacheBackend):
     """
 
     def __init__(self, arguments: MemoryBackendArguments):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self._cache = _arguments.pop("cache_dict", {})
 
     def get(self, key):

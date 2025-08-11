@@ -12,10 +12,12 @@ from typing import Any
 from typing import cast
 from typing import Dict
 from typing import List
+from typing import Mapping
 from typing import Optional
 from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import TypedDict
+from typing import Union
 import warnings
 
 from ..api import BytesBackend
@@ -43,7 +45,7 @@ class ValkeyBackendArguments(TypedDict, total=False):
     socket_timeout: Optional[float]
     socket_connect_timeout: Optional[float]
     socket_keepalive: bool
-    socket_keepalive_options: Optional[Dict[str, Any]]
+    socket_keepalive_options: Optional[Mapping[int, Union[int, bytes]]]
     lock_sleep: Optional[int]
     thread_local_lock: bool
     connection_kwargs: Dict[str, Any]
@@ -56,7 +58,7 @@ class ValkeySentinelBackendArguments(ValkeyBackendArguments):
     sentinel_kwargs: Dict[str, Any]
 
 
-class ValkeyClusterBackendBackendArguments(ValkeyBackendArguments):
+class ValkeyClusterBackendArguments(ValkeyBackendArguments):
     startup_nodes: List["valkey.cluster.ClusterNode"]
 
 
@@ -148,8 +150,8 @@ class ValkeyBackend(BytesBackend):
 
     """
 
-    def __init__(self, arguments):
-        _arguments = arguments.copy()
+    def __init__(self, arguments: ValkeyBackendArguments):
+        _arguments = cast(Dict, arguments.copy())
         self._imports()
         self.url = _arguments.pop("url", None)
         self.host = _arguments.pop("host", "localhost")
@@ -388,8 +390,7 @@ class ValkeySentinelBackend(ValkeyBackend):
     """
 
     def __init__(self, arguments: ValkeySentinelBackendArguments):
-        _arguments = arguments.copy()
-
+        _arguments = cast(Dict, arguments.copy())
         self.sentinels = _arguments.pop("sentinels", None)
         self.service_name = _arguments.pop("service_name", "mymaster")
         self.sentinel_kwargs = _arguments.pop("sentinel_kwargs", {})
@@ -576,10 +577,11 @@ class ValkeyClusterBackend(ValkeyBackend):
 
     """  # noqa: E501
 
-    def __init__(self, arguments: ValkeyClusterBackendBackendArguments):
-        _arguments = arguments.copy()
+    def __init__(self, arguments: ValkeyClusterBackendArguments):
+        _arguments = cast(Dict, arguments.copy())
         self.startup_nodes = _arguments.pop("startup_nodes", None)
-        super().__init__(_arguments)
+        _arguments_super = cast(ValkeyBackendArguments, _arguments)
+        super().__init__(_arguments_super)
 
     def _imports(self):
         global valkey

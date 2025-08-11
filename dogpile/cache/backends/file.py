@@ -12,6 +12,8 @@ from contextlib import contextmanager
 import dbm
 import os
 import threading
+from typing import cast
+from typing import Dict
 from typing import Literal
 from typing import TypedDict
 from typing import Union
@@ -150,7 +152,7 @@ class DBMBackend(BytesBackend):
     """
 
     def __init__(self, arguments: DBMBackendArguments):
-        _arguments = arguments.copy()
+        _arguments = cast(Dict, arguments.copy())
         self.filename = os.path.abspath(
             os.path.normpath(_arguments["filename"])
         )
