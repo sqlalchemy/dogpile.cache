@@ -3,3 +3,9 @@ host=ssh.gerrit.sqlalchemy.org
 project=sqlalchemy/dogpile.cache
 defaultbranch=main
 port=29418
+
+# non-standard config, used by publishthing
+httphost=gerrit.sqlalchemy.org
+
+
+
