@@ -1,0 +1,9 @@
+.. change::
+    :tags: bug, memory
+    :tickets: 273
+
+    Fixed issue where :meth:`.MemoryBackend.configure` would unexpectedly
+    modify the input arguments dictionary by removing its contents. The method
+    now preserves the original arguments dictionary as expected, consistent
+    with the behavior of other backend types.  Pull request courtesy Nicolas
+    Simonds.
