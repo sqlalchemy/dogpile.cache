@@ -12,8 +12,6 @@ from contextlib import contextmanager
 import dbm
 import os
 import threading
-from typing import cast
-from typing import Dict
 from typing import Literal
 from typing import TypedDict
 from typing import Union
@@ -152,18 +150,17 @@ class DBMBackend(BytesBackend):
     """
 
     def __init__(self, arguments: DBMBackendArguments):
-        _arguments = cast(Dict, arguments.copy())
         self.filename = os.path.abspath(
-            os.path.normpath(_arguments["filename"])
+            os.path.normpath(arguments["filename"])
         )
         dir_, filename = os.path.split(self.filename)
 
-        self.lock_factory = _arguments.get("lock_factory", FileLock)
+        self.lock_factory = arguments.get("lock_factory", FileLock)
         self._rw_lock = self._init_lock(
-            _arguments.get("rw_lockfile"), ".rw.lock", dir_, filename
+            arguments.get("rw_lockfile"), ".rw.lock", dir_, filename
         )
         self._dogpile_lock = self._init_lock(
-            _arguments.get("dogpile_lockfile"),
+            arguments.get("dogpile_lockfile"),
             ".dogpile.lock",
             dir_,
             filename,

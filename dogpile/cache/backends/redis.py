@@ -166,27 +166,26 @@ class RedisBackend(BytesBackend):
     """
 
     def __init__(self, arguments: RedisBackendKwargs):
-        _arguments = cast(Dict, arguments.copy())
         self._imports()
-        self.url = _arguments.pop("url", None)
-        self.host = _arguments.pop("host", "localhost")
-        self.username = _arguments.pop("username", None)
-        self.password = _arguments.pop("password", None)
-        self.port = _arguments.pop("port", 6379)
-        self.db = _arguments.pop("db", 0)
-        self.distributed_lock = _arguments.pop("distributed_lock", False)
-        self.socket_timeout = _arguments.pop("socket_timeout", None)
-        self.socket_connect_timeout = _arguments.pop(
+        self.url = arguments.get("url", None)
+        self.host = arguments.get("host", "localhost")
+        self.username = arguments.get("username", None)
+        self.password = arguments.get("password", None)
+        self.port = arguments.get("port", 6379)
+        self.db = arguments.get("db", 0)
+        self.distributed_lock = arguments.get("distributed_lock", False)
+        self.socket_timeout = arguments.get("socket_timeout", None)
+        self.socket_connect_timeout = arguments.get(
             "socket_connect_timeout", None
         )
-        self.socket_keepalive = _arguments.pop("socket_keepalive", False)
-        self.socket_keepalive_options = _arguments.pop(
+        self.socket_keepalive = arguments.get("socket_keepalive", False)
+        self.socket_keepalive_options = arguments.get(
             "socket_keepalive_options", None
         )
-        self.lock_timeout = _arguments.pop("lock_timeout", None)
-        self.lock_sleep = _arguments.pop("lock_sleep", 0.1)
-        self.thread_local_lock = _arguments.pop("thread_local_lock", True)
-        self.connection_kwargs = _arguments.pop("connection_kwargs", {})
+        self.lock_timeout = arguments.get("lock_timeout", None)
+        self.lock_sleep = arguments.get("lock_sleep", 0.1)
+        self.thread_local_lock = arguments.get("thread_local_lock", True)
+        self.connection_kwargs = arguments.get("connection_kwargs", {})
 
         if self.distributed_lock and self.thread_local_lock:
             warnings.warn(
@@ -194,8 +193,8 @@ class RedisBackend(BytesBackend):
                 "set to False when distributed_lock is True"
             )
 
-        self.redis_expiration_time = _arguments.pop("redis_expiration_time", 0)
-        self.connection_pool = _arguments.pop("connection_pool", None)
+        self.redis_expiration_time = arguments.get("redis_expiration_time", 0)
+        self.connection_pool = arguments.get("connection_pool", None)
         self._create_client()
 
     def _imports(self) -> None:
@@ -405,15 +404,14 @@ class RedisSentinelBackend(RedisBackend):
     """
 
     def __init__(self, arguments: RedisSentinelBackendKwargs):
-        _arguments = cast(Dict, arguments.copy())
-        self.sentinels = _arguments.pop("sentinels", None)
-        self.service_name = _arguments.pop("service_name", "mymaster")
-        self.sentinel_kwargs = _arguments.pop("sentinel_kwargs", {})
+        self.sentinels = arguments.get("sentinels", None)
+        self.service_name = arguments.get("service_name", "mymaster")
+        self.sentinel_kwargs = arguments.get("sentinel_kwargs", {})
         super().__init__(
             arguments={
                 "distributed_lock": True,
                 "thread_local_lock": False,
-                **_arguments,
+                **arguments,
             }
         )
 
@@ -592,9 +590,8 @@ class RedisClusterBackend(RedisBackend):
     """
 
     def __init__(self, arguments: RedisClusterBackendKwargs):
-        _arguments = cast(Dict, arguments.copy())
-        self.startup_nodes = _arguments.pop("startup_nodes", None)
-        _arguments_super = cast(RedisBackendKwargs, _arguments)
+        self.startup_nodes = arguments.get("startup_nodes", None)
+        _arguments_super = cast(RedisBackendKwargs, arguments)
         super().__init__(_arguments_super)
 
     def _imports(self) -> None:
