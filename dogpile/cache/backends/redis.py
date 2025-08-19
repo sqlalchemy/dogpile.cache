@@ -591,8 +591,7 @@ class RedisClusterBackend(RedisBackend):
 
     def __init__(self, arguments: RedisClusterBackendKwargs):
         self.startup_nodes = arguments.get("startup_nodes", None)
-        _arguments_super = cast(RedisBackendKwargs, arguments)
-        super().__init__(_arguments_super)
+        super().__init__(arguments)
 
     def _imports(self) -> None:
         global redis

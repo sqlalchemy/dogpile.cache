@@ -13,7 +13,6 @@ import threading
 import time
 import typing
 from typing import Any
-from typing import cast
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
@@ -288,8 +287,7 @@ class MemcacheArgs(GenericMemcachedBackend):
             self.set_arguments["min_compress_len"] = arguments[
                 "min_compress_len"
             ]
-        _arguments_super = cast(GenericMemcachedBackendArguments, arguments)
-        super(MemcacheArgs, self).__init__(_arguments_super)
+        super(MemcacheArgs, self).__init__(arguments)
 
 
 class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
@@ -326,11 +324,10 @@ class PylibmcBackend(MemcacheArgs, GenericMemcachedBackend):
 
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments: MemcachedArgsArguments):
         self.binary = arguments.get("binary", False)
         self.behaviors = arguments.get("behaviors", {})
-        _arguments_super = cast(MemcachedArgsArguments, arguments)
-        super(PylibmcBackend, self).__init__(_arguments_super)
+        super(PylibmcBackend, self).__init__(arguments)
 
     def _imports(self):
         global pylibmc
@@ -381,8 +378,7 @@ class MemcachedBackend(MemcacheArgs, GenericMemcachedBackend):
     def __init__(self, arguments: MemcachedBackendArguments):
         self.dead_retry = arguments.get("dead_retry", 30)
         self.socket_timeout = arguments.get("socket_timeout", 3)
-        _arguments_super = cast(MemcachedArgsArguments, arguments)
-        super(MemcachedBackend, self).__init__(_arguments_super)
+        super(MemcachedBackend, self).__init__(arguments)
 
     def _imports(self):
         global memcache
@@ -459,8 +455,7 @@ class BMemcachedBackend(GenericMemcachedBackend):
         self.username = arguments.get("username", None)
         self.password = arguments.get("password", None)
         self.tls_context = arguments.get("tls_context", None)
-        _arguments_super = cast(GenericMemcachedBackendArguments, arguments)
-        super(BMemcachedBackend, self).__init__(_arguments_super)
+        super(BMemcachedBackend, self).__init__(arguments)
 
     def _imports(self):
         global bmemcached
@@ -646,8 +641,7 @@ class PyMemcacheBackend(GenericMemcachedBackend):
     """  # noqa E501
 
     def __init__(self, arguments: PyMemcacheBackendArguments):
-        _arguments_super = cast(GenericMemcachedBackendArguments, arguments)
-        super().__init__(_arguments_super)
+        super().__init__(arguments)
 
         self.serde = arguments.get("serde", pymemcache.serde.pickle_serde)
         self.default_noreply = arguments.get("default_noreply", False)
