@@ -10,8 +10,10 @@ import pytest
 
 from dogpile.cache.backends.memcached import GenericMemcachedBackend
 from dogpile.cache.backends.memcached import MemcachedBackend
+from dogpile.cache.backends.memcached import MemcachedBackendArguments
 from dogpile.cache.backends.memcached import PylibmcBackend
 from dogpile.cache.backends.memcached import PyMemcacheBackend
+from dogpile.cache.backends.memcached import PyMemcacheBackendArguments
 from dogpile.testing import eq_
 from dogpile.testing import is_
 from dogpile.testing.fixtures import _GenericBackendTestSuite
@@ -242,7 +244,7 @@ class PyMemcacheArgsTest:
         )
 
     def test_pymemcache_hashclient_retry_attempts(self):
-        config_args = {
+        config_args: PyMemcacheBackendArguments = {
             "url": "127.0.0.1:11211",
             "hashclient_retry_attempts": 4,
         }
@@ -265,7 +267,10 @@ class PyMemcacheArgsTest:
             eq_(self.retrying_client.mock_calls, [])
 
     def test_pymemcache_hashclient_retry_timeout(self):
-        config_args = {"url": "127.0.0.1:11211", "hashclient_retry_timeout": 4}
+        config_args: PyMemcacheBackendArguments = {
+            "url": "127.0.0.1:11211",
+            "hashclient_retry_timeout": 4,
+        }
         with self._mock_pymemcache_fixture():
             backend = MockPyMemcacheBackend(config_args)
             is_(backend._create_client(), self.hash_client())
@@ -284,7 +289,7 @@ class PyMemcacheArgsTest:
             eq_(self.retrying_client.mock_calls, [])
 
     def test_pymemcache_hashclient_retry_timeout_w_enable_retry(self):
-        config_args = {
+        config_args: PyMemcacheBackendArguments = {
             "url": "127.0.0.1:11211",
             "hashclient_retry_timeout": 4,
             "enable_retry_client": True,
@@ -317,7 +322,10 @@ class PyMemcacheArgsTest:
             )
 
     def test_pymemcache_dead_timeout(self):
-        config_args = {"url": "127.0.0.1:11211", "hashclient_dead_timeout": 4}
+        config_args: PyMemcacheBackendArguments = {
+            "url": "127.0.0.1:11211",
+            "hashclient_dead_timeout": 4,
+        }
         with self._mock_pymemcache_fixture():
             backend = MockPyMemcacheBackend(config_args)
             backend._create_client()
@@ -338,7 +346,10 @@ class PyMemcacheArgsTest:
             eq_(self.retrying_client.mock_calls, [])
 
     def test_pymemcache_enable_retry_client_not_set(self):
-        config_args = {"url": "127.0.0.1:11211", "retry_attempts": 2}
+        config_args: PyMemcacheBackendArguments = {
+            "url": "127.0.0.1:11211",
+            "retry_attempts": 2,
+        }
 
         with self._mock_pymemcache_fixture():
             with mock.patch("warnings.warn") as warn_mock:
@@ -352,7 +363,10 @@ class PyMemcacheArgsTest:
                 )
 
     def test_pymemcache_memacached_expire_time(self):
-        config_args = {"url": "127.0.0.1:11211", "memcached_expire_time": 20}
+        config_args: PyMemcacheBackendArguments = {
+            "url": "127.0.0.1:11211",
+            "memcached_expire_time": 20,
+        }
         with self._mock_pymemcache_fixture():
             backend = MockPyMemcacheBackend(config_args)
             backend.set("foo", "bar")
@@ -446,7 +460,7 @@ class MockClient(object):
 
 class MemcachedBackendTest:
     def test_memcached_dead_retry(self):
-        config_args = {
+        config_args: MemcachedBackendArguments = {
             "url": "127.0.0.1:11211",
             "dead_retry": 4,
         }
@@ -454,7 +468,7 @@ class MemcachedBackendTest:
         eq_(backend._create_client().kw["dead_retry"], 4)
 
     def test_memcached_socket_timeout(self):
-        config_args = {
+        config_args: MemcachedBackendArguments = {
             "url": "127.0.0.1:11211",
             "socket_timeout": 6,
         }

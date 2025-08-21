@@ -348,7 +348,8 @@ class CacheBackend:
          :meth:`.CacheRegion.get_multi` method, which will also be processed
          by the "key mangling" function if one was present.
 
-        :return: list of bytes objects
+        :return: list of bytes objects or the :data:`.NO_VALUE` contant
+         if not present.
 
         The default implementation of this method for :class:`.CacheBackend`
         returns the value of the :meth:`.CacheBackend.get_multi` method.
@@ -543,7 +544,8 @@ class BytesBackend(DefaultSerialization, CacheBackend):
          :meth:`.CacheRegion.get_multi` method, which will also be processed
          by the "key mangling" function if one was present.
 
-        :return: list of bytes objects
+        :return: list of bytes objects or the :data:`.NO_VALUE`
+         constant if not present.
 
         .. versionadded:: 1.1
 
