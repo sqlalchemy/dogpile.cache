@@ -6,16 +6,28 @@ Provides backends that deal with local filesystem access.
 
 """
 
+from __future__ import annotations
+
 from contextlib import contextmanager
 import dbm
 import os
 import threading
+from typing import Literal
+from typing import TypedDict
+from typing import Union
 
 from ..api import BytesBackend
 from ..api import NO_VALUE
 from ... import util
 
 __all__ = ["DBMBackend", "FileLock", "AbstractFileLock"]
+
+
+class DBMBackendArguments(TypedDict, total=False):
+    filename: str
+    lock_factory: "AbstractFileLock"
+    rw_lockfile: Union[str, Literal[False], None]
+    dogpile_lockfile: Union[str, Literal[False], None]
 
 
 class DBMBackend(BytesBackend):
@@ -137,7 +149,7 @@ class DBMBackend(BytesBackend):
 
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments: DBMBackendArguments):
         self.filename = os.path.abspath(
             os.path.normpath(arguments["filename"])
         )

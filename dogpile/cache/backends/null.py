@@ -10,6 +10,11 @@ caching for a region that is otherwise used normally.
 
 """
 
+from __future__ import annotations
+
+from typing import Any
+from typing import Dict
+
 from ..api import CacheBackend
 from ..api import NO_VALUE
 
@@ -41,7 +46,7 @@ class NullBackend(CacheBackend):
 
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments: Dict[str, Any]):
         pass
 
     def get_mutex(self, key):

@@ -24,7 +24,7 @@ from dogpile.testing import is_
 from dogpile.testing.fixtures import MockBackend
 
 
-def key_mangler(key):
+def key_mangler(key: str) -> str:
     return "HI!" + key
 
 

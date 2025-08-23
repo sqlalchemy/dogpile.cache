@@ -1,5 +1,7 @@
 # mypy: ignore-errors
 
+from __future__ import annotations
+
 import collections
 import itertools
 import json
@@ -7,6 +9,9 @@ import random
 from threading import Lock
 from threading import Thread
 import time
+from typing import Any
+from typing import Dict
+from unittest import TestCase
 import uuid
 
 import pytest
@@ -50,7 +55,7 @@ class _GenericBackendFixture:
     def _check_backend_available(cls, backend):
         pass
 
-    region_args = {}
+    region_args: Dict[str, Any] = {}
     config_args = {}
     extra_arguments = {}
 
@@ -120,6 +125,38 @@ class _GenericBackendTestSuite(_GenericBackendFixture):
         backend.set_serialized(some_key, b"some value")
         backend.delete(some_key)
         eq_(backend.get_serialized(some_key), NO_VALUE)
+
+    def test_backend_args_no_mutation(self):
+        # begin; mimic `self._backend`
+        backend_cls = _backend_loader.load(self.backend)
+        _config_args = self.config_args.copy()
+        arguments = _config_args.get("arguments", {})
+        arguments = {**arguments, **self.extra_arguments}
+        arguments_expected = arguments.copy()
+        _backend_inst = backend_cls(arguments)  # noqa: F841
+        # end; mimic `self._backend`
+
+        # ensure the vals are the same
+        assert len(arguments) == len(arguments_expected)
+        TestCase().assertDictEqual(arguments_expected, arguments)
+
+    def test_backend_args_extras_okay(self):
+        # begin; mimic `self._backend`
+        backend_cls = _backend_loader.load(self.backend)
+        _config_args = self.config_args.copy()
+        arguments = _config_args.get("arguments", {})
+        nonsense = {}
+        for i in range(0, 5):
+            nk, nv = str(uuid.uuid4()).split("-", 1)
+            nonsense[nk] = nv
+        arguments = {**arguments, **self.extra_arguments, **nonsense}
+        arguments_expected = arguments.copy()
+        _backend_inst = backend_cls(arguments)  # noqa: F841
+        # end; mimic `self._backend`
+
+        # ensure the vals are the same
+        assert len(arguments) == len(arguments_expected)
+        TestCase().assertDictEqual(arguments_expected, arguments)
 
     def test_region_is_key_locked(self):
         reg = self._region()
