@@ -823,7 +823,9 @@ class CacheRegion:
         )
         return value
 
-    def _unexpired_value_fn(self, expiration_time, ignore_expiration):
+    def _unexpired_value_fn(
+        self, expiration_time: Optional[float], ignore_expiration: bool
+    ) -> Callable[[CacheReturnType], CacheReturnType]:
         if ignore_expiration:
             return lambda value: value
         else:

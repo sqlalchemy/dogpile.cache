@@ -4,6 +4,7 @@ from dogpile.testing.fixtures import _GenericSerializerTestSuite
 
 class MemoryBackendTest(_GenericBackendTestSuite):
     backend = "dogpile.cache.memory"
+    backend_argument_names = ["cache_dict"]
 
 
 class MemoryBackendSerializerTest(
@@ -12,5 +13,5 @@ class MemoryBackendSerializerTest(
     pass
 
 
-class MemoryPickleBackendTest(_GenericBackendTestSuite):
+class MemoryPickleBackendTest(MemoryBackendTest):
     backend = "dogpile.cache.memory_pickle"
