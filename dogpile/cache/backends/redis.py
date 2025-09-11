@@ -80,12 +80,12 @@ class RedisBackend(BytesBackend):
     :param lock_blocking: bool, default `True``. Passed to the Redis client's
      lock constructor when ``distributed_lock`` is ``True``.
 
-     .. versionadded:: 1.4.2
+     .. versionadded:: 1.4.1
 
     :param lock_blocking_timeout: int or float, default ``None``. Passed to the
      Redis client's lock constructor when ``distributed_lock`` is ``True``.
 
-     .. versionadded:: 1.4.2
+     .. versionadded:: 1.4.1
 
     :param socket_timeout: float, seconds for socket timeout.
      Default is None (no timeout).
