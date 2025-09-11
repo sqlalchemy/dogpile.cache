@@ -10,9 +10,19 @@ places the value as given into the dictionary.
 
 """
 
+from __future__ import annotations
+
+from typing import Any
+from typing import Dict
+from typing import TypedDict
+
 from ..api import CacheBackend
 from ..api import DefaultSerialization
 from ..api import NO_VALUE
+
+
+class MemoryBackendArguments(TypedDict):
+    cache_dict: Dict[Any, Any]
 
 
 class MemoryBackend(CacheBackend):
@@ -49,7 +59,7 @@ class MemoryBackend(CacheBackend):
 
     """
 
-    def __init__(self, arguments):
+    def __init__(self, arguments: MemoryBackendArguments):
         self._cache = arguments.get("cache_dict", {})
 
     def get(self, key):

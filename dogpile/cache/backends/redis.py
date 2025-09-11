@@ -6,19 +6,68 @@ Provides backends for talking to `Redis <http://redis.io>`_.
 
 """
 
-import typing
+from __future__ import annotations
+
+from typing import Any
+from typing import cast
+from typing import Dict
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
+from typing import TypedDict
+from typing import Union
 import warnings
 
 from ..api import BytesBackend
+from ..api import KeyType
 from ..api import NO_VALUE
+from ..api import SerializedReturnType
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     import redis
 else:
     # delayed import
     redis = None  # noqa F811
 
 __all__ = ("RedisBackend", "RedisSentinelBackend", "RedisClusterBackend")
+
+
+class RedisBackendKwargs(TypedDict, total=False):
+    """
+    TypedDict of kwargs for `RedisBackend` and derived classes
+    .. versionadded:: 1.4.1
+    """
+
+    url: Optional[str]
+    host: str
+    username: Optional[str]
+    password: Optional[str]
+    port: int
+    db: int
+    redis_expiration_time: int
+    distributed_lock: bool
+    lock_timeout: int
+    socket_timeout: Optional[float]
+    socket_connect_timeout: Optional[float]
+    socket_keepalive: bool
+    socket_keepalive_options: Optional[Mapping[int, Union[int, bytes]]]
+    lock_sleep: float
+    connection_pool: Optional["redis.ConnectionPool"]
+    thread_local_lock: bool
+    connection_kwargs: Dict[str, Any]
+
+
+class RedisSentinelBackendKwargs(RedisBackendKwargs):
+    sentinels: List[Tuple[str, str]]
+    service_name: str
+    sentinel_kwargs: Dict[str, Any]
+
+
+class RedisClusterBackendKwargs(RedisBackendKwargs):
+    startup_nodes: List["redis.cluster.ClusterNode"]
 
 
 class RedisBackend(BytesBackend):
@@ -114,33 +163,29 @@ class RedisBackend(BytesBackend):
 
      .. versionadded:: 1.1.6
 
-
-
-
     """
 
-    def __init__(self, arguments):
-        arguments = arguments.copy()
+    def __init__(self, arguments: RedisBackendKwargs):
         self._imports()
-        self.url = arguments.pop("url", None)
-        self.host = arguments.pop("host", "localhost")
-        self.username = arguments.pop("username", None)
-        self.password = arguments.pop("password", None)
-        self.port = arguments.pop("port", 6379)
-        self.db = arguments.pop("db", 0)
-        self.distributed_lock = arguments.pop("distributed_lock", False)
-        self.socket_timeout = arguments.pop("socket_timeout", None)
-        self.socket_connect_timeout = arguments.pop(
+        self.url = arguments.get("url", None)
+        self.host = arguments.get("host", "localhost")
+        self.username = arguments.get("username", None)
+        self.password = arguments.get("password", None)
+        self.port = arguments.get("port", 6379)
+        self.db = arguments.get("db", 0)
+        self.distributed_lock = arguments.get("distributed_lock", False)
+        self.socket_timeout = arguments.get("socket_timeout", None)
+        self.socket_connect_timeout = arguments.get(
             "socket_connect_timeout", None
         )
-        self.socket_keepalive = arguments.pop("socket_keepalive", False)
-        self.socket_keepalive_options = arguments.pop(
+        self.socket_keepalive = arguments.get("socket_keepalive", False)
+        self.socket_keepalive_options = arguments.get(
             "socket_keepalive_options", None
         )
-        self.lock_timeout = arguments.pop("lock_timeout", None)
-        self.lock_sleep = arguments.pop("lock_sleep", 0.1)
-        self.thread_local_lock = arguments.pop("thread_local_lock", True)
-        self.connection_kwargs = arguments.pop("connection_kwargs", {})
+        self.lock_timeout = arguments.get("lock_timeout", None)
+        self.lock_sleep = arguments.get("lock_sleep", 0.1)
+        self.thread_local_lock = arguments.get("thread_local_lock", True)
+        self.connection_kwargs = arguments.get("connection_kwargs", {})
 
         if self.distributed_lock and self.thread_local_lock:
             warnings.warn(
@@ -148,16 +193,16 @@ class RedisBackend(BytesBackend):
                 "set to False when distributed_lock is True"
             )
 
-        self.redis_expiration_time = arguments.pop("redis_expiration_time", 0)
-        self.connection_pool = arguments.pop("connection_pool", None)
+        self.redis_expiration_time = arguments.get("redis_expiration_time", 0)
+        self.connection_pool = arguments.get("connection_pool", None)
         self._create_client()
 
-    def _imports(self):
+    def _imports(self) -> None:
         # defer imports until backend is used
         global redis
         import redis  # noqa
 
-    def _create_client(self):
+    def _create_client(self) -> None:
         if self.connection_pool is not None:
             # the connection pool already has all other connection
             # options present within, so here we disregard socket_timeout
@@ -195,7 +240,7 @@ class RedisBackend(BytesBackend):
                 self.writer_client = redis.StrictRedis(**args)
                 self.reader_client = self.writer_client
 
-    def get_mutex(self, key):
+    def get_mutex(self, key: KeyType) -> Optional[_RedisLockWrapper]:
         if self.distributed_lock:
             return _RedisLockWrapper(
                 self.writer_client.lock(
@@ -208,25 +253,27 @@ class RedisBackend(BytesBackend):
         else:
             return None
 
-    def get_serialized(self, key):
+    def get_serialized(self, key: KeyType) -> SerializedReturnType:
         value = self.reader_client.get(key)
         if value is None:
             return NO_VALUE
-        return value
+        return cast(SerializedReturnType, value)
 
-    def get_serialized_multi(self, keys):
+    def get_serialized_multi(
+        self, keys: Sequence[KeyType]
+    ) -> Sequence[SerializedReturnType]:
         if not keys:
             return []
         values = self.reader_client.mget(keys)
         return [v if v is not None else NO_VALUE for v in values]
 
-    def set_serialized(self, key, value):
+    def set_serialized(self, key: KeyType, value: bytes) -> None:
         if self.redis_expiration_time:
             self.writer_client.setex(key, self.redis_expiration_time, value)
         else:
             self.writer_client.set(key, value)
 
-    def set_serialized_multi(self, mapping):
+    def set_serialized_multi(self, mapping: Mapping[KeyType, bytes]) -> None:
         if not self.redis_expiration_time:
             self.writer_client.mset(mapping)
         else:
@@ -235,23 +282,23 @@ class RedisBackend(BytesBackend):
                 pipe.setex(key, self.redis_expiration_time, value)
             pipe.execute()
 
-    def delete(self, key):
+    def delete(self, key: KeyType) -> None:
         self.writer_client.delete(key)
 
-    def delete_multi(self, keys):
+    def delete_multi(self, keys: Sequence[KeyType]) -> None:
         self.writer_client.delete(*keys)
 
 
 class _RedisLockWrapper:
     __slots__ = ("mutex", "__weakref__")
 
-    def __init__(self, mutex: typing.Any):
+    def __init__(self, mutex: Any):
         self.mutex = mutex
 
-    def acquire(self, wait: bool = True) -> typing.Any:
+    def acquire(self, wait: bool = True) -> Any:
         return self.mutex.acquire(blocking=wait)
 
-    def release(self) -> typing.Any:
+    def release(self) -> Any:
         return self.mutex.release()
 
     def locked(self) -> bool:
@@ -356,13 +403,10 @@ class RedisSentinelBackend(RedisBackend):
 
     """
 
-    def __init__(self, arguments):
-        arguments = arguments.copy()
-
-        self.sentinels = arguments.pop("sentinels", None)
-        self.service_name = arguments.pop("service_name", "mymaster")
-        self.sentinel_kwargs = arguments.pop("sentinel_kwargs", {})
-
+    def __init__(self, arguments: RedisSentinelBackendKwargs):
+        self.sentinels = arguments.get("sentinels", None)
+        self.service_name = arguments.get("service_name", "mymaster")
+        self.sentinel_kwargs = arguments.get("sentinel_kwargs", {})
         super().__init__(
             arguments={
                 "distributed_lock": True,
@@ -371,7 +415,7 @@ class RedisSentinelBackend(RedisBackend):
             }
         )
 
-    def _imports(self):
+    def _imports(self) -> None:
         # defer imports until backend is used
         global redis
         import redis.sentinel  # noqa
@@ -545,17 +589,16 @@ class RedisClusterBackend(RedisBackend):
 
     """
 
-    def __init__(self, arguments):
-        arguments = arguments.copy()
-        self.startup_nodes = arguments.pop("startup_nodes", None)
+    def __init__(self, arguments: RedisClusterBackendKwargs):
+        self.startup_nodes = arguments.get("startup_nodes", None)
         super().__init__(arguments)
 
-    def _imports(self):
+    def _imports(self) -> None:
         global redis
         import redis.cluster
 
-    def _create_client(self):
-        redis_cluster: redis.cluster.RedisCluster[typing.Any]
+    def _create_client(self) -> None:
+        redis_cluster: redis.cluster.RedisCluster[Any]
         if self.url is not None:
             redis_cluster = redis.cluster.RedisCluster.from_url(
                 self.url, **self.connection_kwargs
@@ -565,5 +608,5 @@ class RedisClusterBackend(RedisBackend):
                 startup_nodes=self.startup_nodes,
                 **self.connection_kwargs,
             )
-        self.writer_client = typing.cast("redis.Redis[bytes]", redis_cluster)
+        self.writer_client = cast("redis.Redis[bytes]", redis_cluster)
         self.reader_client = self.writer_client

@@ -1,5 +1,7 @@
 # mypy: ignore-errors
 
+from __future__ import annotations
+
 import collections
 import itertools
 import json
@@ -7,6 +9,8 @@ import random
 from threading import Lock
 from threading import Thread
 import time
+from typing import Any
+from typing import Dict
 import uuid
 
 import pytest
@@ -51,7 +55,7 @@ class _GenericBackendFixture:
         pass
 
     backend: str
-    region_args = {}
+    region_args: Dict[str, Any] = {}
     config_args = {}
     extra_arguments = {}
     backend_argument_names = ()
