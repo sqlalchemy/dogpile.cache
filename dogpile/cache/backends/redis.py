@@ -116,6 +116,12 @@ class RedisBackend(BytesBackend):
      asynchronous runners, as they run in a different thread than the one
      used to create the lock.
 
+    :param ssl: boolean, default ``None``. If set, this is passed to the
+      ``redis.StrictRedis`` constructor as `ssl`. All additional `ssl_`
+      prefixed args should be submitted via the `connection_kwargs` dict.
+
+     .. versionadded:: 1.4.1
+
     :param connection_kwargs: dict, additional keyword arguments are passed
      along to the
      ``StrictRedis.from_url()`` method or ``StrictRedis()`` constructor
@@ -123,7 +129,6 @@ class RedisBackend(BytesBackend):
      ``charset``, etc.
 
      .. versionadded:: 1.1.6
-
     """
 
     def __init__(self, arguments):
@@ -143,6 +148,9 @@ class RedisBackend(BytesBackend):
         self.socket_keepalive_options = arguments.pop(
             "socket_keepalive_options", None
         )
+
+        # additional ssl params should be submitted in `connection_kwargs`
+        self.ssl = arguments.pop("ssl", None)
 
         # used by `get_mutex`
         self.distributed_lock = arguments.pop("distributed_lock", False)
@@ -194,6 +202,8 @@ class RedisBackend(BytesBackend):
                     args["socket_keepalive_options"] = (
                         self.socket_keepalive_options
                     )
+            if self.ssl is not None:
+                args["ssl"] = self.ssl
 
             if self.url is not None:
                 args.update(url=self.url)
