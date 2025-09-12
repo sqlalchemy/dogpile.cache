@@ -112,8 +112,8 @@ class ValkeyBackend(BytesBackend):
      used to create the lock.
 
     :param ssl: boolean, default ``None``. If set, this is passed to the
-      ``valkey.StrictValkey`` constructor as `ssl`. All additional `ssl_`
-      prefixed args should be submitted via the `connection_kwargs` dict.
+      ``valkey.StrictValkey`` constructor as `ssl`. All additional ``ssl_``
+      prefixed args should be submitted via the ``connection_kwargs`` dict.
 
      .. versionadded:: 1.4.1
 

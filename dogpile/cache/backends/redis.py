@@ -117,8 +117,8 @@ class RedisBackend(BytesBackend):
      used to create the lock.
 
     :param ssl: boolean, default ``None``. If set, this is passed to the
-      ``redis.StrictRedis`` constructor as `ssl`. All additional `ssl_`
-      prefixed args should be submitted via the `connection_kwargs` dict.
+      ``redis.StrictRedis`` constructor as ``ssl``. All additional ``ssl_``
+      prefixed args should be submitted via the ``connection_kwargs`` dict.
 
      .. versionadded:: 1.4.1
 

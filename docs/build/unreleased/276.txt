@@ -9,5 +9,5 @@
     * :paramref:`.ValkeyBackend.ssl`
 
     These params default to ``None``, and are only passed to the constructor if
-    set. The docstrings instruct users to submit all additional `ssl_` prefixed
+    set. The docstrings instruct users to submit all additional ``ssl_`` prefixed
     params via the optional `connection_kwargs` dict param.
