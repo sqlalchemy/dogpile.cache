@@ -2,7 +2,7 @@
 Valkey Backends
 ------------------
 
-Provides backends for talking to `Valkey <http://valkey.io>`_.
+Provides backends for talking to `Valkey <http://valkey.io>`__.
 
 """
 
@@ -22,8 +22,8 @@ __all__ = ("ValkeyBackend", "ValkeySentinelBackend", "ValkeyClusterBackend")
 
 
 class ValkeyBackend(BytesBackend):
-    r"""A `Valkey <http://valkey.io/>`_ backend, using the
-    `valkey-py <http://pypi.python.org/pypi/valkey/>`_ driver.
+    r"""A `Valkey <http://valkey.io/>`__ backend, using the
+    `valkey-py <http://pypi.python.org/pypi/valkey/>`__ driver.
 
     .. versionadded:: 1.3.4
 
@@ -73,6 +73,21 @@ class ValkeyBackend(BytesBackend):
      Valkey should expire it.  This argument is only valid when
      ``distributed_lock`` is ``True``.
 
+    :param lock_sleep: integer, number of seconds to sleep when failed to
+     acquire a lock.  This argument is only valid when
+     ``distributed_lock`` is ``True``.
+
+    :param lock_blocking: bool, default ``True``. Passed to the Valkey client's
+     lock constructor when ``distributed_lock`` is ``True``.
+
+     .. versionadded:: 1.4.1
+
+    :param lock_blocking_timeout: int or float, default ``None``.  Passed to
+     the Valkey client's lock constructor, when ``distributed_lock`` is
+     ``True``.
+
+     .. versionadded:: 1.4.1
+
     :param socket_timeout: float, seconds for socket timeout.
      Default is None (no timeout).
 
@@ -85,10 +100,6 @@ class ValkeyBackend(BytesBackend):
     :param socket_keepalive_options: dict, socket keepalive options.
      Default is None (no options).
 
-    :param lock_sleep: integer, number of seconds to sleep when failed to
-     acquire a lock.  This argument is only valid when
-     ``distributed_lock`` is ``True``.
-
     :param connection_pool: ``valkey.ConnectionPool`` object.  If provided,
      this object supersedes other connection arguments passed to the
      ``valkey.StrictValkey`` instance, including url and/or host as well as
@@ -100,13 +111,18 @@ class ValkeyBackend(BytesBackend):
      asynchronous runners, as they run in a different thread than the one
      used to create the lock.
 
+    :param ssl: boolean, default ``None``. If set, this is passed to the
+      ``valkey.StrictValkey`` constructor as ``ssl``. All additional ``ssl_``
+      prefixed args should be submitted via the
+      :paramref:`.ValkeyBackend.connection_kwargs` dict.
+
+      .. versionadded:: 1.4.1
+
     :param connection_kwargs: dict, additional keyword arguments are passed
      along to the
      ``StrictValkey.from_url()`` method or ``StrictValkey()`` constructor
      directly, including parameters like ``ssl``, ``ssl_certfile``,
      ``charset``, etc.
-
-
     """
 
     def __init__(self, arguments):
@@ -118,7 +134,6 @@ class ValkeyBackend(BytesBackend):
         self.password = arguments.pop("password", None)
         self.port = arguments.pop("port", 6379)
         self.db = arguments.pop("db", 0)
-        self.distributed_lock = arguments.pop("distributed_lock", False)
         self.socket_timeout = arguments.pop("socket_timeout", None)
         self.socket_connect_timeout = arguments.pop(
             "socket_connect_timeout", None
@@ -127,8 +142,19 @@ class ValkeyBackend(BytesBackend):
         self.socket_keepalive_options = arguments.pop(
             "socket_keepalive_options", None
         )
+
+        # additional ssl params should be submitted in `connection_kwargs`
+        self.ssl = arguments.pop("ssl", None)
+
+        # used by `get_mutex`
+        self.distributed_lock = arguments.pop("distributed_lock", False)
         self.lock_timeout = arguments.pop("lock_timeout", None)
         self.lock_sleep = arguments.pop("lock_sleep", 0.1)
+        self.lock_blocking = arguments.pop("lock_blocking", True)
+        self.lock_blocking_timeout = arguments.pop(
+            "lock_blocking_timeout", None
+        )
+
         self.thread_local_lock = arguments.pop("thread_local_lock", True)
         self.connection_kwargs = arguments.pop("connection_kwargs", {})
 
@@ -171,6 +197,8 @@ class ValkeyBackend(BytesBackend):
                     args["socket_keepalive_options"] = (
                         self.socket_keepalive_options
                     )
+            if self.ssl is not None:
+                args["ssl"] = self.ssl
 
             if self.url is not None:
                 args.update(url=self.url)
@@ -195,6 +223,8 @@ class ValkeyBackend(BytesBackend):
                     timeout=self.lock_timeout,
                     sleep=self.lock_sleep,
                     thread_local=self.thread_local_lock,
+                    blocking=self.lock_blocking,
+                    blocking_timeout=self.lock_blocking_timeout,
                 )
             )
         else:
@@ -251,10 +281,10 @@ class _ValkeyLockWrapper:
 
 
 class ValkeySentinelBackend(ValkeyBackend):
-    """A `Valkey <http://valkey.io/>`_ backend, using the
-    `valkey-py <http://pypi.python.org/pypi/valkey/>`_ driver.
+    """A `Valkey <http://valkey.io/>`__ backend, using the
+    `valkey-py <http://pypi.python.org/pypi/valkey/>`__ driver.
     This backend is to be used when using
-    `Valkey Sentinel <https://valkey.io/docs/management/sentinel/>`_.
+    `Valkey Sentinel <https://valkey.io/docs/management/sentinel/>`__.
 
     .. versionadded:: 1.0.0
 
@@ -405,17 +435,17 @@ class ValkeySentinelBackend(ValkeyBackend):
 
 
 class ValkeyClusterBackend(ValkeyBackend):
-    r"""A `Valkey <http://valkey.io/>`_ backend, using the
-    `valkey-py <http://pypi.python.org/pypi/valkey/>`_ driver.
+    r"""A `Valkey <http://valkey.io/>`__ backend, using the
+    `valkey-py <http://pypi.python.org/pypi/valkey/>`__ driver.
     This backend is to be used when connecting to a
-    `Valkey Cluster <https://valkey.io/docs/management/scaling/>`_ which
+    `Valkey Cluster <https://valkey.io/docs/management/scaling/>`__ which
     will use the
     `ValkeyCluster Client
-    <https://valkey.readthedocs.io/en/stable/connections.html#cluster-client>`_.
+    <https://valkey.readthedocs.io/en/stable/connections.html#cluster-client>`__.
 
     .. seealso::
 
-        `Clustering <https://valkey.readthedocs.io/en/stable/clustering.html>`_
+        `Clustering <https://valkey.readthedocs.io/en/stable/clustering.html>`__
         in the valkey-py documentation.
 
     Requires valkey-py version >=4.1.0.
