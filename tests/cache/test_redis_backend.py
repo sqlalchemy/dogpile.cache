@@ -64,6 +64,19 @@ class RedisDistributedMutexTest(_TestRedisConn, _GenericMutexTestSuite):
     }
 
 
+class RedisDistributedMutexPrefixTest(_TestRedisConn, _GenericMutexTestSuite):
+    backend = "dogpile.cache.redis"
+    config_args = {
+        "arguments": {
+            "host": REDIS_HOST,
+            "port": REDIS_PORT,
+            "db": 0,
+            "distributed_lock": True,
+            "lock_prefix": "_lok.",
+        }
+    }
+
+
 class RedisAsyncCreationTest(_TestRedisConn, _GenericBackendFixture):
     backend = "dogpile.cache.redis"
     config_args = {

@@ -64,6 +64,21 @@ class ValkeyDistributedMutexTest(_TestValkeyConn, _GenericMutexTestSuite):
     }
 
 
+class ValkeyDistributedMutexPrefixTest(
+    _TestValkeyConn, _GenericMutexTestSuite
+):
+    backend = "dogpile.cache.valkey"
+    config_args = {
+        "arguments": {
+            "host": VALKEY_HOST,
+            "port": VALKEY_PORT,
+            "db": 0,
+            "distributed_lock": True,
+            "lock_prefix": "_lok.",
+        }
+    }
+
+
 class ValkeyAsyncCreationTest(_TestValkeyConn, _GenericBackendFixture):
     backend = "dogpile.cache.valkey"
     config_args = {
