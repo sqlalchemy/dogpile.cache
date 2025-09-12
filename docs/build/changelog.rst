@@ -4,7 +4,44 @@ Changelog
 
 .. changelog::
     :version: 1.4.1
-    :include_notes_from: unreleased
+    :released: Fri Sep 12 2025
+
+    .. change::
+        :tags: usecase, redis
+        :tickets: 271
+
+        Added new parameters :paramref:`.RedisBackend.lock_blocking_timeout` and
+        :paramref:`.RedisBackend.lock_blocking` to the Redis backend; and
+        :paramref:`.ValkeyBackend.lock_blocking_timeout` and
+        :paramref:`.ValkeyBackend.lock_blocking` to the Valkey backends.  These
+        parameters are then passed onto the redis/valkey client Lock creation
+        methods and use the same defaults.
+
+    .. change::
+        :tags: bug, memory
+        :tickets: 273
+
+        Fixed issue where :meth:`.MemoryBackend.configure` would unexpectedly
+        modify the input arguments dictionary by removing its contents. The method
+        now preserves the original arguments dictionary as expected, consistent
+        with the behavior of other backend types.  Pull request courtesy Nicolas
+        Simonds.
+
+    .. change::
+        :tags: usecase, redis
+        :tickets: 276
+
+        Added new parameters for the Redis/Valkey backends. These params are passed
+        directly to the constructors:
+
+        * :paramref:`.RedisBackend.ssl`
+        * :paramref:`.ValkeyBackend.ssl`
+
+        These params default to ``None``, and are only passed to the constructor if
+        set. The docstrings instruct users to submit all additional ``ssl_``
+        prefixed params via the optional
+        :paramref:`.RedisBackend.connection_kwargs` or
+        :paramref:`.ValkeyBackend.connection_kwargs` parameter.
 
 .. changelog::
     :version: 1.4.0
