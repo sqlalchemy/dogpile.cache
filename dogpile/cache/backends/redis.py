@@ -6,6 +6,7 @@ Provides backends for talking to `Redis <http://redis.io>`__.
 
 """
 
+import re
 import typing
 import warnings
 
@@ -19,6 +20,9 @@ else:
     redis = None  # noqa F811
 
 __all__ = ("RedisBackend", "RedisSentinelBackend", "RedisClusterBackend")
+
+
+RE_VALID_PREFIX = re.compile(r"^[\w\-\.\:]{2,10}$")
 
 
 class RedisBackend(BytesBackend):
@@ -87,6 +91,12 @@ class RedisBackend(BytesBackend):
 
      .. versionadded:: 1.4.1
 
+    :param lock_prefix: string. This prefix is used for generating the name of
+     locks. If customized, the prefix must be between 2 and 10 characters long,
+     and may contain any alphanumeric character and the symbols "_-.:".
+
+     .. versionadded:: 1.5.0
+
     :param socket_timeout: float, seconds for socket timeout.
      Default is None (no timeout).
 
@@ -132,6 +142,8 @@ class RedisBackend(BytesBackend):
      .. versionadded:: 1.1.6
     """
 
+    lock_template: str = "_lock{0}"
+
     def __init__(self, arguments):
         arguments = arguments.copy()
         self._imports()
@@ -173,6 +185,16 @@ class RedisBackend(BytesBackend):
 
         self.redis_expiration_time = arguments.pop("redis_expiration_time", 0)
         self.connection_pool = arguments.pop("connection_pool", None)
+
+        lock_prefix = arguments.pop("lock_prefix", None)
+        if lock_prefix:
+            if (not isinstance(lock_prefix, str)) or (
+                not RE_VALID_PREFIX.match(lock_prefix)
+            ):
+                raise ValueError(
+                    "Invalid `lock_prefix` submitted: `%s`." % lock_prefix
+                )
+            self.lock_template = "%s{0}" % lock_prefix
 
         self._create_client()
 
@@ -225,7 +247,7 @@ class RedisBackend(BytesBackend):
         if self.distributed_lock:
             return _RedisLockWrapper(
                 self.writer_client.lock(
-                    "_lock{0}".format(key),
+                    self.lock_template.format(key),
                     timeout=self.lock_timeout,
                     sleep=self.lock_sleep,
                     thread_local=self.thread_local_lock,
