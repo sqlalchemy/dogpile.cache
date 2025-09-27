@@ -32,7 +32,9 @@ Documentation = "https://dogpilecache.sqlalchemy.org"
 
 [project.optional-dependencies]
 pifpaf = [
-    "pifpaf>=3.2.0",
+    # "pifpaf>=3.3.0",
+    # waiting for https://github.com/jd/pifpaf/pull/203
+    "pifpaf @ git+https://github.com/jd/pifpaf.git@master",
 ]
 pymemcache = [
     "pymemcache",
