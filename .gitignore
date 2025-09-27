@@ -9,6 +9,7 @@ alembic.ini
 *.egg-info
 .coverage
 .tox/
+.nox/
 coverage.xml
 test_*.lock
 test_*.db

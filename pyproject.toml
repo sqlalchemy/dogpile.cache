@@ -46,7 +46,10 @@ bmemcached = [
     "python-binary-memcached",
 ]
 pylibmc = [
-    "pylibmc",
+    # pylibmc is still getting commits in 2025 but has not had a release
+    # since 2022.  needs libmemcached headers etc. to build
+    # "pylibmc",
+    "pylibmc @ git+https://github.com/lericson/pylibmc.git@master"
 ]
 redis = [
     "redis",
@@ -57,6 +60,71 @@ valkey = [
 
 [project.entry-points."mako.cache"]
 "dogpile.cache" = "dogpile.cache.plugins.mako_cache:MakoPlugin"
+
+[dependency-groups]
+tests = [
+    "pytest>8",
+    "pytest-xdist",
+    "mako",
+]
+
+coverage = [
+    "pytest-cov"
+]
+
+tests_redis = [
+    "dogpile.cache[pifpaf]",
+    "dogpile.cache[redis]",
+]
+tests_memcached = [
+    "dogpile.cache[pifpaf]",
+    "dogpile.cache[pymemcache]",
+    "dogpile.cache[memcached]",
+    "dogpile.cache[bmemcached]",
+]
+
+# pylibmc has not had a release for some years and needs to build
+# from source, so don't include it in memcached unless the build is the
+# "full" option
+tests_memcached_full = [
+    {include-group = "tests_memcached"},
+    "dogpile.cache[pylibmc]",
+]
+
+tests_valkey = [
+    "dogpile.cache[pifpaf]",
+    "dogpile.cache[valkey]",
+]
+
+
+lint = [
+      "flake8==7.2.0",
+      "flake8-import-order",
+      "flake8-builtins",
+      "flake8-future-annotations>=0.0.5",
+      "flake8-docstrings>=1.6.0",
+      "flake8-import-single==0.1.5",
+      "flake8-unused-arguments",
+      # flake8-rst-docstrings dependency, leaving it here
+      # in case it requires a version pin
+      "flake8-rst-docstrings",
+      "pydocstyle",
+      "pygments",
+      "black==25.1.0",
+      "slotscheck>=0.17.0",
+]
+
+mypy = [
+    "nox",  # because we check noxfile.py
+    "mypy",
+    "types-decorator",
+    "types-redis",
+    "redis",
+    "valkey",
+    "Mako",
+    "decorator",
+]
+
 
 [tool.setuptools]
 zip-safe = false
