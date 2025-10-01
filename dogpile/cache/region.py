@@ -1642,9 +1642,7 @@ class CacheRegion:
         def cache_decorator(user_func):
             if to_str is cast(Callable[[Any], str], str):
                 # backwards compatible
-                key_generator = _function_key_generator(
-                    namespace, user_func
-                )  # type: ignore
+                key_generator = _function_key_generator(namespace, user_func)
             else:
                 key_generator = _function_key_generator(
                     namespace, user_func, to_str

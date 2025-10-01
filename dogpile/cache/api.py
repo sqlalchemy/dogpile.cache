@@ -498,12 +498,12 @@ class CacheBackend:
 
 
 class DefaultSerialization:
-    serializer: Union[None, Serializer] = staticmethod(  # type: ignore
+    serializer: Union[None, Serializer] = staticmethod(
         pickle.dumps
-    )
-    deserializer: Union[None, Deserializer] = staticmethod(  # type: ignore
+    )  # type: ignore
+    deserializer: Union[None, Deserializer] = staticmethod(
         pickle.loads
-    )
+    )  # type: ignore
 
 
 class BytesBackend(DefaultSerialization, CacheBackend):
