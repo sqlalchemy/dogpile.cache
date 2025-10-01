@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from collections.abc import Generator
 from collections.abc import Mapping
 from collections.abc import Sequence
 import contextlib
@@ -647,7 +648,9 @@ class CacheRegion:
         """
         self.region_invalidator.invalidate(hard)
 
-    def configure_from_config(self, config_dict, prefix):
+    def configure_from_config(
+        self, config_dict: dict[str, Any], prefix: str
+    ) -> Self:
         """Configure from a configuration dictionary
         and a prefix.
 
@@ -679,7 +682,7 @@ class CacheRegion:
             ),
             _config_argument_dict=config_dict,
             _config_prefix="%sarguments." % prefix,
-            wrap=config_dict.get("%swrap" % prefix, None),
+            wrap=config_dict.get("%swrap" % prefix, None),  # type: ignore
             replace_existing_backend=config_dict.get(
                 "%sreplace_existing_backend" % prefix, False
             ),
@@ -692,7 +695,7 @@ class CacheRegion:
         )
 
     @property
-    def is_configured(self):
+    def is_configured(self) -> bool:
         """Return True if the backend has been configured via the
         :meth:`.CacheRegion.configure` method already.
 
@@ -901,7 +904,7 @@ class CacheRegion:
         ]
 
     @contextlib.contextmanager
-    def _log_time(self, keys):
+    def _log_time(self, keys: Sequence[str]) -> Generator[None, None, None]:
         start_time = time.time()
         yield
         seconds = time.time() - start_time
