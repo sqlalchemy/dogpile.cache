@@ -1,9 +1,9 @@
 import abc
 import collections
+from collections.abc import MutableMapping
+from collections.abc import MutableSet
 import re
 import threading
-from typing import MutableMapping
-from typing import MutableSet
 
 import stevedore
 

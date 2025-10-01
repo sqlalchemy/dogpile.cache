@@ -12,9 +12,9 @@ base backend.
 
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
+from collections.abc import Sequence
 from typing import Optional
-from typing import Sequence
 
 from .api import BackendFormatted
 from .api import BackendSetType

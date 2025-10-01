@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from collections.abc import Mapping
+from collections.abc import Sequence
 import contextlib
 import datetime
 from functools import partial
@@ -10,12 +13,8 @@ from numbers import Number
 import threading
 import time
 from typing import Any
-from typing import Callable
 from typing import cast
-from typing import Mapping
 from typing import Optional
-from typing import Sequence
-from typing import Tuple
 from typing import Type
 from typing import TYPE_CHECKING
 from typing import Union
@@ -941,7 +940,7 @@ class CacheRegion:
         creator: Callable[..., ValuePayload],
         expiration_time: Optional[float] = None,
         should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
-        creator_args: Optional[Tuple[Any, Mapping[str, Any]]] = None,
+        creator_args: Optional[tuple[Any, Mapping[str, Any]]] = None,
     ) -> ValuePayload:
         """Return a cached value based on the given key.
 
