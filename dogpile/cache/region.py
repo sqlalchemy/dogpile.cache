@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from collections.abc import Generator
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import Sequence
 import contextlib
 import datetime
 from functools import partial
@@ -10,12 +15,8 @@ from numbers import Number
 import threading
 import time
 from typing import Any
-from typing import Callable
 from typing import cast
-from typing import Mapping
 from typing import Optional
-from typing import Sequence
-from typing import Tuple
 from typing import Type
 from typing import TYPE_CHECKING
 from typing import Union
@@ -64,7 +65,7 @@ AsyncCreator = Callable[
     ["CacheRegion", KeyType, Callable[[], ValuePayload], CacheMutex], None
 ]
 
-ExpirationTimeCallable = Callable[[], float]
+ExpirationTimeCallable = Callable[[], Optional[float]]
 
 ToStr = Callable[[Any], str]
 
@@ -648,7 +649,9 @@ class CacheRegion:
         """
         self.region_invalidator.invalidate(hard)
 
-    def configure_from_config(self, config_dict, prefix):
+    def configure_from_config(
+        self, config_dict: dict[str, Any], prefix: str
+    ) -> Self:
         """Configure from a configuration dictionary
         and a prefix.
 
@@ -680,7 +683,7 @@ class CacheRegion:
             ),
             _config_argument_dict=config_dict,
             _config_prefix="%sarguments." % prefix,
-            wrap=config_dict.get("%swrap" % prefix, None),
+            wrap=config_dict.get("%swrap" % prefix, None),  # type: ignore
             replace_existing_backend=config_dict.get(
                 "%sreplace_existing_backend" % prefix, False
             ),
@@ -693,7 +696,7 @@ class CacheRegion:
         )
 
     @property
-    def is_configured(self):
+    def is_configured(self) -> bool:
         """Return True if the backend has been configured via the
         :meth:`.CacheRegion.configure` method already.
 
@@ -902,7 +905,7 @@ class CacheRegion:
         ]
 
     @contextlib.contextmanager
-    def _log_time(self, keys):
+    def _log_time(self, keys: Iterable[str]) -> Generator[None, None, None]:
         start_time = time.time()
         yield
         seconds = time.time() - start_time
@@ -941,7 +944,7 @@ class CacheRegion:
         creator: Callable[..., ValuePayload],
         expiration_time: Optional[float] = None,
         should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
-        creator_args: Optional[Tuple[Any, Mapping[str, Any]]] = None,
+        creator_args: Optional[tuple[Any, Mapping[str, Any]]] = None,
     ) -> ValuePayload:
         """Return a cached value based on the given key.
 
@@ -1104,7 +1107,7 @@ class CacheRegion:
 
     def get_or_create_multi(
         self,
-        keys: Sequence[KeyType],
+        keys: Iterable[KeyType],
         creator: Callable[[], ValuePayload],
         expiration_time: Optional[float] = None,
         should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
@@ -1327,7 +1330,7 @@ class CacheRegion:
             return cast(CacheReturnType, self.backend.get(key))
 
     def _get_multi_from_backend(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[CacheReturnType]:
         if self.deserializer:
             return [
@@ -1425,7 +1428,7 @@ class CacheRegion:
 
         self.backend.delete(key)
 
-    def delete_multi(self, keys: Sequence[KeyType]) -> None:
+    def delete_multi(self, keys: Iterable[KeyType]) -> None:
         """Remove multiple values from the cache.
 
         This operation is idempotent (can be called multiple times, or on a
@@ -1640,9 +1643,7 @@ class CacheRegion:
         def cache_decorator(user_func):
             if to_str is cast(Callable[[Any], str], str):
                 # backwards compatible
-                key_generator = _function_key_generator(
-                    namespace, user_func
-                )  # type: ignore
+                key_generator = _function_key_generator(namespace, user_func)
             else:
                 key_generator = _function_key_generator(
                     namespace, user_func, to_str

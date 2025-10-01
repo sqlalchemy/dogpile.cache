@@ -81,15 +81,21 @@ version = {attr = "dogpile.__version__"}
 
 [tool.black]
 line-length = 79
-target-version = ['py39']
 
+[tool.mypy]
+python_version = "3.9"
+show_error_codes = true
+incremental = true
+strict = true
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+ignore_missing_imports = true
+warn_unused_ignores = true
 
 [tool.pytest.ini_options]
 addopts = "--tb native -v -r fxX  -p no:logging -p no:warnings -m 'not time_intensive'"
 python_files = "tests/*test_*.py"
 python_classes = "*Test"
-
 filterwarnings = [
     "error"
 ]
-

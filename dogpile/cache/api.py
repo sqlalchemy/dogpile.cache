@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import Sequence
 import enum
 import pickle
 import time
 from typing import Any
-from typing import Callable
 from typing import cast
 from typing import Literal
-from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
-from typing import Sequence
 from typing import Union
 
 from ..util.typing import Self
@@ -297,7 +298,7 @@ class CacheBackend:
         raise NotImplementedError()
 
     def get_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[BackendFormatted]:  # pragma NO COVERAGE
         """Retrieve multiple optionally serialized values from the cache.
 
@@ -340,7 +341,7 @@ class CacheBackend:
         return cast(SerializedReturnType, self.get(key))
 
     def get_serialized_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[SerializedReturnType]:  # pragma NO COVERAGE
         """Retrieve multiple serialized values from the cache.
 
@@ -478,7 +479,7 @@ class CacheBackend:
         raise NotImplementedError()
 
     def delete_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> None:  # pragma NO COVERAGE
         """Delete multiple values from the cache.
 
@@ -498,12 +499,12 @@ class CacheBackend:
 
 
 class DefaultSerialization:
-    serializer: Union[None, Serializer] = staticmethod(  # type: ignore
+    serializer: Union[None, Serializer] = staticmethod(
         pickle.dumps
-    )
-    deserializer: Union[None, Deserializer] = staticmethod(  # type: ignore
+    )  # type: ignore
+    deserializer: Union[None, Deserializer] = staticmethod(
         pickle.loads
-    )
+    )  # type: ignore
 
 
 class BytesBackend(DefaultSerialization, CacheBackend):
@@ -535,7 +536,7 @@ class BytesBackend(DefaultSerialization, CacheBackend):
         raise NotImplementedError()
 
     def get_serialized_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[SerializedReturnType]:  # pragma NO COVERAGE
         """Retrieve multiple serialized values from the cache.
 
