@@ -65,7 +65,7 @@ AsyncCreator = Callable[
     ["CacheRegion", KeyType, Callable[[], ValuePayload], CacheMutex], None
 ]
 
-ExpirationTimeCallable = Callable[[], float]
+ExpirationTimeCallable = Callable[[], Optional[float]]
 
 ToStr = Callable[[Any], str]
 
