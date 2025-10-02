@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from collections.abc import Sequence
+from collections.abc import Iterable
 from hashlib import sha1
 from typing import Any
 from typing import Union
@@ -177,7 +177,7 @@ to_list = langhelpers.to_list
 class repr_obj:
     __slots__ = ("value", "max_chars")
 
-    def __init__(self, value: Sequence[str], max_chars: int = 300) -> None:
+    def __init__(self, value: Iterable[str], max_chars: int = 300) -> None:
         self.value = value
         self.max_chars = max_chars
 

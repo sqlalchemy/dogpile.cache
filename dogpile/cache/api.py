@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Callable
+from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import Sequence
 import enum
@@ -297,7 +298,7 @@ class CacheBackend:
         raise NotImplementedError()
 
     def get_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[BackendFormatted]:  # pragma NO COVERAGE
         """Retrieve multiple optionally serialized values from the cache.
 
@@ -340,7 +341,7 @@ class CacheBackend:
         return cast(SerializedReturnType, self.get(key))
 
     def get_serialized_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[SerializedReturnType]:  # pragma NO COVERAGE
         """Retrieve multiple serialized values from the cache.
 
@@ -478,7 +479,7 @@ class CacheBackend:
         raise NotImplementedError()
 
     def delete_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> None:  # pragma NO COVERAGE
         """Delete multiple values from the cache.
 
@@ -535,7 +536,7 @@ class BytesBackend(DefaultSerialization, CacheBackend):
         raise NotImplementedError()
 
     def get_serialized_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[SerializedReturnType]:  # pragma NO COVERAGE
         """Retrieve multiple serialized values from the cache.
 

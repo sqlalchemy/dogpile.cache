@@ -12,6 +12,7 @@ base backend.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Optional
@@ -102,13 +103,13 @@ class ProxyBackend(CacheBackend):
     def delete(self, key: KeyType) -> None:
         self.proxied.delete(key)
 
-    def get_multi(self, keys: Sequence[KeyType]) -> Sequence[BackendFormatted]:
+    def get_multi(self, keys: Iterable[KeyType]) -> Sequence[BackendFormatted]:
         return self.proxied.get_multi(keys)
 
     def set_multi(self, mapping: Mapping[KeyType, BackendSetType]) -> None:
         self.proxied.set_multi(mapping)
 
-    def delete_multi(self, keys: Sequence[KeyType]) -> None:
+    def delete_multi(self, keys: Iterable[KeyType]) -> None:
         self.proxied.delete_multi(keys)
 
     def get_mutex(self, key: KeyType) -> Optional[CacheMutex]:
@@ -118,7 +119,7 @@ class ProxyBackend(CacheBackend):
         return self.proxied.get_serialized(key)
 
     def get_serialized_multi(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[SerializedReturnType]:
         return self.proxied.get_serialized_multi(keys)
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from collections.abc import Generator
+from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import Sequence
 import contextlib
@@ -904,7 +905,7 @@ class CacheRegion:
         ]
 
     @contextlib.contextmanager
-    def _log_time(self, keys: Sequence[str]) -> Generator[None, None, None]:
+    def _log_time(self, keys: Iterable[str]) -> Generator[None, None, None]:
         start_time = time.time()
         yield
         seconds = time.time() - start_time
@@ -1106,7 +1107,7 @@ class CacheRegion:
 
     def get_or_create_multi(
         self,
-        keys: Sequence[KeyType],
+        keys: Iterable[KeyType],
         creator: Callable[[], ValuePayload],
         expiration_time: Optional[float] = None,
         should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
@@ -1329,7 +1330,7 @@ class CacheRegion:
             return cast(CacheReturnType, self.backend.get(key))
 
     def _get_multi_from_backend(
-        self, keys: Sequence[KeyType]
+        self, keys: Iterable[KeyType]
     ) -> Sequence[CacheReturnType]:
         if self.deserializer:
             return [
@@ -1427,7 +1428,7 @@ class CacheRegion:
 
         self.backend.delete(key)
 
-    def delete_multi(self, keys: Sequence[KeyType]) -> None:
+    def delete_multi(self, keys: Iterable[KeyType]) -> None:
         """Remove multiple values from the cache.
 
         This operation is idempotent (can be called multiple times, or on a
