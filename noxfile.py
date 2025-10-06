@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import List
 
 import nox
 
@@ -14,7 +13,6 @@ if True:
 
 
 PYTHON_VERSIONS = [
-    "3.9",
     "3.10",
     "3.11",
     "3.12",
@@ -42,7 +40,7 @@ nox.options.tags = ["py-generic-memory-dbm"]
 
 
 def pifpaf(
-    cmd: List[str],
+    cmd: list[str],
     module: str,
     *,
     port_env: str = "TOX_DOGPILE_PORT",
@@ -109,7 +107,7 @@ def coverage(session: nox.Session, target: str) -> None:
 
 def _tests(
     session: nox.Session,
-    targets: List[str],
+    targets: list[str],
     coverage: bool = False,
     full: bool = False,
 ) -> None:
@@ -147,73 +145,80 @@ def _tests(
         # pytests separately for each backend rather than having all the
         # services running and figuring out how to keep them all on distinct
         # ports.   so iterate through backends and run individual suites.
-        backend_cmd: List[str] = []
-        pifpaf_cmd: List[str] = []
+        backend_cmd: list[str] = []
+        pifpaf_cmd: list[str] = []
 
         # note the default target is "generic", which means run all the
         # normal tests but no backend tests
-        if target == "generic":
-            backend_cmd.append("-k not backend.py")
-        elif target == "memory":
-            backend_cmd.append("tests/cache/test_memory_backend.py")
-        elif target == "memcached":
-            session.install(
-                *nox.project.dependency_groups(
-                    pyproject,
-                    "tests_memcached_full" if full else "tests_memcached",
+        match target:
+            case "generic":
+                backend_cmd.append("-k not backend.py")
+            case "memory":
+                backend_cmd.append("tests/cache/test_memory_backend.py")
+            case "memcached":
+                session.install(
+                    *nox.project.dependency_groups(
+                        pyproject,
+                        "tests_memcached_full" if full else "tests_memcached",
+                    )
                 )
-            )
 
-            pifpaf(pifpaf_cmd, "memcached")
-            pifpaf(
-                pifpaf_cmd,
-                "memcached",
-                port_env="TOX_DOGPILE_TLS_PORT",
-                port="11212",
-                additonal_args="--ssl_chain_cert=tests/tls/server_chain.pem "
-                "--ssl_key=tests/tls/server.key",
-            )
+                pifpaf(pifpaf_cmd, "memcached")
+                pifpaf(
+                    pifpaf_cmd,
+                    "memcached",
+                    port_env="TOX_DOGPILE_TLS_PORT",
+                    port="11212",
+                    additonal_args=(
+                        "--ssl_chain_cert=tests/tls/server_chain.pem "
+                        "--ssl_key=tests/tls/server.key"
+                    ),
+                )
 
-            backend_cmd.append("tests/cache/test_memcached_backend.py")
-        elif target == "redis":
-            session.install(
-                *nox.project.dependency_groups(pyproject, "tests_redis")
-            )
-            pifpaf(pifpaf_cmd, "redis")
-            backend_cmd.append("tests/cache/test_redis_backend.py")
-        elif target == "valkey":
-            session.install(
-                *nox.project.dependency_groups(pyproject, "tests_valkey")
-            )
-            pifpaf(pifpaf_cmd, "valkey")
-            backend_cmd.append("tests/cache/test_valkey_backend.py")
-        elif target == "redis_sentinel":
-            session.install(
-                *nox.project.dependency_groups(pyproject, "tests_redis")
-            )
+                backend_cmd.append("tests/cache/test_memcached_backend.py")
+            case "redis":
+                session.install(
+                    *nox.project.dependency_groups(pyproject, "tests_redis")
+                )
+                pifpaf(pifpaf_cmd, "redis")
+                backend_cmd.append("tests/cache/test_redis_backend.py")
+            case "valkey":
+                session.install(
+                    *nox.project.dependency_groups(pyproject, "tests_valkey")
+                )
+                pifpaf(pifpaf_cmd, "valkey")
+                backend_cmd.append("tests/cache/test_valkey_backend.py")
+            case "redis_sentinel":
+                session.install(
+                    *nox.project.dependency_groups(pyproject, "tests_redis")
+                )
 
-            pifpaf(
-                pifpaf_cmd,
-                "redis",
-                additonal_args=f"--sentinel  --sentinel "
-                f"--sentinel-port "
-                f"{os.environ.get('TOX_DOGPILE_SENTINEL_PORT', '11235')}",
-            )
-            backend_cmd.append("tests/cache/test_redis_sentinel_backend.py")
-        elif target == "valkey_sentinel":
-            session.install(
-                *nox.project.dependency_groups(pyproject, "tests_valkey")
-            )
-            pifpaf(
-                pifpaf_cmd,
-                "valkey",
-                additonal_args=f"--sentinel  --sentinel "
-                f"--sentinel-port "
-                f"{os.environ.get('TOX_DOGPILE_SENTINEL_PORT', '11235')}",
-            )
-            backend_cmd.append("tests/cache/test_valkey_sentinel_backend.py")
-        elif target == "dbm":
-            backend_cmd.append("tests/cache/test_dbm_backend.py")
+                pifpaf(
+                    pifpaf_cmd,
+                    "redis",
+                    additonal_args=f"--sentinel  --sentinel "
+                    f"--sentinel-port "
+                    f"{os.environ.get('TOX_DOGPILE_SENTINEL_PORT', '11235')}",
+                )
+                backend_cmd.append(
+                    "tests/cache/test_redis_sentinel_backend.py"
+                )
+            case "valkey_sentinel":
+                session.install(
+                    *nox.project.dependency_groups(pyproject, "tests_valkey")
+                )
+                pifpaf(
+                    pifpaf_cmd,
+                    "valkey",
+                    additonal_args=f"--sentinel  --sentinel "
+                    f"--sentinel-port "
+                    f"{os.environ.get('TOX_DOGPILE_SENTINEL_PORT', '11235')}",
+                )
+                backend_cmd.append(
+                    "tests/cache/test_valkey_sentinel_backend.py"
+                )
+            case "dbm":
+                backend_cmd.append("tests/cache/test_dbm_backend.py")
 
         session.run(*pifpaf_cmd, *cmd, *backend_cmd, *session.posargs)
 
