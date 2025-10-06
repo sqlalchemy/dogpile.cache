@@ -227,18 +227,21 @@ def _tests(
         if opts.generate_junit:
             cmd.extend(["--junitxml", "junit-tmp.xml"])
 
-        session.run(*pifpaf_cmd, *cmd, *backend_cmd, *posargs)
+        try:
+            session.run(*pifpaf_cmd, *cmd, *backend_cmd, *posargs)
+        finally:
+            # name the suites distinctly as well.   this is so that when they
+            # get merged we can view each suite distinctly rather than them
+            # getting overwritten with each other since they are running the
+            # same tests
+            if opts.generate_junit:
+                # produce individual junit files that are per-database (or as
+                # close as we can get).  jenkins junit plugin will merge all
+                # the files...
+                junitfile = f"junit-{target}.xml"
+                suite_name = f"pytest-{target}"
 
-        # name the suites distinctly as well.   this is so that when they get
-        # merged we can view each suite distinctly rather than them getting
-        # overwritten with each other since they are running the same tests
-        if opts.generate_junit:
-            # produce individual junit files that are per-database (or as close
-            # as we can get).  jenkins junit plugin will merge all the files...
-            junitfile = f"junit-{target}.xml"
-            suite_name = f"pytest-{target}"
-
-            move_junit_file("junit-tmp.xml", junitfile, suite_name)
+                move_junit_file("junit-tmp.xml", junitfile, suite_name)
 
 
 @nox.session(name="pep484")
