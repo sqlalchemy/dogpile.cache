@@ -66,6 +66,7 @@ tests = [
     "pytest>8",
     "pytest-xdist",
     "mako",
+    "junitparser",
 ]
 
 coverage = [

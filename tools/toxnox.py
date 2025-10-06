@@ -10,12 +10,16 @@ would fall back to defaults.
 
 from __future__ import annotations
 
+import collections
+import os
 import re
 import sys
 from typing import Any
 from typing import Callable
+from typing import List
 from typing import Optional
 from typing import Sequence
+from typing import Tuple
 
 import nox
 
@@ -48,11 +52,12 @@ def tox_parameters(
      joined by ``-``, as well as combinations that include a subset of those
      values, where the omitted elements of the tag are implicitly considered to
      match the "default" value, indicated by them being first in their
-     collection. Additionally, values that start with an underscore are omitted
-     from all ids and tags.   Values that refer to Python versions wlil be
-     expanded to the full Python executable name when passed as arguments to
-     the session function, which is currently a workaround to allow
-     free-threaded python interpreters to be located.
+     collection (with the exception of "python", where the current python in
+     use is the default). Additionally, values that start with an underscore
+     are omitted from all ids and tags.   Values that refer to Python versions
+     wlil be expanded to the full Python executable name when passed as
+     arguments to the session function, which is currently a workaround to
+     allow free-threaded python interpreters to be located.
     :param base_tag: optional tag that will be appended to all tags generated,
      e.g. if the decorator yields tags like ``python314-x86-windows``, a
      ``basetag`` value of ``all`` would yield the
@@ -67,7 +72,7 @@ def tox_parameters(
 
     """
 
-    PY_RE = re.compile(r"(?:python)?([234]\.\d+t?)")
+    PY_RE = re.compile(r"(?:python)?([234]\.\d+(t?))")
 
     def _is_py_version(token):
         return bool(PY_RE.match(token))
@@ -80,8 +85,15 @@ def tox_parameters(
         name
 
         """
+        if sys.platform == "win32":
+            return token
+
         m = PY_RE.match(token)
-        if m:
+
+        # do this matching minimally so that it only happens for the
+        # free-threaded versions.  on windows, the "pythonx.y" syntax doesn't
+        # work due to the use of the "py" tool
+        if m and m.group(2) == "t":
             return f"python{m.group(1)}"
         else:
             return token
@@ -181,7 +193,36 @@ def tox_parameters(
     ]
 
     # for p in params:
-    #   print(f"PARAM {'-'.join(p.args)} TAGS {p.tags}")
-    # breakpoint()
+    #     print(f"PARAM {'-'.join(p.args)} TAGS {p.tags}")
 
     return nox.parametrize(names, params)
+
+
+def extract_opts(posargs: List[str], *args: str) -> Tuple[List[str], Any]:
+
+    underscore_args = [arg.replace("-", "_") for arg in args]
+    return_tuple = collections.namedtuple("options", underscore_args)
+
+    look_for_args = {f"--{arg}": idx for idx, arg in enumerate(args)}
+    return_args = [False for arg in args]
+
+    def extract(arg: str):
+        if arg in look_for_args:
+            return_args[look_for_args[arg]] = True
+            return True
+        else:
+            return False
+
+    return [arg for arg in posargs if not extract(arg)], return_tuple(
+        *return_args
+    )
+
+
+def move_junit_file(tmpfilename: str, newname: str, suite_name: str):
+    import junitparser
+
+    xml = junitparser.JUnitXml.fromfile(tmpfilename)
+    for suite in xml:
+        suite.name = suite_name
+    xml.write(newname)
+    os.unlink(tmpfilename)

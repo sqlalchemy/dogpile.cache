@@ -10,6 +10,8 @@ import nox
 if True:
     sys.path.insert(0, ".")
     from tools.toxnox import tox_parameters
+    from tools.toxnox import extract_opts
+    from tools.toxnox import move_junit_file
 
 
 PYTHON_VERSIONS = [
@@ -220,7 +222,23 @@ def _tests(
             case "dbm":
                 backend_cmd.append("tests/cache/test_dbm_backend.py")
 
-        session.run(*pifpaf_cmd, *cmd, *backend_cmd, *session.posargs)
+        posargs, opts = extract_opts(session.posargs, "generate-junit")
+
+        if opts.generate_junit:
+            cmd.extend(["--junitxml", "junit-tmp.xml"])
+
+        session.run(*pifpaf_cmd, *cmd, *backend_cmd, *posargs)
+
+        # name the suites distinctly as well.   this is so that when they get
+        # merged we can view each suite distinctly rather than them getting
+        # overwritten with each other since they are running the same tests
+        if opts.generate_junit:
+            # produce individual junit files that are per-database (or as close
+            # as we can get).  jenkins junit plugin will merge all the files...
+            junitfile = f"junit-{target}.xml"
+            suite_name = f"pytest-{target}"
+
+            move_junit_file("junit-tmp.xml", junitfile, suite_name)
 
 
 @nox.session(name="pep484")
