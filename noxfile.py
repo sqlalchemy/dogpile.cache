@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import glob
+import itertools
 import os
 import sys
 
@@ -83,22 +85,6 @@ def test_backends(session: nox.Session, target: str, full: str) -> None:
     _tests(session, [target], full=full == "full")
 
 
-@nox.session(name="all")
-@tox_parameters(
-    ["python", "target", "full"],
-    [PYTHON_VERSIONS, ["all"], FULL],
-    always_include_in_tag=["target"],
-)
-def tests_all(session: nox.Session, target: str, full: str) -> None:
-    """Run the main test suite against all backends separately"""
-
-    _tests(
-        session,
-        TARGETS,
-        full=full == "full",
-    )
-
-
 @nox.session(name="coverage")
 @tox_parameters(["target"], [TARGETS], base_tag="coverage")
 def coverage(session: nox.Session, target: str) -> None:
@@ -138,23 +124,28 @@ def _tests(
             ]
         )
 
-    if full:
-        # enables all tags including time_intensive
-        cmd.extend(["-m", ""])
+    if not full:
+        # disable time_intensive
+        cmd.extend(["-m", "not time_intensive"])
+
+    backend_cmd: list[str] = []
+    pifpaf_cmd: list[str] = []
+
+    ports = itertools.count(11212)
 
     for target in targets:
-        # due to the pifpaf thing, it's easier just to run all the
-        # pytests separately for each backend rather than having all the
-        # services running and figuring out how to keep them all on distinct
-        # ports.   so iterate through backends and run individual suites.
-        backend_cmd: list[str] = []
-        pifpaf_cmd: list[str] = []
-
         # note the default target is "generic", which means run all the
         # normal tests but no backend tests
+
         match target:
             case "generic":
-                backend_cmd.append("-k not backend.py")
+                backend_cmd.extend(
+                    [
+                        path
+                        for path in glob.glob("tests/**/*.py", recursive=True)
+                        if "backend" not in path
+                    ]
+                )
             case "memory":
                 backend_cmd.append("tests/cache/test_memory_backend.py")
             case "memcached":
@@ -165,12 +156,16 @@ def _tests(
                     )
                 )
 
-                pifpaf(pifpaf_cmd, "memcached")
+                pifpaf(
+                    pifpaf_cmd,
+                    "memcached",
+                    port=str(next(ports)),
+                )
                 pifpaf(
                     pifpaf_cmd,
                     "memcached",
                     port_env="TOX_DOGPILE_TLS_PORT",
-                    port="11212",
+                    port=str(next(ports)),
                     additonal_args=(
                         "--ssl_chain_cert=tests/tls/server_chain.pem "
                         "--ssl_key=tests/tls/server.key"
@@ -182,13 +177,13 @@ def _tests(
                 session.install(
                     *nox.project.dependency_groups(pyproject, "tests_redis")
                 )
-                pifpaf(pifpaf_cmd, "redis")
+                pifpaf(pifpaf_cmd, "redis", port=str(next(ports)))
                 backend_cmd.append("tests/cache/test_redis_backend.py")
             case "valkey":
                 session.install(
                     *nox.project.dependency_groups(pyproject, "tests_valkey")
                 )
-                pifpaf(pifpaf_cmd, "valkey")
+                pifpaf(pifpaf_cmd, "valkey", port=str(next(ports)))
                 backend_cmd.append("tests/cache/test_valkey_backend.py")
             case "redis_sentinel":
                 session.install(
@@ -198,9 +193,11 @@ def _tests(
                 pifpaf(
                     pifpaf_cmd,
                     "redis",
+                    port=str(next(ports)),
                     additonal_args=f"--sentinel  --sentinel "
                     f"--sentinel-port "
-                    f"{os.environ.get('TOX_DOGPILE_SENTINEL_PORT', '11235')}",
+                    f"""{os.environ.get(
+                        'TOX_DOGPILE_SENTINEL_PORT', str(next(ports)))}""",
                 )
                 backend_cmd.append(
                     "tests/cache/test_redis_sentinel_backend.py"
@@ -212,9 +209,11 @@ def _tests(
                 pifpaf(
                     pifpaf_cmd,
                     "valkey",
+                    port=str(next(ports)),
                     additonal_args=f"--sentinel  --sentinel "
                     f"--sentinel-port "
-                    f"{os.environ.get('TOX_DOGPILE_SENTINEL_PORT', '11235')}",
+                    f"""{os.environ.get(
+                        'TOX_DOGPILE_SENTINEL_PORT', str(next(ports)))}""",
                 )
                 backend_cmd.append(
                     "tests/cache/test_valkey_sentinel_backend.py"
@@ -222,26 +221,27 @@ def _tests(
             case "dbm":
                 backend_cmd.append("tests/cache/test_dbm_backend.py")
 
-        posargs, opts = extract_opts(session.posargs, "generate-junit")
+    posargs, opts = extract_opts(session.posargs, "generate-junit")
 
+    if opts.generate_junit:
+        cmd.extend(["--junitxml", "junit-tmp.xml"])
+
+    try:
+        session.run(*pifpaf_cmd, *cmd, *backend_cmd, *posargs)
+    finally:
+        # name the suites distinctly as well.   this is so that when they
+        # get merged we can view each suite distinctly rather than them
+        # getting overwritten with each other since they are running the
+        # same tests
         if opts.generate_junit:
-            cmd.extend(["--junitxml", "junit-tmp.xml"])
+            # produce individual junit files that are per-database (or as
+            # close as we can get).  jenkins junit plugin will merge all
+            # the files...
+            junit_suffix = "-".join(targets)
+            junitfile = f"junit-{junit_suffix}.xml"
+            suite_name = f"pytest-{junit_suffix}"
 
-        try:
-            session.run(*pifpaf_cmd, *cmd, *backend_cmd, *posargs)
-        finally:
-            # name the suites distinctly as well.   this is so that when they
-            # get merged we can view each suite distinctly rather than them
-            # getting overwritten with each other since they are running the
-            # same tests
-            if opts.generate_junit:
-                # produce individual junit files that are per-database (or as
-                # close as we can get).  jenkins junit plugin will merge all
-                # the files...
-                junitfile = f"junit-{target}.xml"
-                suite_name = f"pytest-{target}"
-
-                move_junit_file("junit-tmp.xml", junitfile, suite_name)
+            move_junit_file("junit-tmp.xml", junitfile, suite_name)
 
 
 @nox.session(name="pep484")
