@@ -13,7 +13,6 @@ if True:
     sys.path.insert(0, ".")
     from tools.toxnox import tox_parameters
     from tools.toxnox import extract_opts
-    from tools.toxnox import move_junit_file
 
 
 PYTHON_VERSIONS = [
@@ -43,7 +42,7 @@ nox.options.sessions = ["simple"]
 nox.options.tags = ["py-generic-memory-dbm"]
 
 
-def pifpaf(
+def _pifpaf(
     cmd: list[str],
     module: str,
     *,
@@ -156,12 +155,12 @@ def _tests(
                     )
                 )
 
-                pifpaf(
+                _pifpaf(
                     pifpaf_cmd,
                     "memcached",
                     port=str(next(ports)),
                 )
-                pifpaf(
+                _pifpaf(
                     pifpaf_cmd,
                     "memcached",
                     port_env="TOX_DOGPILE_TLS_PORT",
@@ -177,20 +176,20 @@ def _tests(
                 session.install(
                     *nox.project.dependency_groups(pyproject, "tests_redis")
                 )
-                pifpaf(pifpaf_cmd, "redis", port=str(next(ports)))
+                _pifpaf(pifpaf_cmd, "redis", port=str(next(ports)))
                 backend_cmd.append("tests/cache/test_redis_backend.py")
             case "valkey":
                 session.install(
                     *nox.project.dependency_groups(pyproject, "tests_valkey")
                 )
-                pifpaf(pifpaf_cmd, "valkey", port=str(next(ports)))
+                _pifpaf(pifpaf_cmd, "valkey", port=str(next(ports)))
                 backend_cmd.append("tests/cache/test_valkey_backend.py")
             case "redis_sentinel":
                 session.install(
                     *nox.project.dependency_groups(pyproject, "tests_redis")
                 )
 
-                pifpaf(
+                _pifpaf(
                     pifpaf_cmd,
                     "redis",
                     port=str(next(ports)),
@@ -206,7 +205,7 @@ def _tests(
                 session.install(
                     *nox.project.dependency_groups(pyproject, "tests_valkey")
                 )
-                pifpaf(
+                _pifpaf(
                     pifpaf_cmd,
                     "valkey",
                     port=str(next(ports)),
@@ -224,24 +223,14 @@ def _tests(
     posargs, opts = extract_opts(session.posargs, "generate-junit")
 
     if opts.generate_junit:
-        cmd.extend(["--junitxml", "junit-tmp.xml"])
+        # produce individual junit files that are per-database (or as
+        # close as we can get).  jenkins junit plugin will merge all
+        # the files...
+        junit_suffix = "-".join(targets)
+        junitfile = f"junit-{junit_suffix}.xml"
+        cmd.extend(["--junitxml", junitfile])
 
-    try:
-        session.run(*pifpaf_cmd, *cmd, *backend_cmd, *posargs)
-    finally:
-        # name the suites distinctly as well.   this is so that when they
-        # get merged we can view each suite distinctly rather than them
-        # getting overwritten with each other since they are running the
-        # same tests
-        if opts.generate_junit:
-            # produce individual junit files that are per-database (or as
-            # close as we can get).  jenkins junit plugin will merge all
-            # the files...
-            junit_suffix = "-".join(targets)
-            junitfile = f"junit-{junit_suffix}.xml"
-            suite_name = f"pytest-{junit_suffix}"
-
-            move_junit_file("junit-tmp.xml", junitfile, suite_name)
+    session.run(*pifpaf_cmd, *cmd, *backend_cmd, *posargs)
 
 
 @nox.session(name="pep484")
