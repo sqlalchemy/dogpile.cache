@@ -32,9 +32,7 @@ Documentation = "https://dogpilecache.sqlalchemy.org"
 
 [project.optional-dependencies]
 pifpaf = [
-    # "pifpaf>=3.3.0",
-    # waiting for https://github.com/jd/pifpaf/pull/203
-    "pifpaf @ git+https://github.com/jd/pifpaf.git@master",
+    "pifpaf>=3.3.0",
 ]
 pymemcache = [
     "pymemcache",
@@ -48,8 +46,11 @@ bmemcached = [
 pylibmc = [
     # pylibmc is still getting commits in 2025 but has not had a release
     # since 2022.  needs libmemcached headers etc. to build
-    # "pylibmc",
-    "pylibmc @ git+https://github.com/lericson/pylibmc.git@master"
+    "pylibmc",
+
+    # this version is needed for builds - see nox -t memcached-full
+    # for special install from source
+    # "pylibmc @ git+https://github.com/lericson/pylibmc.git@master"
 ]
 redis = [
     "redis",
@@ -82,14 +83,9 @@ tests_memcached = [
     "dogpile.cache[pymemcache]",
     "dogpile.cache[memcached]",
     "dogpile.cache[bmemcached]",
-]
 
-# pylibmc has not had a release for some years and needs to build
-# from source, so don't include it in memcached unless the build is the
-# "full" option
-tests_memcached_full = [
-    {include-group = "tests_memcached"},
-    "dogpile.cache[pylibmc]",
+    # disabled for now until a modern release is made
+    # "dogpile.cache[pylibmc]",
 ]
 
 tests_valkey = [

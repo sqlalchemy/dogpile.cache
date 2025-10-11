@@ -151,9 +151,18 @@ def _tests(
                 session.install(
                     *nox.project.dependency_groups(
                         pyproject,
-                        "tests_memcached_full" if full else "tests_memcached",
+                        "tests_memcached",
                     )
                 )
+
+                if full:
+                    # special install of pylibmc from source for full build
+                    # this can't be in pyproject.toml since it's rejected
+                    # by pypi
+                    session.install(
+                        "pylibmc @ "
+                        "git+https://github.com/lericson/pylibmc.git@master"
+                    )
 
                 _pifpaf(
                     pifpaf_cmd,
