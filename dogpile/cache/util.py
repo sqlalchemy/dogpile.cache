@@ -4,7 +4,6 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from hashlib import sha1
 from typing import Any
-from typing import Union
 
 from ..util import compat
 from ..util import langhelpers
@@ -139,7 +138,7 @@ def kwarg_function_key_generator(
     return generate_key
 
 
-def sha1_mangle_key(key: Union[str, bytes]) -> str:
+def sha1_mangle_key(key: str | bytes) -> str:
     """a SHA1 key mangler."""
 
     return sha1(

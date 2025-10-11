@@ -16,10 +16,8 @@ import threading
 import time
 from typing import Any
 from typing import cast
-from typing import Optional
 from typing import Type
 from typing import TYPE_CHECKING
-from typing import Union
 
 from decorator import decorate
 
@@ -65,7 +63,7 @@ AsyncCreator = Callable[
     ["CacheRegion", KeyType, Callable[[], ValuePayload], CacheMutex], None
 ]
 
-ExpirationTimeCallable = Callable[[], Optional[float]]
+ExpirationTimeCallable = Callable[[], float | None]
 
 ToStr = Callable[[Any], str]
 
@@ -400,13 +398,13 @@ class CacheRegion:
 
     def __init__(
         self,
-        name: Optional[str] = None,
+        name: str | None = None,
         function_key_generator: FunctionKeyGenerator = function_key_generator,
         function_multi_key_generator: FunctionMultiKeyGenerator = function_multi_key_generator,  # noqa E501
-        key_mangler: Optional[Callable[[KeyType], KeyType]] = None,
-        serializer: Optional[Callable[[ValuePayload], bytes]] = None,
-        deserializer: Optional[Callable[[bytes], ValuePayload]] = None,
-        async_creation_runner: Optional[AsyncCreator] = None,
+        key_mangler: Callable[[KeyType], KeyType] | None = None,
+        serializer: Callable[[ValuePayload], bytes] | None = None,
+        deserializer: Callable[[bytes], ValuePayload] | None = None,
+        async_creation_runner: AsyncCreator | None = None,
     ):
         """Construct a new :class:`.CacheRegion`."""
         self.name = name
@@ -423,13 +421,13 @@ class CacheRegion:
     def configure(
         self,
         backend: str,
-        expiration_time: Optional[Union[float, datetime.timedelta]] = None,
-        arguments: Optional[BackendArguments] = None,
-        _config_argument_dict: Optional[Mapping[str, Any]] = None,
-        _config_prefix: Optional[str] = None,
-        wrap: Sequence[Union[ProxyBackend, Type[ProxyBackend]]] = (),
+        expiration_time: float | datetime.timedelta | None = None,
+        arguments: BackendArguments | None = None,
+        _config_argument_dict: Mapping[str, Any] | None = None,
+        _config_prefix: str | None = None,
+        wrap: Sequence[ProxyBackend | Type[ProxyBackend]] = (),
         replace_existing_backend: bool = False,
-        region_invalidator: Optional[RegionInvalidationStrategy] = None,
+        region_invalidator: RegionInvalidationStrategy | None = None,
     ) -> Self:
         """Configure a :class:`.CacheRegion`.
 
@@ -505,10 +503,10 @@ class CacheRegion:
         else:
             self.backend = backend_cls(arguments or {})
 
-        self.expiration_time: Union[float, None]
+        self.expiration_time: float | None
 
         if not expiration_time or isinstance(expiration_time, Number):
-            self.expiration_time = cast(Union[None, float], expiration_time)
+            self.expiration_time = cast(None | float, expiration_time)
         elif isinstance(expiration_time, datetime.timedelta):
             self.expiration_time = int(expiration_time.total_seconds())
         else:
@@ -536,7 +534,7 @@ class CacheRegion:
 
         return self
 
-    def wrap(self, proxy: Union[ProxyBackend, Type[ProxyBackend]]) -> None:
+    def wrap(self, proxy: ProxyBackend | Type[ProxyBackend]) -> None:
         """Takes a ProxyBackend instance or class and wraps the
         attached backend."""
 
@@ -708,9 +706,9 @@ class CacheRegion:
     def get(
         self,
         key: KeyType,
-        expiration_time: Optional[float] = None,
+        expiration_time: float | None = None,
         ignore_expiration: bool = False,
-    ) -> Union[ValuePayload, NoValueType]:
+    ) -> ValuePayload | NoValueType:
         """Return a value from the cache, based on the given key.
 
         If the value is not present, the method returns the token
@@ -788,9 +786,9 @@ class CacheRegion:
     def get_value_metadata(
         self,
         key: KeyType,
-        expiration_time: Optional[float] = None,
+        expiration_time: float | None = None,
         ignore_expiration: bool = False,
-    ) -> Optional[CachedValue]:
+    ) -> CachedValue | None:
         """Return the :class:`.CachedValue` object directly from the cache.
 
         This is the enclosing datastructure that includes the value as well as
@@ -815,7 +813,7 @@ class CacheRegion:
     def _get_cache_value(
         self,
         key: KeyType,
-        expiration_time: Optional[float] = None,
+        expiration_time: float | None = None,
         ignore_expiration: bool = False,
     ) -> CacheReturnType:
         if self.key_mangler:
@@ -827,7 +825,7 @@ class CacheRegion:
         return value
 
     def _unexpired_value_fn(
-        self, expiration_time: Optional[float], ignore_expiration: bool
+        self, expiration_time: float | None, ignore_expiration: bool
     ) -> Callable[[CacheReturnType], CacheReturnType]:
         if ignore_expiration:
             return lambda value: value
@@ -942,9 +940,9 @@ class CacheRegion:
         self,
         key: KeyType,
         creator: Callable[..., ValuePayload],
-        expiration_time: Optional[float] = None,
-        should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
-        creator_args: Optional[tuple[Any, Mapping[str, Any]]] = None,
+        expiration_time: float | None = None,
+        should_cache_fn: Callable[[ValuePayload], bool] | None = None,
+        creator_args: tuple[Any, Mapping[str, Any]] | None = None,
     ) -> ValuePayload:
         """Return a cached value based on the given key.
 
@@ -1077,7 +1075,7 @@ class CacheRegion:
         if expiration_time == -1:
             expiration_time = None
 
-        async_creator: Optional[Callable[[CacheMutex], AsyncCreator]]
+        async_creator: Callable[[CacheMutex], AsyncCreator] | None
         if self.async_creation_runner:
             acr = self.async_creation_runner
 
@@ -1109,8 +1107,8 @@ class CacheRegion:
         self,
         keys: Iterable[KeyType],
         creator: Callable[[], ValuePayload],
-        expiration_time: Optional[float] = None,
-        should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
+        expiration_time: float | None = None,
+        should_cache_fn: Callable[[ValuePayload], bool] | None = None,
     ) -> Sequence[ValuePayload]:
         """Return a sequence of cached values based on a sequence of keys.
 
@@ -1257,7 +1255,7 @@ class CacheRegion:
                 mutex.release()
 
     def _value(
-        self, value: Any, metadata: Optional[MetaDataType] = None
+        self, value: Any, metadata: MetaDataType | None = None
     ) -> CachedValue:
         """Return a :class:`.CachedValue` given a value."""
 
@@ -1294,7 +1292,7 @@ class CacheRegion:
         )
 
     def _serialized_payload(
-        self, payload: ValuePayload, metadata: Optional[MetaDataType] = None
+        self, payload: ValuePayload, metadata: MetaDataType | None = None
     ) -> BackendFormatted:
         """Return a backend formatted representation of a value.
 
@@ -1446,11 +1444,11 @@ class CacheRegion:
 
     def cache_on_arguments(
         self,
-        namespace: Optional[str] = None,
-        expiration_time: Union[float, ExpirationTimeCallable, None] = None,
-        should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
+        namespace: str | None = None,
+        expiration_time: float | ExpirationTimeCallable | None = None,
+        should_cache_fn: Callable[[ValuePayload], bool] | None = None,
         to_str: Callable[[Any], str] = str,
-        function_key_generator: Optional[FunctionKeyGenerator] = None,
+        function_key_generator: FunctionKeyGenerator | None = None,
     ) -> Callable[[Callable[..., ValuePayload]], Callable[..., ValuePayload]]:
         """A function decorator that will cache the return
         value of the function using a key derived from the
@@ -1631,10 +1629,10 @@ class CacheRegion:
         def get_or_create_for_user_func(key_generator, user_func, *arg, **kw):
             key = key_generator(*arg, **kw)
 
-            timeout: Optional[float] = (
+            timeout: float | None = (
                 cast(ExpirationTimeCallable, expiration_time)()
                 if expiration_time_is_callable
-                else cast(Optional[float], expiration_time)
+                else cast(float | None, expiration_time)
             )
             return self.get_or_create(
                 key, user_func, timeout, should_cache_fn, (arg, kw)
@@ -1686,19 +1684,15 @@ class CacheRegion:
 
     def cache_multi_on_arguments(
         self,
-        namespace: Optional[str] = None,
-        expiration_time: Union[float, ExpirationTimeCallable, None] = None,
-        should_cache_fn: Optional[Callable[[ValuePayload], bool]] = None,
+        namespace: str | None = None,
+        expiration_time: float | ExpirationTimeCallable | None = None,
+        should_cache_fn: Callable[[ValuePayload], bool] | None = None,
         asdict: bool = False,
         to_str: ToStr = str,
-        function_multi_key_generator: Optional[
-            FunctionMultiKeyGenerator
-        ] = None,
+        function_multi_key_generator: FunctionMultiKeyGenerator | None = None,
     ) -> Callable[
         [Callable[..., Sequence[ValuePayload]]],
-        Callable[
-            ..., Union[Sequence[ValuePayload], Mapping[KeyType, ValuePayload]]
-        ],
+        Callable[..., Sequence[ValuePayload] | Mapping[KeyType, ValuePayload]],
     ]:
         """A function decorator that will cache multiple return
         values from the function using a sequence of keys derived from the
@@ -1828,7 +1822,7 @@ class CacheRegion:
             user_func: Callable[..., Sequence[ValuePayload]],
             *arg: Any,
             **kw: Any,
-        ) -> Union[Sequence[ValuePayload], Mapping[KeyType, ValuePayload]]:
+        ) -> Sequence[ValuePayload] | Mapping[KeyType, ValuePayload]:
             cache_keys = arg
             keys = key_generator(*arg, **kw)
             key_lookup = dict(zip(keys, cache_keys))
@@ -1837,15 +1831,13 @@ class CacheRegion:
             def creator(*keys_to_create):
                 return user_func(*[key_lookup[k] for k in keys_to_create])
 
-            timeout: Optional[float] = (
+            timeout: float | None = (
                 cast(ExpirationTimeCallable, expiration_time)()
                 if expiration_time_is_callable
-                else cast(Optional[float], expiration_time)
+                else cast(float | None, expiration_time)
             )
 
-            result: Union[
-                Sequence[ValuePayload], Mapping[KeyType, ValuePayload]
-            ]
+            result: Sequence[ValuePayload] | Mapping[KeyType, ValuePayload]
 
             if asdict:
 

@@ -15,7 +15,6 @@ from __future__ import annotations
 from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import Sequence
-from typing import Optional
 
 from .api import BackendFormatted
 from .api import BackendSetType
@@ -112,7 +111,7 @@ class ProxyBackend(CacheBackend):
     def delete_multi(self, keys: Iterable[KeyType]) -> None:
         self.proxied.delete_multi(keys)
 
-    def get_mutex(self, key: KeyType) -> Optional[CacheMutex]:
+    def get_mutex(self, key: KeyType) -> CacheMutex | None:
         return self.proxied.get_mutex(key)
 
     def get_serialized(self, key: KeyType) -> SerializedReturnType:

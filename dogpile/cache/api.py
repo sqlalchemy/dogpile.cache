@@ -12,8 +12,6 @@ from typing import Any
 from typing import cast
 from typing import Literal
 from typing import NamedTuple
-from typing import Optional
-from typing import Union
 
 from ..util.typing import Self
 
@@ -167,19 +165,19 @@ class CachedValue(NamedTuple):
         return time.time() - self.cached_time
 
 
-CacheReturnType = Union[CachedValue, NoValueType]
+CacheReturnType = CachedValue | NoValueType
 """The non-serialized form of what may be returned from a backend
 get method.
 
 """
 
-SerializedReturnType = Union[bytes, NoValueType]
+SerializedReturnType = bytes | NoValueType
 """the serialized form of what may be returned from a backend get method."""
 
-BackendFormatted = Union[CacheReturnType, SerializedReturnType]
+BackendFormatted = CacheReturnType | SerializedReturnType
 """Describes the type returned from the :meth:`.CacheBackend.get` method."""
 
-BackendSetType = Union[CachedValue, bytes]
+BackendSetType = CachedValue | bytes
 """Describes the value argument passed to the :meth:`.CacheBackend.set`
 method."""
 
@@ -195,7 +193,7 @@ class CacheBackend:
 
     """
 
-    key_mangler: Optional[Callable[[KeyType], KeyType]] = None
+    key_mangler: Callable[[KeyType], KeyType] | None = None
     """Key mangling function.
 
     May be None, or otherwise declared
@@ -203,7 +201,7 @@ class CacheBackend:
 
     """
 
-    serializer: Union[None, Serializer] = None
+    serializer: Serializer | None = None
     """Serializer function that will be used by default if not overridden
     by the region.
 
@@ -211,7 +209,7 @@ class CacheBackend:
 
     """
 
-    deserializer: Union[None, Deserializer] = None
+    deserializer: Deserializer | None = None
     """deserializer function that will be used by default if not overridden
     by the region.
 
@@ -247,7 +245,7 @@ class CacheBackend:
     def has_lock_timeout(self) -> bool:
         return False
 
-    def get_mutex(self, key: KeyType) -> Optional[CacheMutex]:
+    def get_mutex(self, key: KeyType) -> CacheMutex | None:
         """Return an optional mutexing object for the given key.
 
         This object need only provide an ``acquire()``
@@ -499,8 +497,8 @@ class CacheBackend:
 
 
 class DefaultSerialization:
-    serializer: Union[None, Serializer] = staticmethod(pickle.dumps)
-    deserializer: Union[None, Deserializer] = staticmethod(pickle.loads)
+    serializer: Serializer | None = staticmethod(pickle.dumps)
+    deserializer: Deserializer | None = staticmethod(pickle.loads)
 
 
 class BytesBackend(DefaultSerialization, CacheBackend):
