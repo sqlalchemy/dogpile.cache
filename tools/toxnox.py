@@ -198,7 +198,17 @@ def tox_parameters(
 
 
 def extract_opts(posargs: List[str], *args: str) -> Tuple[List[str], Any]:
+    """Pop individual flag options from session.posargs.
 
+    Returns a named tuple with the individual flag options indicated,
+    as well the new posargs with those flags removed from the string list
+    so that the posargs can be forwarded onto pytest.
+
+    Basically if nox had an option for additional environmental flags that
+    didn't require putting them after ``--``, we wouldn't need this, but this
+    is probably more flexible.
+
+    """
     underscore_args = [arg.replace("-", "_") for arg in args]
     return_tuple = collections.namedtuple("options", underscore_args)
 
