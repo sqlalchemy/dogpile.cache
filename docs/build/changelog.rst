@@ -5,6 +5,7 @@ Changelog
 .. changelog::
     :version: 1.5.0
     :released: Sat Oct 11 2025
+    :released: Sat Oct 11 2025
 
     .. change::
         :tags: bug, typing
