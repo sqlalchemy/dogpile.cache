@@ -10,6 +10,7 @@ alembic.ini
 .coverage
 .tox/
 .nox/
+junit-*.xml
 coverage.xml
 test_*.lock
 test_*.db
