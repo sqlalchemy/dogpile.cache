@@ -4,7 +4,39 @@ Changelog
 
 .. changelog::
     :version: 1.5.0
-    :include_notes_from: unreleased
+    :released: Sat Oct 11 2025
+
+    .. change::
+        :tags: bug, typing
+
+        A wide range of typing improvements and modernizations within the codebase.
+        Pull request courtesy Stephen Finucane.
+
+    .. change::
+        :tags: feature, redis
+        :tickets: 76
+
+        Added a new :paramref:`.RedisBackend.lock_prefix` parameter to the
+        :class:`.RedisBackend` and :class:`.ValkeyBackend` backends to allow
+        customization of the lock key prefix. The prefix must be between 2 and 10
+        characters long and may contain any alphanumeric character and the symbols
+        ``_-.:`` . This allows for improved visual clarity when inspecting backend
+        keys, particularly when key names may be ambiguous with the default
+        ``_lock`` prefix.  Pull request courtesy Jonathan Vanasco.
+
+    .. change::
+        :tags: change, tests
+
+        The top-level test runner has been changed to use ``nox``, adding a
+        ``noxfile.py`` as well as some included modules.   The ``tox.ini`` file
+        remains in place so that ``tox`` runs will continue to function in the near
+        term, however it will be eventually removed and improvements and
+        maintenance going forward will be only towards ``noxfile.py``.
+
+    .. change::
+        :tags: platform, change
+
+        Minimum Python version is now 3.10, as Python 3.9 is EOL.
 
 .. changelog::
     :version: 1.4.1

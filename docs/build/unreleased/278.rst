@@ -1,5 +1,0 @@
-.. change::
-    :tags: bug, typing
-
-    A wide range of typing improvements and modernizations within the codebase.
-    Pull request courtesy Stephen Finucane.
