@@ -123,6 +123,11 @@ def _tests(
             ]
         )
 
+        # run "full" for generic which squeezes out a few more lines
+        # of coverage for lock.py
+        if "generic" in targets:
+            full = True
+
     if not full:
         # disable time_intensive
         cmd.extend(["-m", "not time_intensive"])
