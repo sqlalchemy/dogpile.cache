@@ -145,6 +145,7 @@ def _tests(
                         if "backend" not in path
                     ]
                 )
+                backend_cmd.append("tests/cache/test_null_backend.py")
             case "memory":
                 backend_cmd.append("tests/cache/test_memory_backend.py")
             case "memcached":
