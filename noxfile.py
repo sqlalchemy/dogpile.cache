@@ -15,7 +15,7 @@ nox.needs_version = ">=2025.10.16"
 if True:
     sys.path.insert(0, ".")
     from tools.toxnox import tox_parameters
-    from tools.toxnox import extract_opts
+    from tools.toxnox import apply_pytest_opts
 
 
 PYTHON_VERSIONS = [
@@ -238,15 +238,12 @@ def _tests(
             case "dbm":
                 backend_cmd.append("tests/cache/test_dbm_backend.py")
 
-    posargs, opts = extract_opts(session.posargs, "generate-junit")
-
-    if opts.generate_junit:
-        # produce individual junit files that are per-database (or as
-        # close as we can get).  jenkins junit plugin will merge all
-        # the files...
-        junit_suffix = "-".join(targets)
-        junitfile = f"junit-{junit_suffix}.xml"
-        cmd.extend(["--junitxml", junitfile])
+    posargs = apply_pytest_opts(
+        session,
+        "dogpile",
+        targets,
+        coverage=coverage,
+    )
 
     session.run(*pifpaf_cmd, *cmd, *backend_cmd, *posargs)
 
