@@ -122,6 +122,12 @@ mypy = [
     "decorator",
 ]
 
+[tool.coverage.paths]
+#source=["."]
+
+[tool.coverage.run]
+relative_files = true
+
 
 [tool.setuptools]
 zip-safe = false
