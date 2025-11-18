@@ -560,8 +560,8 @@ class PyMemcacheBackend(GenericMemcachedBackend):
 
      .. versionadded:: 1.1.5
 
-    :param dead_timeout: Time in seconds before attempting to add a node
-     back in the pool in the HashClient's internal mechanisms.
+    :param hashclient_dead_timeout: Time in seconds before attempting to add
+     a node back in the pool in the HashClient's internal mechanisms.
 
      .. versionadded:: 1.1.5
 

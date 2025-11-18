@@ -334,7 +334,7 @@ Changelog
 
             :paramref:`.PyMemcacheBackend.hashclient_retry_timeout`
 
-            :paramref:`.PyMemcacheBackend.dead_timeout`
+            :paramref:`.PyMemcacheBackend.hashclient_dead_timeout`
 
 .. changelog::
     :version: 1.1.4
