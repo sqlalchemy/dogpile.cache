@@ -1,5 +1,6 @@
 import os
 import ssl
+import sys
 from threading import Thread
 import time
 from unittest import mock
@@ -16,6 +17,15 @@ from dogpile.testing import is_
 from dogpile.testing.fixtures import _GenericBackendTestSuite
 from dogpile.testing.fixtures import _GenericMutexTestSuite
 from dogpile.testing.fixtures import _GenericSerializerTestSuite
+
+
+def _is_py314_freethreaded():
+    """Check if running on Python 3.14+ with free-threading (GIL disabled)."""
+    return (
+        sys.version_info >= (3, 14)
+        and hasattr(sys, "_is_gil_enabled")
+        and not sys._is_gil_enabled()
+    )
 
 
 MEMCACHED_PORT = os.getenv("DOGPILE_MEMCACHED_PORT", "11211")
@@ -140,34 +150,62 @@ class PylibmcSerializerTest(
     backend = "dogpile.cache.pylibmc"
 
 
+@pytest.mark.skipif(
+    _is_py314_freethreaded(),
+    reason="bmemcached not compatible with Python 3.14 free-threading",
+)
 class BMemcachedTest(_NonDistributedMemcachedTestSuite):
     backend = "dogpile.cache.bmemcached"
 
 
+@pytest.mark.skipif(
+    _is_py314_freethreaded(),
+    reason="bmemcached not compatible with Python 3.14 free-threading",
+)
 class BMemcachedDistributedWithTimeoutTest(
     _DistributedMemcachedWithTimeoutTestSuite
 ):
     backend = "dogpile.cache.bmemcached"
 
 
+@pytest.mark.skipif(
+    _is_py314_freethreaded(),
+    reason="bmemcached not compatible with Python 3.14 free-threading",
+)
 class BMemcachedTLSTest(_NonDistributedTLSMemcachedTestSuite):
     backend = "dogpile.cache.bmemcached"
 
 
+@pytest.mark.skipif(
+    _is_py314_freethreaded(),
+    reason="bmemcached not compatible with Python 3.14 free-threading",
+)
 class BMemcachedDistributedTest(_DistributedMemcachedTestSuite):
     backend = "dogpile.cache.bmemcached"
 
 
+@pytest.mark.skipif(
+    _is_py314_freethreaded(),
+    reason="bmemcached not compatible with Python 3.14 free-threading",
+)
 class BMemcachedDistributedMutexTest(_DistributedMemcachedMutexTestSuite):
     backend = "dogpile.cache.bmemcached"
 
 
+@pytest.mark.skipif(
+    _is_py314_freethreaded(),
+    reason="bmemcached not compatible with Python 3.14 free-threading",
+)
 class BMemcachedDistributedMutexWithTimeoutTest(
     _DistributedMemcachedMutexWithTimeoutTestSuite
 ):
     backend = "dogpile.cache.bmemcached"
 
 
+@pytest.mark.skipif(
+    _is_py314_freethreaded(),
+    reason="bmemcached not compatible with Python 3.14 free-threading",
+)
 class BMemcachedSerializerTest(
     _GenericSerializerTestSuite, _NonDistributedMemcachedTestSuite
 ):
