@@ -1270,9 +1270,8 @@ class CacheRegion:
             return NO_VALUE
 
         assert self.deserializer
-        byte_value = cast(bytes, value)
 
-        bytes_metadata, _, bytes_payload = byte_value.partition(b"|")
+        bytes_metadata, _, bytes_payload = value.partition(b"|")
         metadata = json.loads(bytes_metadata)
         try:
             payload = self.deserializer(bytes_payload)

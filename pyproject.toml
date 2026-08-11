@@ -113,7 +113,7 @@ lint = [
 
 mypy = [
     "nox",  # because we check noxfile.py
-    "mypy",
+    "mypy>=2.2.0",
     "types-decorator",
     "types-redis",
     "redis",
